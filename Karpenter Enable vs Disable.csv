@@ -1,0 +1,3 @@
+category,COUNT(category)
+Karpenter_Disabled,785
+Karpenter_Enabled,278

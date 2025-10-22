@@ -1,0 +1,366 @@
+Service Name,Non-FKP Instance Count,Commercial ETA,GIA ETA,BlackJack ETA,Requirements
+cloudmap-api,2 | |,To Be Decomissioned,N/A,N/A,None
+containersec-console,1 | |,To Be Decomissioned,N/A,N/A,None
+containersec-eks,1 | |,To Be Decomissioned,N/A,N/A,None
+defender,1 | |,To Be Decomissioned,N/A,N/A,None
+dnr-airflow,| | 1,N/A,N/A,FY27Q1,None
+dnr-connector,| 2 | 1,N/A,Need More Info,FY27Q1,None
+dnr-k2s,| | 1,N/A,N/A,FY27Q1,None
+dnr-molokai,| | 1,N/A,N/A,FY27Q1,None
+dnr-orion,| | 1,N/A,N/A,FY27Q1,None
+dnr-prism,| 1 | 1,N/A,Need More Info,N/A,None
+dnr-streamingsearch,| | 1,N/A,N/A,FY27Q1,None
+eureka,2 | |,To Be Decomissioned,N/A,N/A,None
+kraken,2 | 2 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+midgard,2 | |,Need More Info,N/A,N/A,None
+osquery-agent,| 1 |,N/A,To Be Decomissioned,N/A,None
+sai-gateway,0 | 2 | 1,N/A,FY26Q4,FY27Q1,None
+tentacle,0 | 2 | 1,N/A,FY26Q4,FY27Q1,None
+tvm-db-automation,2 | 2 |,Need More Info,Need More Info,N/A,None
+airfilter,2 | |,Need More Info,N/A,N/A,None
+airlock-high-eks,| | 1,N/A,N/A,Need More Info,None
+airlock-transfer-low-eks,2 | |,Need More Info,N/A,N/A,None
+airtrust,2 | |,Need More Info,N/A,N/A,None
+ajna-self-service,120 | 8 |,FY27Q2,FY27Q1,N/A,"Disruption Control, Self-Service Nodepools"
+ajnaendpoint,78 | 7 | 1,FY27Q2,FY27Q1,FY27Q2,"Disruption Control, Self-Service Nodepools"
+ajnakafka,191 | 22 | 5,FY27Q2,FY27Q1,FY27Q2,"Disruption Control, Self-Service Nodepools"
+ajnakmf,191 | 22 | 5,FY27Q2,FY27Q1,FY27Q2,"Disruption Control, Self-Service Nodepools"
+ajnalionsgate,108 | 7 |,FY27Q2,FY27Q1,N/A,"Disruption Control, Self-Service Nodepools"
+ajnaloadmgr,191 | 22 | 5,FY27Q2,FY27Q1,FY27Q2,"Disruption Control, Self-Service Nodepools"
+ajnamirus,26 | 2 | 2,FY27Q2,FY27Q1,FY27Q2,"Disruption Control, Self-Service Nodepools"
+ajnaoperator,36 | |,FY27Q2,N/A,N/A,"Disruption Control, Self-Service Nodepools"
+ajnatopicapi,90 | 12 | 1,FY27Q2,FY27Q1,FY27Q2,"Disruption Control, Self-Service Nodepools"
+ajnatopicdeployer,150 | 20 |,FY27Q2,FY27Q1,N/A,"Disruption Control, Self-Service Nodepools"
+ajnawrangler,191 | 22 |,FY27Q2,FY27Q1,N/A,"Disruption Control, Self-Service Nodepools"
+ajnazac,186 | |,FY27Q2,N/A,N/A,"Disruption Control, Self-Service Nodepools"
+amg-api,2 | |,Need More Info,N/A,N/A,None
+amg-data,2 | |,Need More Info,N/A,N/A,None
+amg-governance,2 | |,Need More Info,N/A,N/A,None
+amg-infra,2 | |,Need More Info,N/A,N/A,None
+amg-ingress-gateway,2 | |,Need More Info,N/A,N/A,None
+amg-istio,2 | |,Need More Info,N/A,N/A,None
+amg-s2a-api,2 | |,Need More Info,N/A,N/A,None
+amg-topo-api,2 | 0 |,Need More Info,N/A,N/A,None
+amg-topo-tools,2 | 0 |,Need More Info,N/A,N/A,None
+amg-ui,2 | |,Need More Info,N/A,N/A,None
+amg-versionvector-api,2 | |,Need More Info,N/A,N/A,None
+amg-workflow-api,2 | |,Need More Info,N/A,N/A,None
+ami-cleaner,2 | |,FY26Q4,N/A,N/A,None
+ami-perms,2 | |,FY26Q4,N/A,Need More Info,None
+ami-replicator,3 | |,FY26Q4,N/A,Need More Info,None
+argus,3 | |,FY27Q2,N/A,N/A,None
+armada2-api,2 | |,Need More Info,N/A,N/A,None
+armada2-servicecrd,2 | |,Need More Info,N/A,N/A,None
+baas,4 | 2 |,Need More Info,Need More Info,N/A,None
+cloudwatchexporter,26 | 2 | 1,FY27Q1,FY26Q4,Need More Info,None
+container-lifecycle-service,1 | |,FY26Q4,N/A,N/A,None
+container-replicator,2 | |,FY26Q4,N/A,N/A,None
+docker-sigs-replicator,2 | |,FY26Q4,N/A,N/A,None
+dpxbot,2 | |,Need More Info,N/A,N/A,None
+ecr-perms,2 | | 1,FY26Q4,N/A,,None
+fcp-archive-replicator,2 | |,FY26Q4,N/A,N/A,None
+fcp-unzip,1 | | 1,FY26Q4,N/A,,None
+fdxui,1 | |,Need More Info,N/A,N/A,None
+firefly,1 | |,Need More Info,N/A,N/A,None
+firefly-changemgmt,1 | |,Need More Info,N/A,N/A,None
+firefly-intake,1 | |,Need More Info,N/A,N/A,None
+firefly-istio,1 | |,Need More Info,N/A,N/A,None
+firefly-istio-operator,1 | |,Need More Info,N/A,N/A,None
+firefly-package,1 | |,Need More Info,N/A,N/A,None
+firefly-promotion,1 | |,Need More Info,N/A,N/A,None
+firefly-pullrequest,1 | |,Need More Info,N/A,N/A,None
+fit-api,1 | |,FY27Q1,N/A,N/A,None
+fit-controller-service,246 | 23 | 11,FY27Q1,FY27Q1,FY27Q1,None
+cdp-internal-ingress-gateway,80 | 6 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+fit-operations,1 | |,FY27Q1,N/A,N/A,None
+fit-org-service,26 | |,FY27Q1,N/A,N/A,None
+fit-results-publisher,27 | 2 | 1,FY27Q1,FY27Q1,FY27Q1,None
+fit-test-twister,244 | 23 | 11,FY27Q1,FY27Q1,FY27Q1,None
+fit-validator,143 | 8 |,FY27Q1,FY27Q1,N/A,None
+flowsnake-impersonation-proxy,56 | 0 |,FY26Q4,N/A,N/A,None
+flowsnake-spark-operator,56 | |,FY26Q4,N/A,N/A,None
+fre,2 | |,Need More Info,N/A,N/A,None
+fs-flowsnake,54 | 0 |,FY26Q4,N/A,N/A,None
+fs-moana,24 | |,FY26Q4,N/A,N/A,None
+fsre-eks-svc,2 | |,To Be Decomissioned,N/A,N/A,None
+ftg-test-recommender,1 | |,Need More Info,N/A,N/A,None
+funnel,26 | 4 | 1,FY27Q1,FY26Q4,Need More Info,None
+funnel-rl,6 | |,FY27Q1,N/A,N/A,None
+funnelevents,25 | 4 |,FY27Q1,FY26Q4,N/A,None
+funnellogs,25 | 4 | 1,FY27Q1,FY26Q4,Need More Info,None
+gridforce,25 | 0 | 0,FY27Q2,N/A,N/A,Multi-Account
+hbase,73 | 0 | 0,FY27Q2,N/A,N/A,Multi-Account
+helm-archive-replicator,2 | |,FY26Q4,N/A,N/A,None
+helm-extractor,1 | | 1,FY26Q4,N/A,Need More Info,None
+intakeapp,1 | |,To Be Decomissioned,N/A,N/A,None
+integration-test-service,370 | 26 | 11,Need More Info,Need More Info,Need More Info,None
+cdp-policy-engine,39 | 3 |,FY27Q2,Need More Info,N/A,None
+kaiju,1 | | 1,FY26Q4,N/A,Need More Info,None
+macha-api,1 | |,FY26Q4,N/A,N/A,None
+monexapi,1 | |,Need More Info,N/A,N/A,None
+nucleus-jobs,2 | |,Need More Info,N/A,N/A,None
+object-replicator,3 | |,FY26Q4,N/A,N/A,None
+oob-collector,18 | |,Need More Info,N/A,N/A,None
+oob-telemetry-collector,58 | |,Need More Info,N/A,N/A,None
+oracle-large-binaries,1 | |,FY26Q4,N/A,N/A,None
+pcs,5 | | 1,FY26Q4,N/A,Need More Info,None
+pcs-arc,5 | | 1,FY26Q4,N/A,Need More Info,None
+pcs-autohydrator,5 | |,FY26Q4,N/A,N/A,None
+pcs-gumberoo,5 | | 1,FY26Q4,N/A,Need More Info,None
+pcs-hogs,10 | | 1,FY26Q4,N/A,Need More Info,None
+pcs-majordomo,5 | | 1,FY26Q4,N/A,Need More Info,None
+pcs-majordomo-operator,5 | | 1,FY26Q4,N/A,Need More Info,None
+pcs-misr,5 | | 1,FY26Q4,N/A,Need More Info,None
+pcs-tool,5 | | 1,FY26Q4,N/A,Need More Info,None
+productivity-insights-tracer,2 | |,Need More Info,N/A,N/A,None
+public-funnel,5 | |,FY27Q1,N/A,N/A,None
+public-funnelevents,5 | |,FY27Q1,N/A,N/A,None
+public-funnellogs,5 | |,FY27Q1,N/A,N/A,None
+r53proxy,| 51 |,N/A,To Be Decomissioned,N/A,None
+registry,26 | 2 | 1,Need More Info,Need More Info,Need More Info,None
+resultng,2 | | 1,Need More Info,N/A,Need More Info,None
+rossapi,2 | |,FY26Q4,N/A,N/A,None
+rossapi-istio,2 | |,FY26Q4,N/A,N/A,None
+rossexec,2 | |,FY26Q4,N/A,N/A,None
+rosssal,9 | |,FY26Q4,N/A,N/A,None
+rosstest,2 | |,FY26Q4,N/A,N/A,None
+sfcd-argo-workflows,1 | |,Need More Info,N/A,N/A,None
+sfcd-awsbake,3 | | 1,FY27Q4,N/A,Need More Info,None
+sfcd-cs-funnel-metrics,9 | | 1,Need More Info,N/A,Need More Info,None
+sfcd-echovmf,8 | |,Need More Info,N/A,N/A,None
+sfcd-workflow-api,4 | |,Need More Info,N/A,N/A,None
+sfcdconfigservice,| | 1,N/A,N/A,Need More Info,None
+sfcdekstest1,| | 1,N/A,N/A,Need More Info,None
+sfcdpgaas,2 | |,Need More Info,N/A,N/A,None
+sfcdplatform,5 | | 1,Need More Info,N/A,Need More Info,None
+sfcdvmfcm,1 | |,Need More Info,N/A,N/A,None
+sfci-ai,2 | |,Need More Info,N/A,N/A,None
+sfci-build-insights-service,2 | |,Need More Info,N/A,N/A,None
+sfci-builds,2 | |,Need More Info,N/A,N/A,None
+sfci-docker-proxy,2 | |,Need More Info,N/A,N/A,None
+sfci-gec,5 | |,Need More Info,N/A,N/A,None
+sfci-gecistio,2 | |,Need More Info,N/A,N/A,None
+sfci-istio,2 | |,Need More Info,N/A,N/A,None
+sfci-p2p,2 | |,Need More Info,N/A,N/A,None
+sfci-pypi,2 | |,Need More Info,N/A,N/A,None
+sfci-release-master,5 | |,Need More Info,N/A,N/A,None
+sfci-team-master,5 | |,Need More Info,N/A,N/A,None
+sfci-teambuilds,2 | |,Need More Info,N/A,N/A,None
+sfci-teamistio,2 | |,Need More Info,N/A,N/A,None
+sfci-unmanagedistio,1 | |,Need More Info,N/A,N/A,None
+signed-rpms-replicator,2 | |,Need More Info,N/A,N/A,None
+sonarqube,1 | |,Need More Info,N/A,N/A,None
+spinnaker,9 | | 1,Need More Info,N/A,Need More Info,None
+splunkmadeira,8 | 2 | 1,FY27Q2,FY26Q4,Need More Info,None
+stargate,4 | | 1,FY26Q4,N/A,Need More Info,None
+stargate-api,1 | |,FY26Q4,N/A,N/A,None
+stargate-observer,1 | |,FY26Q4,N/A,N/A,None
+stargate-replicator,1 | |,FY26Q4,N/A,N/A,None
+steadybit-agent,1 | |,FY26Q3,N/A,N/A,Dependency on CDP
+steadybit-canary-ordering,1 | |,FY26Q3,N/A,N/A,Dependency on CDP
+steadybit-canary-shipping,1 | |,FY26Q3,N/A,N/A,Dependency on CDP
+steadybit-ext-container,1 | |,FY26Q3,N/A,N/A,Dependency on CDP
+steadybit-ext-host,1 | |,FY26Q3,N/A,N/A,Dependency on CDP
+steadybit-ext-http,1 | |,FY26Q3,N/A,N/A,Dependency on CDP
+steadybit-ext-kubernetes,1 | |,FY26Q3,N/A,N/A,Dependency on CDP
+terraform,26 | 2 | 1,FY26Q4,Need More Info,Need More Info,None
+terraform-latest-tar-updater,1 | |,FY26Q4,N/A,N/A,None
+terraform-replicator,2 | |,FY26Q4,N/A,N/A,None
+tfregistry,2 | |,Need More Info,N/A,N/A,None
+tiim,21 | |,FY26Q4,N/A,N/A,None
+uipengsys-artifact-server,2 | |,Need More Info,N/A,N/A,None
+uipengsys-eks,2 | |,Need More Info,N/A,N/A,None
+uipengsys-internal-ingress-gw,2 | |,Need More Info,N/A,N/A,None
+uipengsys-istio,2 | |,Need More Info,N/A,N/A,None
+uipengsys-istio-ingress-gateway,2 | |,Need More Info,N/A,N/A,None
+uipengsys-queue-server,2 | |,Need More Info,N/A,N/A,None
+uipengsys-tekton,2 | |,Need More Info,N/A,N/A,None
+ump-controller,29 | 2 |,Need More Info,Need More Info,N/A,None
+ump-istio,2 | |,Need More Info,N/A,N/A,None
+yum-updater,1 | |,Need More Info,N/A,N/A,None
+mce-acdc,21 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-acdc-prodx,18 | |,To Be Decomissioned,N/A,N/A,None
+mce-api-gateway,27 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-avant,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-castle-black,22 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-castle-black-prodx,18 | |,To Be Decomissioned,N/A,N/A,None
+mce-cdp-config,14 | |,To Be Decomissioned,N/A,N/A,None
+mce-compute,19 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-control-pod,31 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-deviner,21 | 2 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-eci,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-eci-ui,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ecs-attr-scan,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ecs-ecrubear,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ecs-metalmastodon,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ecs-pinkpuffin,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ecs-streams,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ecs-ui,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ecs-weather,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ect-vision,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ect-vision-ui,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-eef2-activity,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-eef2-config,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-eef2-service,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-eef2-ui,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-eef2-worker,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ees-jb-ui,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-ees-service,5 | |,To Be Decomissioned,N/A,N/A,None
+mce-ees-ui,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-eks,31 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-emi-service,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-emi-ui,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-envoy-metrics-scraper,31 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-goodbye,28 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-hermes-service,31 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-internal-ingress-gateway,31 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-istio,31 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-istio-ingress-gateway,31 | |,To Be Decomissioned,N/A,N/A,None
+mce-lalaland,14 | |,To Be Decomissioned,N/A,N/A,None
+mce-nimbus,1 | |,To Be Decomissioned,N/A,N/A,None
+mce-orchard,21 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-overview,5 | |,To Be Decomissioned,N/A,N/A,None
+mce-preview-service,5 | |,To Be Decomissioned,N/A,N/A,None
+mce-provisioner,28 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-reporting-service,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-slt-service,6 | |,To Be Decomissioned,N/A,N/A,None
+mce-sprinkler,21 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-sto-activity,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-sto-config,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-sto-mobile,12 | |,To Be Decomissioned,N/A,N/A,None
+mce-sto-service,30 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-sto-setup,4 | |,To Be Decomissioned,N/A,N/A,None
+mce-sto-worker,30 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+adstudio-ad-audiences-fe,2 | |,FY26Q3,N/A,N/A,None
+adstudio-campaign-service,2 | |,FY26Q3,N/A,N/A,None
+adstudio-control-box,2 | |,FY26Q3,N/A,N/A,None
+adstudio-eks,2 | |,FY26Q3,N/A,N/A,None
+adstudio-goodbye-service,2 | |,FY26Q3,N/A,N/A,None
+adstudio-istio,2 | |,FY26Q3,N/A,N/A,None
+adstudio-istio-ingress-gateway,2 | |,FY26Q3,N/A,N/A,None
+adstudio-journey-builder-ads,2 | |,FY26Q3,N/A,N/A,None
+adstudio-lead-ingestion,2 | |,FY26Q3,N/A,N/A,None
+adstudio-settingspath-injector,2 | |,FY26Q3,N/A,N/A,None
+ai-metadata-service,39 | 3 |,FY27Q2,Need More Info,N/A,Dependency on CDP
+beacons-control-box,39 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-actions-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-activation-service,140 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-admin-service,40 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-airflow-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-authentication-service,40 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-beacon-ingress-gateway,39 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-beacon-istio,39 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-beacon-metrics-scraper,39 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-billing-service,53 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-byoc-krc,7 | |,Not Started,N/A,N/A,"Platform on Platform for Workloads
+Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account "
+cdp-catalog,26 | |,Need More Info,N/A,N/A,None
+cdp-control-box,40 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-cors-service,1 | |,FY27Q2,N/A,N/A,None
+cdp-data-capture-eks,39 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-data-collaboration,32 | |,Need More Info,N/A,N/A,None
+cdp-data-connectors,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-data-connectors-jobs,100 | 2 |,FY27Q2,Need More Info,N/A,None
+cdp-data-extractor-crm-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-data-extractor-dispatcher,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-data-extractor-events,131 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-data-ingestion-service,77 | 6 |,FY27Q2,Need More Info,N/A,None
+cdp-data-prep,146 | 6 |,Not Started,Not Started,N/A,None
+cdp-data-processing-controller,190 | 8 |,Not Started,Not Started,N/A,"Platform on Platform for Workloads
+Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account "
+cdp-data-service,142 | 5 |,FY27Q2,Need More Info,N/A,"Platform on Platform for Workloads
+Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account "
+cdp-data-sync-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-data-transformation-service,127 | 6 |,FY27Q2,Need More Info,N/A,None
+cdp-dpc-eks,30 | 3 |,Not Started,Not Started,N/A,"Platform on Platform for Workloads
+Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account "
+cdp-eks,40 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-envoy-metrics-scraper,78 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-gdpr-service,136 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-geo-provisioning-service,22 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-hyperdb,39 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-iceberg-explorer,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-inference-engine,176 | 9 |,FY27Q2,Need More Info,N/A,None
+cdp-infra,40 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-insights-engine,135 | 5 |,FY27Q2,Need More Info,N/A,None
+cdp-istio,80 | 6 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-istio-ingress-gateway,40 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-job-uploader,37 | 2 |,FY27Q2,Need More Info,N/A,None
+cdp-keda,40 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-math,1 | |,FY27Q2,N/A,N/A,None
+cdp-math-api,1 | |,FY27Q2,N/A,N/A,None
+cdp-metadata-service,142 | 6 |,FY27Q2,Need More Info,N/A,None
+cdp-mgmt-jit-ui,39 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-multiorg-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-partner-activation-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-pra-istio-ingress-gateway,40 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+cdp-profile-engine,140 | 5 |,FY27Q2,Need More Info,N/A,None
+cdp-query-federator,38 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-query-service,78 | 6 |,FY27Q2,Need More Info,N/A,None
+cdp-realtime-mgmt-service,130 | 7 |,FY27Q2,Need More Info,N/A,None
+cdp-realtime-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-scheduler-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+cdp-segmentation-service,117 | 5 |,FY27Q2,Need More Info,N/A,None
+cdp-settingspath-injector,40 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+credential-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+data-cloud-cdp-fabric-access,39 | 3 |,FY27Q2,Need More Info,N/A,None
+eanalytics,25 | |,FY26Q4,N/A,N/A,Multi-Account
+eanalytics-buzzard,25 | |,FY26Q4,N/A,N/A,Multi-Account
+edc-director,38 | 3 |,FY27Q2,Need More Info,N/A,Dependency on CDP
+edc-inference,38 | 3 |,FY27Q2,Need More Info,N/A,Dependency on CDP
+edc-model-builder,65 | 3 |,FY27Q2,Need More Info,N/A,Dependency on CDP
+ek-harmonization-service,41 | |,FY27Q2,N/A,N/A,None
+hawking-compute-eks,28 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+hawking-compute-proxy,27 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+hawking-istio-igw,25 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+hawking-istio-operator,25 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+hawking-istiod,25 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+hawking-oauth2,25 | 3 |,To Be Decomissioned,To Be Decomissioned,N/A,None
+mce-citadel,3 | |,To Be Decomissioned,N/A,N/A,None
+notebook,22 | 3 |,FY26Q4,FY26Q4,N/A,"Dynamic Namespaces, Dynamic Routing and AuthN/Z"
+p13n-attribution-engine,139 | 5 |,FY27Q2,Need More Info,N/A,None
+p13n-decisioning-pipeline,39 | 3 |,FY27Q2,Need More Info,N/A,None
+p13n-process-object-service,39 | 3 |,FY27Q2,Need More Info,N/A,None
+p13n-recommendation-engine,39 | 3 |,FY27Q2,Need More Info,N/A,None
+psp-index-manager,140 | 3 |,FY27Q2,Need More Info,N/A,None
+sfdw-entitlement-usage-service,132 | 6 |,FY27Q2,Need More Info,N/A,None
+unstructured-realtime,38 | |,FY27Q2,N/A,N/A,None
+c4ssh,34 | | 1,FY26Q3,N/A,Need More Info,None
+cag-firefly-intake,1 | |,To Be Decomissioned,N/A,N/A,None
+cag-firefly-package,1 | |,To Be Decomissioned,N/A,N/A,None
+cag-firefly-pullrequest,1 | |,To Be Decomissioned,N/A,N/A,None
+certificateservices,25 | 2 | 1,Need More Info,Need More Info,Need More Info,None
+edge,31 | |,FY27Q1,N/A,N/A,None
+jit,0 | 2 | 1,N/A,FY26Q3,Need More Info,None
+kaaskeymaker,26 | |,FY26Q4,N/A,N/A,None
+kaaskeywatcher,174 | |,FY26Q4,N/A,N/A,None
+kaasmasterkdc,26 | |,FY26Q4,N/A,N/A,None
+kaasslavekdc,54 | |,FY26Q4,N/A,N/A,None
+kaaswebhook,116 | |,FY26Q4,N/A,N/A,None
+kmsinfra,| | 1,N/A,N/A,Need More Info,None
+magister,| | 2,N/A,N/A,Need More Info,None
+network-access-controller,31 | |,Need More Info,N/A,N/A,None
+patching-bootloader-presigner,1 | 0 |,Need More Info,N/A,N/A,None
+pkiinfra,46 | 2 | 1,FY26Q3,FY26Q3,Need More Info,None
+praui,8 | |,Need More Info,N/A,N/A,None
+privateconnect-outbound-dp,23 | 2 |,Not Started,FY26Q3,N/A,None
+quantumk,0 | 4 | 2,N/A,FY26Q3,Need More Info,None
+quantumkgia2h,2 | |,FY26Q3,N/A,N/A,None
+raphty,0 | 2 | 1,N/A,Need More Info,Need More Info,None
+safe-monitor,136 | 144 |,Need More Info,Need More Info,N/A,None
+sdb,0 | 0 | 1,N/A,N/A,FY26Q4,None
+sdbarchivalworker,0 | 0 | 2,N/A,N/A,FY26Q4,None
+sdbstore,0 | 0 | 2,N/A,N/A,FY26Q4,None
+sdbzk,0 | 0 | 2,N/A,N/A,FY26Q4,None
+smsapi,0 | 0 | 1,N/A,N/A,Need More Info,None
+smscanary,0 | 0 | 1,N/A,N/A,Need More Info,None
+smszk,0 | 0 | 1,N/A,N/A,Need More Info,None
+soterfalcon,1 | | 1,Need More Info,N/A,Need More Info,None
+strauz,0 | | 1,N/A,N/A,Need More Info,None
+ura,24 | |,Need More Info,N/A,N/A,None
+vault-accelerator,25 | 0 |,Need More Info,N/A,N/A,None
+vault-canary,33 | 1 |,Need More Info,Need More Info,N/A,None
+vault-path-manager,28 | 1 |,Need More Info,N/A,N/A,None
+vault-policy-manager,33 | |,Need More Info,N/A,N/A,None
+waas-rate-limiter,29 | |,Need More Info,N/A,N/A,None
+waas-redis,29 | |,Need More Info,N/A,N/A,None

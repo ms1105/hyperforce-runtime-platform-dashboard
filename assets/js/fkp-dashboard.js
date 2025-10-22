@@ -138,7 +138,7 @@ async function loadAllData() {
     try {
         // Load FKP adoption instances data
         console.log('📊 Loading fkp_adoption.csv...');
-        const instancesResponse = await fetch('/fkp_adoption.csv');
+        const instancesResponse = await fetch('fkp_adoption.csv');
         if (!instancesResponse.ok) {
             throw new Error(`Failed to load fkp_adoption.csv: ${instancesResponse.status}`);
         }
@@ -148,7 +148,7 @@ async function loadAllData() {
         
         // Load service cloud mapping data
         console.log('🗺️ Loading service_cloud_mapping_utf8.csv...');
-        const mappingsResponse = await fetch('/assets/data/service_cloud_mapping_utf8.csv');
+        const mappingsResponse = await fetch('assets/data/service_cloud_mapping_utf8.csv');
         if (!mappingsResponse.ok) {
             throw new Error(`Failed to load service_cloud_mapping_utf8.csv: ${mappingsResponse.status}`);
         }
@@ -158,7 +158,7 @@ async function loadAllData() {
         
         // Load mesh services data
         console.log('🕸️ Loading mesh_data.csv...');
-        const meshResponse = await fetch('/assets/data/mesh_data.csv');
+        const meshResponse = await fetch('assets/data/mesh_data.csv');
         if (!meshResponse.ok) {
             throw new Error(`Failed to load mesh_data.csv: ${meshResponse.status}`);
         }
@@ -168,7 +168,7 @@ async function loadAllData() {
         
         // Load BlackJack adoption instances data
         console.log('⚫ Loading blackjack_adoption_normalized.csv...');
-        const blackjackInstancesResponse = await fetch('/assets/data/blackjack_adoption_normalized.csv');
+        const blackjackInstancesResponse = await fetch('assets/data/blackjack_adoption_normalized.csv');
         if (!blackjackInstancesResponse.ok) {
             throw new Error(`Failed to load blackjack_adoption_normalized.csv: ${blackjackInstancesResponse.status}`);
         }
@@ -178,7 +178,7 @@ async function loadAllData() {
         
         // Load BlackJack mesh services data
         console.log('🕸️⚫ Loading blackjack_mesh_services.csv...');
-        const blackjackMeshResponse = await fetch('/assets/data/blackjack_mesh_services.csv');
+        const blackjackMeshResponse = await fetch('assets/data/blackjack_mesh_services.csv');
         if (!blackjackMeshResponse.ok) {
             throw new Error(`Failed to load blackjack_mesh_services.csv: ${blackjackMeshResponse.status}`);
         }
@@ -188,7 +188,7 @@ async function loadAllData() {
         
         // Load Timeline and Requirements data for Stage 3 and growth projections
         console.log('📈 Loading timeline_requirements.csv...');
-        const timelineResponse = await fetch('/assets/data/timeline_requirements.csv');
+        const timelineResponse = await fetch('assets/data/timeline_requirements.csv');
         if (!timelineResponse.ok) {
             throw new Error(`Failed to load timeline_requirements.csv: ${timelineResponse.status}`);
         }

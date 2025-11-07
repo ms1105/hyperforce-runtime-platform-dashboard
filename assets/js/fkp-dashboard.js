@@ -20,8 +20,10 @@ console.log('📊 Current timestamp:', new Date().toISOString());
 // Global state management
 let fkpDashboard = {
     data: {
-        instances: [],           // Raw data from fkp_adoption.csv
-        blackjackInstances: [],  // Raw data from blackjack_adoption_normalized.csv
+        instances: [],           // Raw data from fkp_adoption.csv (current quarter)
+        instancesPrevQ: [],      // Raw data from fkp_adoption_prev_q.csv (previous quarter)
+        blackjackInstances: [],  // Raw data from blackjack_adoption_normalized.csv (current quarter)
+        blackjackInstancesPrevQ: [],  // Raw data from blackjack_adoption_prev_q.csv (previous quarter)
         mappings: [],           // Raw data from service_cloud_mapping_utf8.csv  
         meshServices: [],       // Raw data from mesh_data.csv
         blackjackMeshServices: [], // Raw data from blackjack_mesh_services.csv
@@ -55,7 +57,10 @@ let fkpDashboard = {
         sortOrder: 'desc',
         updatingFilters: false, // Prevent event loops during filter updates
         debounceTimer: null, // For debounced real-time filtering
-        crossCustomerView: 'all' // 'all', 'discrepancies', 'not-started', 'in-progress', or 'complete' for Cross-Customer Analysis
+        crossCustomerView: 'all', // 'all', 'discrepancies', 'not-started', 'in-progress', or 'complete' for Cross-Customer Analysis
+        activeDropdown: null,        // Track which dropdown is currently open
+        dropdownSelectionMode: false, // Track if user is actively making selections
+        selectionTimer: null         // Timer to detect when user is done selecting
     }
 };
 
@@ -142,9 +147,26 @@ async function loadAllData() {
         if (!instancesResponse.ok) {
             throw new Error(`Failed to load fkp_adoption.csv: ${instancesResponse.status}`);
         }
-        const instancesText = await instancesResponse.text();
-        fkpDashboard.data.instances = parseCSV(instancesText);
-        console.log(`✅ Loaded ${fkpDashboard.data.instances.length} instance records`);
+          const instancesText = await instancesResponse.text();
+         const rawCurrentInstances = parseCSV(instancesText);
+         fkpDashboard.data.instances = normalizeInstanceData(rawCurrentInstances, 'FKP Current');
+         console.log(`✅ Loaded and normalized ${fkpDashboard.data.instances.length} instance records`);
+        
+        // Load FKP adoption instances data (previous quarter)
+        console.log('📊📅 Loading fkp_adoption_prev_q.csv...');
+        const instancesPrevQResponse = await fetch('fkp_adoption_prev_q.csv');
+        if (!instancesPrevQResponse.ok) {
+            throw new Error(`Failed to load fkp_adoption_prev_q.csv: ${instancesPrevQResponse.status}`);
+        }
+          const instancesPrevQText = await instancesPrevQResponse.text();
+         const rawPrevInstances = parseCSV(instancesPrevQText);
+         fkpDashboard.data.instancesPrevQ = normalizeInstanceData(rawPrevInstances, 'FKP Previous');
+         console.log(`✅ Loaded and normalized ${fkpDashboard.data.instancesPrevQ.length} previous quarter instance records`);
+        
+        // Debug sample of previous quarter data
+        if (fkpDashboard.data.instancesPrevQ.length > 0) {
+            console.log('📋 Sample previous quarter data:', fkpDashboard.data.instancesPrevQ[0]);
+        }
         
         // Load service cloud mapping data
         console.log('🗺️ Loading service_cloud_mapping_utf8.csv...');
@@ -175,6 +197,34 @@ async function loadAllData() {
         const blackjackInstancesText = await blackjackInstancesResponse.text();
         fkpDashboard.data.blackjackInstances = parseCSV(blackjackInstancesText);
         console.log(`✅ Loaded ${fkpDashboard.data.blackjackInstances.length} BlackJack instance records`);
+        
+        // Load BlackJack adoption instances data (previous quarter - try normalized first)
+        console.log('⚫📅 Loading BlackJack previous quarter data...');
+        let blackjackPrevQLoaded = false;
+        
+        // Try to load normalized version first
+        try {
+            const blackjackInstancesPrevQNormalizedResponse = await fetch('assets/data/blackjack_adoption_prev_q_normalized.csv');
+            if (blackjackInstancesPrevQNormalizedResponse.ok) {
+                const blackjackInstancesPrevQNormalizedText = await blackjackInstancesPrevQNormalizedResponse.text();
+                fkpDashboard.data.blackjackInstancesPrevQ = parseCSV(blackjackInstancesPrevQNormalizedText);
+                console.log(`✅ Loaded ${fkpDashboard.data.blackjackInstancesPrevQ.length} BlackJack previous quarter records (normalized)`);
+                blackjackPrevQLoaded = true;
+            }
+        } catch (normalizedError) {
+            console.log('📋 Normalized previous quarter file not found, trying raw version...');
+        }
+        
+        // Fallback to raw version if normalized not available
+        if (!blackjackPrevQLoaded) {
+            const blackjackInstancesPrevQResponse = await fetch('assets/data/blackjack_adoption_prev_q.csv');
+            if (!blackjackInstancesPrevQResponse.ok) {
+                throw new Error(`Failed to load blackjack_adoption_prev_q.csv: ${blackjackInstancesPrevQResponse.status}`);
+            }
+            const blackjackInstancesPrevQText = await blackjackInstancesPrevQResponse.text();
+            fkpDashboard.data.blackjackInstancesPrevQ = parseCSV(blackjackInstancesPrevQText);
+            console.log(`✅ Loaded ${fkpDashboard.data.blackjackInstancesPrevQ.length} BlackJack previous quarter records (raw - needs normalization)`);
+        }
         
         // Load BlackJack mesh services data
         console.log('🕸️⚫ Loading blackjack_mesh_services.csv...');
@@ -817,7 +867,7 @@ function populateFilterDropdown(filterKey, options) {
 }
 
 /**
- * Handle filter changes and update interdependencies with real-time updates
+ * Handle filter changes and update interdependencies with smart real-time updates
  */
 function handleFilterChange(filterKey, value, isChecked) {
     // Prevent loops during programmatic updates
@@ -840,8 +890,44 @@ function handleFilterChange(filterKey, value, isChecked) {
     
     console.log(`✅ Filter updated: ${filterKey} now has ${fkpDashboard.filters[filterKey].length} items`);
     
-    // Trigger real-time update with debounce
-    debouncedRefresh();
+    // Check if this is the first selection or if clearing all filters
+    const wasEmpty = fkpDashboard.filters[filterKey].length === 1 && isChecked;
+    const nowEmpty = fkpDashboard.filters[filterKey].length === 0;
+    
+    // If clearing all filters, trigger immediate update
+    if (nowEmpty) {
+        console.log('🚀 Clearing filters - immediate update');
+        if (fkpDashboard.state.selectionTimer) {
+            clearTimeout(fkpDashboard.state.selectionTimer);
+            fkpDashboard.state.selectionTimer = null;
+        }
+        fkpDashboard.state.dropdownSelectionMode = false;
+        debouncedRefresh();
+        return;
+    }
+    
+    // If this is the first selection, allow immediate update
+    if (wasEmpty) {
+        console.log('🚀 First selection - immediate update');
+        debouncedRefresh();
+        return;
+    }
+    
+    // Otherwise, enter multi-selection mode
+    fkpDashboard.state.dropdownSelectionMode = true;
+    console.log('⏸️ Multi-selection mode - delaying update');
+    
+    // Clear any existing selection timer
+    if (fkpDashboard.state.selectionTimer) {
+        clearTimeout(fkpDashboard.state.selectionTimer);
+    }
+    
+    // Set timer to detect when user is done with multi-selection
+    fkpDashboard.state.selectionTimer = setTimeout(() => {
+        console.log('⏰ Multi-selection timeout - triggering update');
+        fkpDashboard.state.dropdownSelectionMode = false;
+        debouncedRefresh();
+    }, 1500); // 1.5 second delay allows for multi-selection
 }
 
 /**
@@ -934,9 +1020,15 @@ function autoSelectUniqueValues(availableOptions) {
 }
 
 /**
- * Update filter dropdown options based on available data
+ * Update filter dropdown options based on available data (smart update to avoid disrupting selections)
  */
 function updateFilterDropdownOptions(availableOptions) {
+    // Skip dropdown reconstruction if user is actively making selections
+    if (fkpDashboard.state.dropdownSelectionMode && fkpDashboard.state.activeDropdown) {
+        console.log('⏸️ Skipping dropdown update - user is multi-selecting');
+        return;
+    }
+    
     fkpDashboard.state.updatingFilters = true;
     
     // Update each filter dropdown with available options
@@ -946,6 +1038,12 @@ function updateFilterDropdownOptions(availableOptions) {
         const dropdown = document.getElementById(`${dropdownId}-dropdown`);
         
         if (!dropdown) return;
+        
+        // Skip updating the currently active dropdown to avoid disruption
+        if (fkpDashboard.state.activeDropdown === dropdownId) {
+            console.log(`⏸️ Skipping update for active dropdown: ${dropdownId}`);
+            return;
+        }
         
         // Get current state
         const currentSelections = fkpDashboard.filters[filterKey] || [];
@@ -1084,7 +1182,7 @@ function updateFilterVisibility() {
                 show = ['substrate', 'customer-type', 'instance-env'].includes(filterType);
                 break;
             case 'migration-pipeline':
-                show = ['substrate', 'customer-type', 'instance-env'].includes(filterType);
+                show = ['substrate', 'customer-type'].includes(filterType);
                 break;
             case 'service-information':
                 // All filters apply to service information tab
@@ -1461,6 +1559,10 @@ function generateCallsToAction() {
  */
 function renderExecutiveOverview() {
     console.log('📊 Rendering Overview');
+    
+    // Render service metrics first (includes Growth This Q)
+    renderServiceInformationMetrics();
+    
     const container = document.getElementById('executive-metrics');
     
     // Get filtered data based on view mode and current filters
@@ -1994,8 +2096,12 @@ function getServiceRequirements(serviceName) {
     return `<span class="dependency-text">${requirements}</span>`;
 }
 
+// NOTE: calculateQuarterlyGrowth() function removed - growth calculation now done directly in renderServiceInformationMetrics()
+// This eliminates duplication and guarantees perfect consistency between UI display and growth calculation
+
 /**
  * Get growth projections for next quarter (FY26Q4) using actual service data
+ * NOW FILTER-AWARE: Only calculates projections for services matching current UI filters
  */
 function calculateGrowthProjections() {
     if (!fkpDashboard.data.timelineRequirements || fkpDashboard.data.timelineRequirements.length === 0 || !fkpDashboard.data.processed) {
@@ -2006,11 +2112,22 @@ function calculateGrowthProjections() {
     let servicesCompletingMigration = 0;
     let instancesCompletingMigration = 0;
     
+    // Get currently filtered services to make projections filter-aware
+    const filteredServices = getFilteredServicesForServiceInfo();
+    const filteredServiceNames = new Set(filteredServices.map(s => s.name));
+    
+    console.log(`🔍 Growth Projections: Calculating for ${filteredServiceNames.size} filtered services (out of ${fkpDashboard.data.timelineRequirements.length} total timeline records)`);
+    
     fkpDashboard.data.timelineRequirements.forEach(record => {
         const serviceName = record['Service Name'];
         const commercialETA = record['Commercial ETA'];
         const giaETA = record['GIA ETA'];
         const blackjackETA = record['BlackJack ETA'];
+        
+        // FILTER-AWARE: Only process services that match current UI filters
+        if (!filteredServiceNames.has(serviceName)) {
+            return; // Service not in current filtered view
+        }
         
         // Skip services needing more info
         if (commercialETA === 'Need More Info' && giaETA === 'Need More Info' && blackjackETA === 'Need More Info') {
@@ -2026,7 +2143,7 @@ function calculateGrowthProjections() {
         let serviceWillComplete = false;
         
         // Check each customer type and count only NON-FKP instances that will migrate
-        if ((commercialETA === nextQuarter || commercialETA === 'To Be Decommissioned')) {
+        if ((commercialETA === nextQuarter || commercialETA === 'To Be Decomissioned')) {
             const commercialInstances = service.instances.filter(inst => 
                 inst.customerType === 'Commercial' && !inst.onFKP);
             if (commercialInstances.length > 0) {
@@ -2035,7 +2152,7 @@ function calculateGrowthProjections() {
             }
         }
         
-        if ((giaETA === nextQuarter || giaETA === 'To Be Decommissioned')) {
+        if ((giaETA === nextQuarter || giaETA === 'To Be Decomissioned')) {
             const giaInstances = service.instances.filter(inst => 
                 inst.customerType === 'GIA' && !inst.onFKP);
             if (giaInstances.length > 0) {
@@ -2044,7 +2161,7 @@ function calculateGrowthProjections() {
             }
         }
         
-        if ((blackjackETA === nextQuarter || blackjackETA === 'To Be Decommissioned')) {
+        if ((blackjackETA === nextQuarter || blackjackETA === 'To Be Decomissioned')) {
             const blackjackInstances = service.instances.filter(inst => 
                 inst.customerType === 'BlackJack' && !inst.onFKP);
             if (blackjackInstances.length > 0) {
@@ -2055,8 +2172,11 @@ function calculateGrowthProjections() {
         
         if (serviceWillComplete) {
             servicesCompletingMigration++;
+            console.log(`📈 Growth Projection: ${serviceName} will complete migration (Commercial: ${commercialETA}, GIA: ${giaETA}, BlackJack: ${blackjackETA})`);
         }
     });
+    
+    console.log(`🚀 Growth Projections Results: ${servicesCompletingMigration} services, ${instancesCompletingMigration} instances completing migration in ${nextQuarter}`);
     
     return {
         services: servicesCompletingMigration,
@@ -2127,6 +2247,49 @@ function calculateMigrationStages() {
 }
 
 /**
+ * Helper function to calculate metrics for any quarter's data using consistent filtering
+ */
+function calculateQuarterMetrics(instancesData, blackjackData) {
+    // Temporarily store and replace data for filtering
+    const originalInstances = fkpDashboard.data.instances;
+    const originalBlackjack = fkpDashboard.data.blackjackInstances;
+    const originalProcessed = fkpDashboard.data.processed;
+    
+    // Set the data for the quarter we want to analyze
+    fkpDashboard.data.instances = instancesData;
+    fkpDashboard.data.blackjackInstances = blackjackData;
+    
+    // Re-process to get correct service structure
+    processData();
+    
+    // Use the SAME filtering logic as the UI
+    const filteredServices = getFilteredServicesForServiceInfo();
+    
+    // Calculate metrics using IDENTICAL logic
+    let totalInstances = 0;
+    let totalFkpInstances = 0;
+    
+    filteredServices.forEach(service => {
+        totalInstances += service.totalInstances || 0;
+        totalFkpInstances += service.fkpInstances || 0;
+    });
+    
+    const adoptionPercent = totalInstances > 0 ? (totalFkpInstances / totalInstances) * 100 : 0;
+    
+    // Restore original data
+    fkpDashboard.data.instances = originalInstances;
+    fkpDashboard.data.blackjackInstances = originalBlackjack;
+    fkpDashboard.data.processed = originalProcessed;
+    
+    return {
+        totalInstances,
+        totalFkpInstances,
+        adoptionPercent,
+        serviceCount: filteredServices.length
+    };
+}
+
+/**
  * Render Service Information metrics
  */
 function renderServiceInformationMetrics() {
@@ -2155,7 +2318,7 @@ function renderServiceInformationMetrics() {
     }).length;
     const serviceTypeAdoptionPercent = totalServices > 0 ? (servicesStage4Plus / totalServices) * 100 : 0;
     
-    // Calculate Instance-level metrics (Line 2)
+    // Calculate CURRENT quarter metrics using the SAME logic as UI display
     let totalInstances = 0;
     let totalFkpInstances = 0;
     
@@ -2166,12 +2329,51 @@ function renderServiceInformationMetrics() {
     
     const serviceInstanceAdoptionPercent = totalInstances > 0 ? (totalFkpInstances / totalInstances) * 100 : 0;
     
+    // Calculate PREVIOUS quarter metrics using the SAME filtering logic
+    let prevQuarterData = { totalInstances: 0, totalFkpInstances: 0, adoptionPercent: 0, serviceCount: 0 };
+    
+    if (fkpDashboard.data.instancesPrevQ && fkpDashboard.data.instancesPrevQ.length > 0) {
+        prevQuarterData = calculateQuarterMetrics(
+            fkpDashboard.data.instancesPrevQ, 
+            fkpDashboard.data.blackjackInstancesPrevQ || []
+        );
+    }
+    
+    // Calculate GROWTH using both quarters (SINGLE SOURCE OF TRUTH)
+    const instanceGrowth = totalFkpInstances - prevQuarterData.totalFkpInstances;
+    const adoptionGrowth = serviceInstanceAdoptionPercent - prevQuarterData.adoptionPercent;
+    const instanceGrowthPercent = prevQuarterData.totalFkpInstances > 0 ? 
+        ((totalFkpInstances - prevQuarterData.totalFkpInstances) / prevQuarterData.totalFkpInstances) * 100 : 0;
+    
     // Calculate growth projections for next quarter (FY26Q4)
     const growthProjections = calculateGrowthProjections();
     const projectedServiceAdoption = totalServices > 0 ? 
         ((servicesStage4Plus + growthProjections.services) / totalServices) * 100 : 0;
     const projectedInstanceAdoption = totalInstances > 0 ? 
         ((totalFkpInstances + growthProjections.instances) / totalInstances) * 100 : 0;
+    
+    // Log the unified metrics (SINGLE SOURCE OF TRUTH)
+    console.log('📊 UNIFIED METRICS CALCULATION (SINGLE FUNCTION - PERFECT CONSISTENCY):', {
+        method: 'Both quarters calculated in renderServiceInformationMetrics() using IDENTICAL filtering',
+        current: {
+            totalInstances: totalInstances,
+            fkpInstances: totalFkpInstances,
+            adoption: `${serviceInstanceAdoptionPercent.toFixed(1)}%`,
+            serviceCount: totalServices
+        },
+        previous: {
+            totalInstances: prevQuarterData.totalInstances,
+            fkpInstances: prevQuarterData.totalFkpInstances,
+            adoption: `${prevQuarterData.adoptionPercent.toFixed(1)}%`,
+            serviceCount: prevQuarterData.serviceCount
+        },
+        growth: {
+            instances: `${instanceGrowth >= 0 ? '+' : ''}${instanceGrowth.toLocaleString()} FKP instances`,
+            adoptionPoints: `${adoptionGrowth >= 0 ? '+' : ''}${adoptionGrowth.toFixed(1)}% (percentage points)`,
+            instancesPercent: `${instanceGrowthPercent >= 0 ? '+' : ''}${instanceGrowthPercent.toFixed(1)}%`
+        },
+        consistency: 'GUARANTEED - Both quarters use getFilteredServicesForServiceInfo() with IDENTICAL logic'
+    });
     
     console.log('🚀 Growth Projections:', {
         servicesCompletingMigration: growthProjections.services,
@@ -2212,7 +2414,12 @@ function renderServiceInformationMetrics() {
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Growth This Q</span>
-                        <span class="detail-value">1.1% <span style="font-size: 0.65rem; color: #6b7280;">(from previous Q)</span></span>
+                        <span class="detail-value">
+                            ${adoptionGrowth >= 0 ? '+' : ''}${adoptionGrowth.toFixed(1)}% 
+                            <span style="font-size: 0.65rem; color: #6b7280;">
+                                (${instanceGrowth >= 0 ? '+' : ''}${instanceGrowth.toLocaleString()} FKP instances from prev Q)
+                            </span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -2222,6 +2429,7 @@ function renderServiceInformationMetrics() {
                 <div class="adoption-header">
                     <div class="adoption-percentage">
                         ${serviceTypeAdoptionPercent.toFixed(2)}%
+                        ${projectedServiceAdoption > serviceTypeAdoptionPercent ? `<span class="growth-indicator">→ ${projectedServiceAdoption.toFixed(1)}%</span>` : ''}
                     </div>
                     <div class="adoption-title">Service Adoption</div>
                     <div class="adoption-subtitle">Combined Commercial & GovCloud</div>
@@ -2229,7 +2437,10 @@ function renderServiceInformationMetrics() {
                 <div class="adoption-details">
                     <div class="detail-row">
                         <span class="detail-label">Total Services</span>
-                        <span class="detail-value">${totalServices}</span>
+                        <span class="detail-value">
+                            ${totalServices.toLocaleString()}
+                            ${growthProjections.services > 0 ? `<span class="growth-indicator">+${growthProjections.services.toLocaleString()}</span>` : ''}
+                        </span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Migration Not Started</span>
@@ -2794,6 +3005,27 @@ function toggleDropdown(filterId) {
     const dropdown = document.getElementById(`${filterId}-dropdown`);
     const isOpen = dropdown.style.display === 'block';
     
+    // If opening this dropdown, track it and reset selection mode
+    if (!isOpen) {
+        fkpDashboard.state.activeDropdown = filterId;
+        fkpDashboard.state.dropdownSelectionMode = false;
+        console.log(`📂 Opening dropdown: ${filterId}`);
+        
+        // Clear any pending selection timer
+        if (fkpDashboard.state.selectionTimer) {
+            clearTimeout(fkpDashboard.state.selectionTimer);
+            fkpDashboard.state.selectionTimer = null;
+        }
+    } else {
+        // Closing dropdown - trigger final update if needed
+        if (fkpDashboard.state.dropdownSelectionMode) {
+            console.log(`📂 Closing dropdown: ${filterId} - final update`);
+            fkpDashboard.state.dropdownSelectionMode = false;
+            debouncedRefresh();
+        }
+        fkpDashboard.state.activeDropdown = null;
+    }
+    
     // Close all dropdowns first
     document.querySelectorAll('.dropdown-content').forEach(dd => {
         dd.style.display = 'none';
@@ -2851,6 +3083,18 @@ function toggleSelectAll(filterId) {
     fkpDashboard.state.updatingFilters = false;
     
     console.log(`✅ Select All ${filterKey}: ${shouldSelectAll} (${fkpDashboard.filters[filterKey].length} items)`);
+    
+    // For Select All actions, trigger immediate update (this is usually intentional)
+    // Clear any selection timers since this is a decisive action
+    if (fkpDashboard.state.selectionTimer) {
+        clearTimeout(fkpDashboard.state.selectionTimer);
+        fkpDashboard.state.selectionTimer = null;
+    }
+    
+    // Reset selection mode and trigger update
+    fkpDashboard.state.dropdownSelectionMode = false;
+    console.log('🚀 Select All action - triggering immediate update');
+    debouncedRefresh();
 }
 
 function resetAllFilters() {
@@ -2904,9 +3148,29 @@ function closeServiceModal() {
 // Close dropdowns when clicking outside
 document.addEventListener('click', function(event) {
     if (!event.target.closest('.filter-dropdown')) {
+        // Check if we were in selection mode before closing
+        const wasSelecting = fkpDashboard.state.dropdownSelectionMode;
+        const activeDropdown = fkpDashboard.state.activeDropdown;
+        
+        // Close all dropdowns
         document.querySelectorAll('.dropdown-content').forEach(dd => {
             dd.style.display = 'none';
         });
+        
+        // If user was multi-selecting and clicked outside, trigger final update
+        if (wasSelecting && activeDropdown) {
+            console.log('📂 Click outside - completing multi-selection');
+            fkpDashboard.state.dropdownSelectionMode = false;
+            if (fkpDashboard.state.selectionTimer) {
+                clearTimeout(fkpDashboard.state.selectionTimer);
+                fkpDashboard.state.selectionTimer = null;
+            }
+            debouncedRefresh();
+        }
+        
+        // Reset dropdown state
+        fkpDashboard.state.activeDropdown = null;
+        fkpDashboard.state.dropdownSelectionMode = false;
     }
 });
 
@@ -2961,13 +3225,11 @@ function renderIntegrationsMetrics() {
     const totalIntegrationServices = integrationServices.length;
     const totalInstances = integrationServices.reduce((sum, service) => sum + service.stats.total, 0);
     const fkpInstances = integrationServices.reduce((sum, service) => sum + service.stats.fkp, 0);
-    const instanceAdoptionPercent = totalInstances > 0 ? (fkpInstances / totalInstances) * 100 : 0;
     
     console.log('🔧 DEBUG Metrics:', {
         totalServices: totalIntegrationServices,
         totalInstances: totalInstances,
-        fkpInstances: fkpInstances,
-        adoptionPercent: instanceAdoptionPercent
+        fkpInstances: fkpInstances
     });
     
     const html = `
@@ -2987,11 +3249,6 @@ function renderIntegrationsMetrics() {
                     <div class="metric-value">${fkpInstances.toLocaleString()}</div>
                     <div class="metric-label">FKP Instances</div>
                     <div class="metric-subtitle">on platform</div>
-                </div>
-                <div class="metric-card instance-adoption">
-                    <div class="metric-value">${instanceAdoptionPercent.toFixed(1)}%</div>
-                    <div class="metric-label">Instance Adoption</div>
-                    <div class="metric-subtitle">${fkpInstances.toLocaleString()}/${totalInstances.toLocaleString()} instances</div>
                 </div>
             </div>
         </div>
@@ -3037,7 +3294,6 @@ function renderIntegrationsTable() {
                 <thead>
                     <tr>
                         <th class="service-name-col">Service Name</th>
-                        <th>Instance Adoption %</th>
                         <th>Org Leader</th>
                         <th>Parent Cloud</th>
                         <th>Cloud</th>
@@ -3048,16 +3304,10 @@ function renderIntegrationsTable() {
                 </thead>
                 <tbody>
                     ${integrationServices.map(service => {
-                        const instanceAdoption = service.stats.total > 0 ? 
-                            (service.stats.fkp / service.stats.total) * 100 : 0;
-                        
                         return `
                             <tr onclick="showServiceDetails('${service.name}')">
                                 <td class="service-name-col">
                                     <strong>${service.name}</strong>
-                                </td>
-                                <td>
-                                    <span class="adoption-percent">${instanceAdoption.toFixed(1)}%</span>
                                 </td>
                                 <td>${service.orgLeader}</td>
                                 <td>${service.parentCloud}</td>
@@ -3933,20 +4183,22 @@ window.exportServiceInformationCSV = exportServiceInformationCSV;
 window.exportCrossCustomerCSV = exportCrossCustomerCSV;
 
 /**
- * Get filtered services for Migration Pipeline (respects substrate, customer type, instance env)
+ * Get filtered services for Migration Pipeline (respects substrate, customer type, always includes all environments)
  */
 function getFilteredServicesForMigrationPipeline() {
     const processed = fkpDashboard.data.processed;
     const filters = fkpDashboard.filters;
     
+    console.log('🚀 Migration Pipeline: Using ALL ENVIRONMENTS (Prod + Pre-Prod) - Environment filter disabled for this tab');
+    
     const filteredServices = [];
     
     processed.services.forEach(service => {
-        // Check if service has instances matching customer type and environment filters
+        // Check if service has instances matching customer type (always include all environments)
         const relevantInstances = service.instances.filter(instance => {
             const matchesCustomerType = filters.customerType.includes(instance.customerType);
-            const matchesEnv = filters.instanceEnv.includes(instance.isProd ? 'Prod' : 'Pre-Prod');
-            return matchesCustomerType && matchesEnv;
+            // Always include all environments for Migration Pipeline
+            return matchesCustomerType;
         });
         
         if (relevantInstances.length === 0) return;
@@ -3975,5 +4227,196 @@ function getFilteredServicesForMigrationPipeline() {
     return filteredServices;
 }
 
+
+
+
+/**
+ * Normalize FKP instance data - add missing columns
+ */
+function normalizeInstanceData(instances, source) {
+    return instances.map(instance => {
+        const normalized = { ...instance };
+        
+        // Add customerType based on 'fi' field
+        if (!normalized.customerType) {
+            if (/gia/i.test(normalized.fi || '')) {
+                normalized.customerType = 'GIA';
+            } else {
+                normalized.customerType = 'Commercial';
+            }
+        }
+        
+        // Add migrationStage based on k8s cluster containing "sam"
+        if (!normalized.migrationStage) {
+            const cluster = normalized.k8s_cluster || '';
+            // Stage 4 = FKP (cluster contains "sam"), Stage 1 = Self-Managed (no "sam")
+            // NOTE: Stages 2,3,5,6 are calculated at service level in processData()
+            // Stage 2 (Pre-Prod) = fkpPreProd > 0 && fkpProd === 0
+            // Stage 5 = FKP Prod Complete, Stage 6 = FKP + Mesh Complete
+            const isFKP = /sam/i.test(cluster);
+            normalized.migrationStage = isFKP ? '4' : '1';
+        }
+        
+        return normalized;
+    });
+}
+
+/**
+ * Normalize BlackJack data - convert from detailed format to instance format
+ */
+function normalizeBlackjackData(rawBlackjackData) {
+    const instanceMap = new Map();
+    
+    rawBlackjackData.forEach(row => {
+        const serviceName = row.ServiceName || row.label_p_servicename;
+        const env = row.Env || row.fi;
+        const cluster = row['EKS Cluster Name'] || row.k8s_cluster;
+        
+        if (!serviceName || !env) return;
+        
+        // Create unique key for each instance
+        const key = `${serviceName}-${env}-${cluster}`;
+        
+        if (!instanceMap.has(key)) {
+            instanceMap.set(key, {
+                label_p_servicename: serviceName,
+                fi: env,
+                fd: row.FunctionalDomain || row.fd || 'foundation',
+                k8s_cluster: cluster,
+                customerType: 'BlackJack',
+                migrationStage: /sam/i.test(cluster || '') ? '4' : '1' // FKP if cluster contains "sam"
+            });
+        }
+    });
+    
+    return Array.from(instanceMap.values());
+}
+
+
+/**
+ * Get current unmapped services (overwrite approach)
+ * FIXED: Check against raw mapping data, not processed data which may have 'Unknown' defaults
+ */
+function getCurrentUnmappedServices() {
+    if (!fkpDashboard.data.mappings || fkpDashboard.data.mappings.length === 0) {
+        console.log('⚠️ No mapping data available for unmapped service detection');
+        return [];
+    }
+    
+    // Create set of services that DO have mappings
+    const serviceMapping = new Map();
+    fkpDashboard.data.mappings.forEach(mapping => {
+        const serviceName = mapping.mr_servicename;
+        if (serviceName && serviceName.trim() !== '') {
+            // Check if mapping has required fields (not empty/null)
+            const hasOrgLeader = mapping.asl_manager_name && mapping.asl_manager_name.trim() !== '';
+            const hasCloud = mapping.cloud_name && mapping.cloud_name.trim() !== '';
+            const hasParentCloud = mapping.parent_cloud && mapping.parent_cloud.trim() !== '';
+            
+            if (hasOrgLeader && hasCloud && hasParentCloud) {
+                serviceMapping.set(serviceName.trim(), true);
+            }
+        }
+    });
+    
+    console.log(`📋 Found ${serviceMapping.size} services with complete mappings`);
+    
+    // Find services in our processed data that don't have mappings
+    const unmappedServices = [];
+    
+    if (fkpDashboard.data.processed) {
+        // Check regular services
+        fkpDashboard.data.processed.services.forEach((service, serviceName) => {
+            if (!serviceMapping.has(serviceName) && !INTEGRATION_SERVICES.includes(serviceName)) {
+                unmappedServices.push(serviceName);
+            }
+        });
+        
+        // Integration services are handled separately and get default mappings
+        console.log(`🔧 Integration services (${INTEGRATION_SERVICES.length}) get default mappings and are not considered unmapped`);
+    }
+    
+    console.log(`📊 UNMAPPED SERVICES DETECTION RESULTS:`);
+    console.log(`   - Services with complete mappings: ${serviceMapping.size}`);
+    console.log(`   - Services marked as unmapped: ${unmappedServices.length}`);
+    console.log(`   - Integration services (auto-mapped): ${INTEGRATION_SERVICES.length}`);
+    
+    if (unmappedServices.length > 0) {
+        console.log(`📋 First 10 truly unmapped services:`, unmappedServices.slice(0, 10));
+    } else {
+        console.log(`✅ All services have mappings!`);
+    }
+    
+    return unmappedServices.sort();
+}
+
+/**
+ * Generate CSV content from instance data
+ */
+function generateCSVContent(instances) {
+    if (!instances || instances.length === 0) return '';
+    
+    const headers = Object.keys(instances[0]).join(',');
+    const rows = instances.map(instance => 
+        Object.values(instance).map(value => 
+            typeof value === 'string' && value.includes(',') ? `"${value}"` : value
+        ).join(',')
+    );
+    
+    return [headers, ...rows].join('\n');
+}
+
+/**
+ * Show message to user
+ */
+function showMessage(message, type = 'info') {
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message message-${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        font-weight: 500;
+        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+        color: white;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    // Add to page
+    document.body.appendChild(messageDiv);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => messageDiv.remove(), 300);
+    }, 3000);
+}
+
+// Initialize the dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM Content Loaded, initializing FKP Dashboard...');
+    initializeFKPDashboard();
+});
+
 console.log('✅ FKP Dashboard JavaScript loaded and ready');
 console.log('🔗 Global functions registered for HTML access');
+
+/**
+ * RULE: Data Refresh Process
+ * 
+ * When user says "Refresh Data" or similar, I will:
+ * 1. Read the raw data files (fkp_adoption.csv, fkp_adoption_prev_q.csv, 
+ *    assets/data/blackjack_adoption.csv, assets/data/blackjack_adoption_prev_q.csv)
+ * 2. Process and normalize the data using normalizeInstanceData and normalizeBlackjackData
+ * 3. Generate exact file contents for replacement:
+ *    - blackjack_adoption_normalized.csv (current normalized)
+ *    - blackjack_adoption_prev_q_normalized.csv (previous normalized) 
+ *    - unmapped_services.txt (overwrite with current unmapped services)
+ * 4. Provide exact file contents and replacement instructions
+ */

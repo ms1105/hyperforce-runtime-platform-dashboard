@@ -1347,6 +1347,7 @@ graph-execution-service,Einstein ML Services,Agentforce Foundations,AI Cloud,Mur
 gridforce,Gridforce - Hadoop,HBase & Phoenix,Big Data & Observability,Darryn Dieken
 gridforce-orca,Salesforce Airflow,Salesforce Airflow,Unified Intelligence Platform,Darryn Dieken
 grls-operator,HRMS (fka Core Service Protection / CSP),App Data Services,HPS,Paul Constantinides
+grokker,NetSec - Falcon Platform Services (FPS)-India,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 guan,NetSec - Falcon Platform Services (FPS),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 haasapiworker,Continuous Hammer,Integration and Events,Platform Services,Muralidhar Krishnaprasad
 haastemporalworker,Continuous Hammer,Integration and Events,Platform Services,Muralidhar Krishnaprasad
@@ -2202,6 +2203,7 @@ pcs-tool,Public Cloud Start (PCS) - AWS,Continuous Provisioning,Reliable AI-Driv
 pcsk-falcon-secds-sync-job,Public Cloud Control Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 pcsk-firebom-sync-job,Public Cloud Control Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 pcsk-jit,Public Cloud Control Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
+pcsk-just-in-time,Public Cloud Control Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 pcsk-secds-sync-job,Public Cloud Control Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 pcsk-test-target,Public Cloud Control Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 pcskam,Public Cloud Control Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
@@ -2301,9 +2303,11 @@ regrello,Change Management,ILM - Infrastructure Lifecycle Management,Infrastruct
 regrello-ai-monitoring,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 regrello-app-generation,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 regrello-data-exporter,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
+regrello-document-converter,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 regrello-email-parser,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 regrello-email-renderer,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 regrello-html-to-pdf,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
+regrello-table-extractor,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 regrello-typesense,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 release-signals-bus,Release Intelligence and Signals Engineering (RISE),"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 restoreapp,Data Protection,SDB,HPS,Paul Constantinides

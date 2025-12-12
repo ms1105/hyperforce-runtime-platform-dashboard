@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "timestamp": "2024-12-12T00:00:00Z",
+  "data_range_days": 1,
+  "filters": {
+    "falcon_instance": "aws-prod20-ilcentral1",
+    "functional_domain": "core1"
+  },
+  "summary": {
+    "total_hpa": 150,
+    "falcon_instances": 5,
+    "clusters": 12,
+    "namespaces": 45
+  },
+  "cluster_summary": [
+    {
+      "cluster": "cluster-1",
+      "hpa_count": 25,
+      "falcon_instance": "aws-prod20-ilcentral1",
+      "functional_domain": "core1",
+      "total_current_replicas": 120,
+      "total_desired_replicas": 125,
+      "avg_min_replicas": 2,
+      "avg_max_replicas": 10
+    }
+  ],
+  "hpa_configs": [],
+  "target_metrics": []
+}
+

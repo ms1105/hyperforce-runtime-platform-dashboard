@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "timestamp": "2024-12-12T00:00:00Z",
+  "count": 1,
+  "data": [
+    {
+      "id": "INC001",
+      "title": "Service Availability Issue",
+      "severity": "high",
+      "status": "resolved",
+      "created": "2024-12-10T10:00:00Z",
+      "resolved": "2024-12-10T12:00:00Z",
+      "service": "example-service"
+    }
+  ]
+}
+

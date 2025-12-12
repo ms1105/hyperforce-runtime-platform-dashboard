@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hyperforce Runtime Platform 360 - FKP Adoption Dashboard</title>
     <link rel="stylesheet" href="assets/css/fkp-dashboard.css">
+    <!-- Tailwind CSS for React components -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Choices.js CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
     <!-- Choices.js JavaScript -->
@@ -20,6 +22,7 @@
             </div>
             
             <nav class="sidebar-nav">
+                <!-- Onboarding Section -->
                 <div class="nav-section">
                     <div class="nav-item main-item active" data-section="onboarding">
                         <span class="nav-icon">📊</span>
@@ -47,8 +50,68 @@
                             <span class="nav-text">Integrations</span>
                         </div>
                     </div>
-        </div>
-    </nav>
+                </div>
+
+                <!-- Runtime Scale & Availability Section -->
+                <div class="nav-section">
+                    <div class="nav-item main-item" data-section="runtime">
+                        <span class="nav-icon">⚙️</span>
+                        <span class="nav-text">Runtime Scale & Availability</span>
+                        <span class="nav-arrow">▼</span>
+                    </div>
+                    
+                    <div class="nav-subitems" id="runtime-subitems">
+                        <div class="nav-subitem" data-tab="runtime-overview" data-react-tab="true">
+                            <span class="nav-text">Overview</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="runtime-hpa" data-react-tab="true">
+                            <span class="nav-text">HPA Adoption</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="runtime-incidents" data-react-tab="true">
+                            <span class="nav-text">Incidents & Availability</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="runtime-multiaz" data-react-tab="true">
+                            <span class="nav-text">Multi-AZ</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="runtime-karpenter" data-react-tab="true">
+                            <span class="nav-text">Karpenter</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost to Serve Section -->
+                <div class="nav-section">
+                    <div class="nav-item main-item" data-section="cost">
+                        <span class="nav-icon">💰</span>
+                        <span class="nav-text">Cost to Serve</span>
+                        <span class="nav-arrow">▼</span>
+                    </div>
+                    
+                    <div class="nav-subitems" id="cost-subitems">
+                        <div class="nav-subitem" data-tab="cost-overview" data-react-tab="true">
+                            <span class="nav-text">Overview</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="cost-hcp" data-react-tab="true">
+                            <span class="nav-text">HCP FKP Addon</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Self Serve Section -->
+                <div class="nav-section">
+                    <div class="nav-item main-item" data-section="selfserve">
+                        <span class="nav-icon">🛠️</span>
+                        <span class="nav-text">Self Serve</span>
+                        <span class="nav-arrow">▼</span>
+                    </div>
+                    
+                    <div class="nav-subitems" id="selfserve-subitems">
+                        <div class="nav-subitem" data-tab="selfserve-overview" data-react-tab="true">
+                            <span class="nav-text">Overview</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
         </aside>
 
         <!-- Main Content Area -->
@@ -347,6 +410,9 @@
 
                 <!-- Tab Content -->
                 <div class="tab-content">
+                    <!-- React Tabs Container (hidden by default, shown when React tab is active) -->
+                    <div id="react-tabs-container" class="tab-pane" style="display: none;"></div>
+                    
                     <!-- Executive Overview Tab -->
                     <div class="tab-pane active" id="executive-overview">
                         <div class="tab-header">
@@ -555,10 +621,19 @@
 
     <!-- Scripts -->
     <script src="assets/js/fkp-dashboard.js"></script>
+    
+    <!-- React and ReactDOM from CDN (for GitHub Pages) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- React Tabs Bundle -->
+    <script src="assets/js/react-tabs.js"></script>
+    
     <script>
         // Dashboard initialization is handled in fkp-dashboard.js
         console.log('📋 FKP Adoption Dashboard HTML loaded');
         
+        // React tabs will auto-initialize when loaded
         // All functionality is implemented in fkp-dashboard.js
     </script>
 </body>

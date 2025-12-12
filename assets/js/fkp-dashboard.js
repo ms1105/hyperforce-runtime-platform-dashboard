@@ -154,7 +154,10 @@ async function loadAllData() {
         
         // Load FKP adoption instances data (previous quarter)
         console.log('📊📅 Loading fkp_adoption_prev_q.csv...');
-        const instancesPrevQResponse = await fetch('fkp_adoption_prev_q.csv');
+        let instancesPrevQResponse = await fetch('fkp_adoption_prev_q.csv');
+        if (!instancesPrevQResponse.ok) {
+            instancesPrevQResponse = await fetch('assets/data/fkp_adoption_prev_q.csv');
+        }
         if (!instancesPrevQResponse.ok) {
             throw new Error(`Failed to load fkp_adoption_prev_q.csv: ${instancesPrevQResponse.status}`);
         }
@@ -1169,42 +1172,61 @@ function updateFilterSelectedText(filterKey) {
  */
 function updateFilterVisibility() {
     const currentTab = fkpDashboard.state.currentTab;
-    const filterGroups = document.querySelectorAll('.filter-group');
+    const filtersBar = document.querySelector('.filters-bar');
     
     console.log('🔍 Updating filter visibility for tab:', currentTab);
     
-    filterGroups.forEach(group => {
-        const filterType = group.getAttribute('data-filter');
-        let show = true;
-        
-        switch (currentTab) {
-            case 'executive-overview':
-                show = ['substrate', 'customer-type', 'instance-env'].includes(filterType);
-                break;
-            case 'migration-pipeline':
-                show = ['substrate', 'customer-type'].includes(filterType);
-                break;
-            case 'service-information':
-                // All filters apply to service information tab
-                show = true;
-                break;
-            case 'cross-customer-analysis':
-                // Remove customer-type, instance-env, and migration-stage filters
-                show = !['customer-type', 'instance-env', 'migration-stage'].includes(filterType);
-                break;
-            case 'migration-dependencies':
-                // Same as service information - remove instance-env
-                show = !['instance-env'].includes(filterType);
-                break;
-            case 'integrations':
-                // All filters apply to integrations tab except migration-stage
-                show = !['migration-stage'].includes(filterType);
-                break;
+    // Check if this is a React tab (has data-react-tab attribute)
+    const navItem = document.querySelector(`[data-tab="${currentTab}"]`);
+    const isReactTab = navItem && navItem.hasAttribute('data-react-tab');
+    
+    // Hide filters bar for all tabs except onboarding tabs
+    const onboardingTabs = ['executive-overview', 'migration-pipeline', 'migration-dependencies', 
+                            'service-information', 'cross-customer-analysis', 'integrations'];
+    const isOnboardingTab = onboardingTabs.includes(currentTab);
+    
+    if (filtersBar) {
+        if (isOnboardingTab) {
+            filtersBar.style.display = 'block';
+            
+            // Show/hide individual filters based on tab
+            const filterGroups = document.querySelectorAll('.filter-group');
+            filterGroups.forEach(group => {
+                const filterType = group.getAttribute('data-filter');
+                let show = true;
+                
+                switch (currentTab) {
+                    case 'executive-overview':
+                        show = ['substrate', 'customer-type', 'instance-env'].includes(filterType);
+                        break;
+                    case 'migration-pipeline':
+                        show = ['substrate', 'customer-type'].includes(filterType);
+                        break;
+                    case 'service-information':
+                        // All filters apply to service information tab
+                        show = true;
+                        break;
+                    case 'cross-customer-analysis':
+                        // Remove customer-type, instance-env, and migration-stage filters
+                        show = !['customer-type', 'instance-env', 'migration-stage'].includes(filterType);
+                        break;
+                    case 'migration-dependencies':
+                        // Same as service information - remove instance-env
+                        show = !['instance-env'].includes(filterType);
+                        break;
+                    case 'integrations':
+                        // All filters apply to integrations tab except migration-stage
+                        show = !['migration-stage'].includes(filterType);
+                        break;
+                }
+                
+                group.style.display = show ? 'block' : 'none';
+            });
+        } else {
+            // Hide filters bar for React tabs
+            filtersBar.style.display = 'none';
         }
-        
-        group.style.display = show ? 'block' : 'none';
-        console.log(`📋 Filter ${filterType}: ${show ? 'visible' : 'hidden'}`);
-    });
+    }
 }
 
 /**
@@ -1305,12 +1327,65 @@ function setViewMode(type, value) {
 function switchTab(tabId) {
     console.log('📋 Switching to tab:', tabId);
     
-    // Update sidebar navigation (no longer using tab buttons)
-    // The sidebar active state is handled by the event listener
+    // Check if this is a React tab
+    const navItem = document.querySelector(`[data-tab="${tabId}"]`);
+    const isReactTab = navItem && navItem.hasAttribute('data-react-tab');
     
-    // Update tab content
-    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
+    if (isReactTab) {
+        // Hide all regular tab panes
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('active');
+            if (pane.id !== 'react-tabs-container') {
+                pane.style.display = 'none';
+            }
+        });
+        
+        // Remove padding from content area for React tabs
+        const contentArea = document.querySelector('.content-area');
+        if (contentArea) {
+            contentArea.style.padding = '0';
+        }
+        
+        // Show React container
+        const reactContainer = document.getElementById('react-tabs-container');
+        if (reactContainer) {
+            reactContainer.style.display = 'block';
+            reactContainer.classList.add('active');
+            reactContainer.setAttribute('data-active-tab', tabId);
+            
+            // Trigger React tab update if React is loaded
+            if (window.updateReactTab) {
+                window.updateReactTab(tabId);
+            } else {
+                console.warn('React tabs not loaded yet. Loading...');
+                // React will initialize when loaded
+            }
+        }
+    } else {
+        // Restore padding for regular tabs
+        const contentArea = document.querySelector('.content-area');
+        if (contentArea) {
+            contentArea.style.padding = '';
+        }
+        
+        // Hide React container
+        const reactContainer = document.getElementById('react-tabs-container');
+        if (reactContainer) {
+            reactContainer.style.display = 'none';
+            reactContainer.classList.remove('active');
+        }
+        
+        // Update tab content for regular tabs
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('active');
+            if (pane.id === tabId) {
+                pane.style.display = 'block';
+                pane.classList.add('active');
+            } else if (pane.id !== 'react-tabs-container') {
+                pane.style.display = 'none';
+            }
+        });
+    }
     
     // Add body class for CSS targeting (for filter layout)
     document.body.classList.remove('executive-overview-active');
@@ -1330,8 +1405,10 @@ function switchTab(tabId) {
     // Update filter visibility
     updateFilterVisibility();
     
-    // Refresh content
-    refreshCurrentTab();
+    // Refresh content (only for non-React tabs)
+    if (!isReactTab) {
+        refreshCurrentTab();
+    }
 }
 
 /**
@@ -1367,6 +1444,39 @@ function updatePageHeader(tabId) {
         'integrations': {
             title: 'Integration Services',
             subtitle: 'Integration services excluded from adoption metrics'
+        },
+        // React tabs
+        'runtime-overview': {
+            title: 'Runtime Scale & Availability - Overview',
+            subtitle: 'Monitor autoscaling effectiveness, VPA adoption, and availability metrics'
+        },
+        'runtime-hpa': {
+            title: 'HPA Adoption',
+            subtitle: 'Horizontal Pod Autoscaler adoption and effectiveness'
+        },
+        'runtime-incidents': {
+            title: 'Incidents & Availability',
+            subtitle: 'Service incidents and availability tracking'
+        },
+        'runtime-multiaz': {
+            title: 'Multi-AZ Coverage',
+            subtitle: 'Multi-availability zone deployment status'
+        },
+        'runtime-karpenter': {
+            title: 'Karpenter Rollout',
+            subtitle: 'Karpenter cluster autoscaling rollout progress'
+        },
+        'cost-overview': {
+            title: 'Cost to Serve - Overview',
+            subtitle: 'Platform cost analysis and optimization opportunities'
+        },
+        'cost-hcp': {
+            title: 'HCP FKP Addon',
+            subtitle: 'HCP cost analysis and FKP addon metrics'
+        },
+        'selfserve-overview': {
+            title: 'Self Serve',
+            subtitle: 'Self-service tools and resources for platform management'
         }
     };
     

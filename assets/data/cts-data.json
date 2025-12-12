@@ -1,0 +1,26 @@
+{
+  "summary": {
+    "totalCost": 10792328,
+    "savings": 2345678,
+    "projectedSavings": 3456789,
+    "costIncrease": 567890
+  },
+  "monthlyData": [
+    {
+      "month": "2024-01",
+      "cost": 10234567,
+      "savings": 2100000
+    },
+    {
+      "month": "2024-02",
+      "cost": 10567890,
+      "savings": 2200000
+    },
+    {
+      "month": "2024-03",
+      "cost": 10792328,
+      "savings": 2345678
+    }
+  ]
+}
+

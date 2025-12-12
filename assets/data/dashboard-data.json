@@ -1,0 +1,49 @@
+{
+  "hrpAdoption": {
+    "totalServices": 3420,
+    "fullyMigratedMesh": 1250,
+    "fullyMigrated": 580,
+    "inProgressPartly": 420
+  },
+  "runtime": {
+    "autoscaling": {
+      "hpaAdoptionRate": 68.43,
+      "totalServices": 605,
+      "servicesWithHPA": 414,
+      "avgResponseTime": 145,
+      "scalingEvents": 1234
+    },
+    "vpa": {
+      "adoptionRate": 45.2,
+      "totalServices": 605,
+      "servicesWithVPA": 273
+    },
+    "karpenter": {
+      "clustersEnabled": 12,
+      "totalClusters": 25,
+      "rolloutPercentage": 48.0
+    },
+    "multiaz": {
+      "servicesMultiAZ": 520,
+      "totalServices": 605,
+      "coveragePercentage": 85.95
+    }
+  },
+  "platformCost": {
+    "current": 10792328,
+    "previousMonth": 10234567,
+    "growth": 5.4,
+    "savings": {
+      "vpa": 450000,
+      "spotInstances": 890000,
+      "rightSizing": 320000,
+      "total": 1660000
+    },
+    "projectedSavings": {
+      "aiScaling": 1200000,
+      "storageTiering": 800000,
+      "total": 2000000
+    }
+  }
+}
+

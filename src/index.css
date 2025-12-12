@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.metric-card {
+  @apply bg-white rounded-lg shadow-lg p-6 border-l-4 transition-all duration-300 hover:shadow-xl;
+}
+
+.metric-card.warning {
+  @apply border-warning-500;
+}
+
+.metric-card.success {
+  @apply border-success-500;
+}
+
+.metric-card.primary {
+  @apply border-primary-500;
+}
+
+.metric-card.danger {
+  @apply border-danger-500;
+}
+
+.progress-bar {
+  @apply w-full bg-gray-200 rounded-full h-2 mb-4;
+}
+
+.progress-fill {
+  @apply h-2 rounded-full transition-all duration-500 ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

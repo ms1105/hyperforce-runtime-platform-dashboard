@@ -1,0 +1,8 @@
+metric,value,target,gap,status
+monitoring_detected_count,31,43,12,BELOW_TARGET
+manual_detected_count,14,4,-10,ABOVE_TARGET
+customer_detected_count,2,0,-2,ABOVE_TARGET
+total_incidents,47,47,0,N/A
+monitoring_detection_rate_pct,66,90,24,BELOW_TARGET
+manual_detection_rate_pct,30,10,-20,ABOVE_TARGET
+customer_detection_rate_pct,4,0,-4,ABOVE_TARGET

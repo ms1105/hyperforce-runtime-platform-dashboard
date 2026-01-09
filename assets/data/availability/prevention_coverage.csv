@@ -1,0 +1,20 @@
+service_name,capability_name,coverage_status,coverage_score,notes,last_assessed_date,assessed_by
+FKP,DEFAULT_ALERTS,COMPLETE,1.0,All 15 critical alerts configured and tuned,2024-12-01,Reliability Team
+FKP,TRACER,COMPLETE,1.0,Fully onboarded with 100% span coverage,2024-12-01,Reliability Team
+FKP,DEPENDENCY_MAP,COMPLETE,1.0,All upstream/downstream dependencies mapped,2024-12-01,Reliability Team
+Mesh,DEFAULT_ALERTS,PARTIAL,0.5,Missing alerts for sidecar injection and proxy errors,2024-12-01,Reliability Team
+Mesh,TRACER,COMPLETE,1.0,Fully onboarded via Envoy integration,2024-12-01,Reliability Team
+Mesh,DEPENDENCY_MAP,MISSING,0.0,Dependency mapping not started,2024-12-01,Reliability Team
+Ingress,DEFAULT_ALERTS,COMPLETE,1.0,All traffic and security alerts configured,2024-12-01,Reliability Team
+Ingress,TRACER,COMPLETE,1.0,Edge tracing enabled on all endpoints,2024-12-01,Reliability Team
+Ingress,DEPENDENCY_MAP,COMPLETE,1.0,Full CDN and origin mapping complete,2024-12-01,Reliability Team
+MQ,DEFAULT_ALERTS,MISSING,0.0,Not onboarded to standard alert framework,2024-12-01,Reliability Team
+MQ,TRACER,PARTIAL,0.5,Producer tracing only - no consumer traces,2024-12-01,Reliability Team
+MQ,DEPENDENCY_MAP,MISSING,0.0,No dependency mapping in place,2024-12-01,Reliability Team
+Maps,DEFAULT_ALERTS,PARTIAL,0.5,Basic availability alerts only,2024-12-01,Reliability Team
+Maps,TRACER,MISSING,0.0,Tracing not implemented,2024-12-01,Reliability Team
+Maps,DEPENDENCY_MAP,MISSING,0.0,External data provider deps not mapped,2024-12-01,Reliability Team
+Vega Cache,DEFAULT_ALERTS,COMPLETE,1.0,All memory - connection - and replication alerts,2024-12-01,Reliability Team
+Vega Cache,TRACER,COMPLETE,1.0,Cache hit/miss tracing enabled,2024-12-01,Reliability Team
+Vega Cache,DEPENDENCY_MAP,PARTIAL,0.5,Primary cluster mapped - DR site pending,2024-12-01,Reliability Team
+

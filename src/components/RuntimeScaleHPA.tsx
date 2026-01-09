@@ -181,7 +181,7 @@ const RuntimeScaleHPA: React.FC<RuntimeScaleHPAProps> = ({
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-lg shadow-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold mb-2">RuntimeScale HPA Adoption</h2>
+            <h2 className="text-2xl font-bold mb-2">Autoscaling Overview</h2>
             <p className="text-blue-100">Live data from Huron • Horizontal Pod Autoscaler Configurations</p>
           </div>
           <button

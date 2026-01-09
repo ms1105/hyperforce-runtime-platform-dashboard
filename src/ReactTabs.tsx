@@ -6,6 +6,7 @@ import RuntimeScaleHPA from './components/RuntimeScaleHPA';
 import IncidentView from './components/IncidentView';
 import HCPCostAnalysis from './components/HCPCostAnalysis';
 import HCPCTSProgram from './components/HCPCTSProgram';
+import AvailabilityExecView from './components/AvailabilityExecView';
 import './index.css';
 
 // Mock/Static data loader for GitHub Pages
@@ -171,7 +172,7 @@ const ReactTabs: React.FC = () => {
         return (
           <div className="react-tab-content" style={{ width: '100%', padding: '0' }}>
             <div className="tab-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>📊 Runtime Scale & Availability - Overview</h2>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>📊 Autoscaling Overview</h2>
               <p style={{ color: '#666', fontSize: '14px' }}>Monitor autoscaling effectiveness, VPA adoption, and availability metrics</p>
             </div>
             <div className="metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
@@ -303,6 +304,13 @@ const ReactTabs: React.FC = () => {
                 Self-service tools and documentation coming soon...
               </p>
             </div>
+          </div>
+        );
+
+      case 'availability-exec':
+        return (
+          <div className="react-tab-content" style={{ width: '100%', padding: '0' }}>
+            <AvailabilityExecView />
           </div>
         );
 

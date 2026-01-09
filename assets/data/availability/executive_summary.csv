@@ -1,0 +1,6 @@
+metric_name,metric_value,metric_unit,trend_direction,trend_value,target,status
+Sev0/Sev1 Trend (12mo),47,incidents,up,12% vs prior period,,WARNING
+Avg MTTD (Platform),6.9,min,down,18% improved,,OK
+Avg MTTR (Platform),38,min,down,8% improved,,OK
+Monitoring Detection %,66,%,neutral,,>90%,WARNING
+Prevention Coverage,4/6,services,neutral,,6/6,WARNING

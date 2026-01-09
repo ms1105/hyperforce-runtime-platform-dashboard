@@ -1,0 +1,9 @@
+service_id,service_name,service_full_name,service_tier,owning_team,team_lead,sla_ttd_sev0_min,sla_ttd_sev1_min,sla_ttr_sev0_min,sla_ttr_sev1_min,is_active
+SVC-001,FKP,Falcon Kubernetes Platform,Tier1,Platform-Reliability,Jane Smith,5,10,30,60,true
+SVC-002,Mesh,Service Mesh Infrastructure,Tier1,Mesh-Engineering,John Doe,5,10,30,60,true
+SVC-003,Ingress,Traffic Ingress Layer,Tier1,Traffic-Engineering,Alice Wong,5,10,30,60,true
+SVC-004,MQ,Message Queue System,Tier1,Messaging-Team,Bob Johnson,5,10,30,60,true
+SVC-005,Maps,Mapping Services,Tier2,Maps-Engineering,Carol Davis,5,10,30,60,true
+SVC-006,Vega Cache,Caching Infrastructure,Tier1,Cache-Team,Dan Lee,5,10,30,60,true
+
+

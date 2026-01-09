@@ -1,0 +1,48 @@
+incident_id,severity,service_name,incident_title,start_timestamp,detect_timestamp,resolve_timestamp,detection_method,root_cause_category,impacted_customers,owning_team,e360_link
+INC-2024-001,Sev0,FKP,FKP cluster control plane unresponsive,2/15/24 9:00,2/15/24 9:05,2/15/24 9:28,MONITORING,CAPACITY,2500,Platform-Reliability,https://e360.internal/INC-2024-001
+INC-2024-002,Sev1,FKP,Pod scheduling delays in prod-west,3/10/24 14:30,3/10/24 14:33,3/10/24 14:48,MONITORING,DEPLOYMENT,800,Platform-Reliability,https://e360.internal/INC-2024-002
+INC-2024-003,Sev1,FKP,Node autoscaler malfunction,4/22/24 11:15,4/22/24 11:19,4/22/24 11:42,MONITORING,CONFIG,450,Platform-Reliability,https://e360.internal/INC-2024-003
+INC-2024-004,Sev1,FKP,Etcd latency spike,6/5/24 16:45,6/5/24 16:48,6/5/24 17:05,MONITORING,CAPACITY,1200,Platform-Reliability,https://e360.internal/INC-2024-004
+INC-2024-005,Sev1,FKP,API server throttling,7/18/24 8:20,7/18/24 8:24,7/18/24 8:50,MONITORING,TRAFFIC,600,Platform-Reliability,https://e360.internal/INC-2024-005
+INC-2024-006,Sev1,FKP,CNI plugin failures,9/2/24 13:00,9/2/24 13:04,9/2/24 13:25,MONITORING,DEPLOYMENT,350,Platform-Reliability,https://e360.internal/INC-2024-006
+INC-2024-007,Sev1,FKP,Ingress controller restart loop,10/28/24 10:30,10/28/24 10:45,10/28/24 11:00,MANUAL,CONFIG,900,Platform-Reliability,https://e360.internal/INC-2024-007
+INC-2024-008,Sev1,FKP,DNS resolution delays,11/15/24 15:10,11/15/24 15:14,11/15/24 15:35,MONITORING,DEPENDENCY,700,Platform-Reliability,https://e360.internal/INC-2024-008
+INC-2024-009,Sev0,Mesh,Service mesh complete outage,1/20/24 3:00,1/20/24 3:08,1/20/24 4:15,MONITORING,DEPLOYMENT,5000,Mesh-Engineering,https://e360.internal/INC-2024-009
+INC-2024-010,Sev0,Mesh,mTLS certificate expiry,5/12/24 0:00,5/12/24 0:12,5/12/24 0:58,MANUAL,CONFIG,4200,Mesh-Engineering,https://e360.internal/INC-2024-010
+INC-2024-011,Sev1,Mesh,Sidecar injection failures,2/8/24 9:45,2/8/24 9:52,2/8/24 10:30,MONITORING,DEPLOYMENT,800,Mesh-Engineering,https://e360.internal/INC-2024-011
+INC-2024-012,Sev1,Mesh,Control plane memory leak,3/25/24 14:00,3/25/24 14:05,3/25/24 14:45,MONITORING,CODE,600,Mesh-Engineering,https://e360.internal/INC-2024-012
+INC-2024-013,Sev1,Mesh,Rate limiting misconfiguration,4/15/24 11:30,4/15/24 11:40,4/15/24 12:15,MANUAL,CONFIG,450,Mesh-Engineering,https://e360.internal/INC-2024-013
+INC-2024-014,Sev1,Mesh,Circuit breaker stuck open,6/20/24 16:00,6/20/24 16:06,6/20/24 16:35,MONITORING,DEPENDENCY,550,Mesh-Engineering,https://e360.internal/INC-2024-014
+INC-2024-015,Sev1,Mesh,Load balancer health check failures,7/8/24 10:15,7/8/24 10:22,7/8/24 11:00,MONITORING,CONFIG,700,Mesh-Engineering,https://e360.internal/INC-2024-015
+INC-2024-016,Sev1,Mesh,Service discovery latency,8/12/24 13:45,8/12/24 13:50,8/12/24 14:20,MANUAL,CAPACITY,400,Mesh-Engineering,https://e360.internal/INC-2024-016
+INC-2024-017,Sev1,Mesh,Envoy proxy crash loop,9/22/24 8:00,9/22/24 8:08,9/22/24 8:55,MONITORING,DEPLOYMENT,900,Mesh-Engineering,https://e360.internal/INC-2024-017
+INC-2024-018,Sev1,Mesh,Retry storm causing cascading failures,10/10/24 15:30,10/10/24 15:45,10/10/24 16:30,MANUAL,DEPENDENCY,1100,Mesh-Engineering,https://e360.internal/INC-2024-018
+INC-2024-019,Sev1,Mesh,Telemetry pipeline overflow,11/5/24 12:00,11/5/24 12:06,11/5/24 12:40,MONITORING,CAPACITY,300,Mesh-Engineering,https://e360.internal/INC-2024-019
+INC-2024-020,Sev1,Mesh,Gateway timeout errors,12/2/24 9:30,12/2/24 9:38,12/2/24 10:15,MONITORING,TRAFFIC,650,Mesh-Engineering,https://e360.internal/INC-2024-020
+INC-2024-021,Sev1,Ingress,SSL certificate renewal failure,2/28/24 2:00,2/28/24 2:03,2/28/24 2:18,MONITORING,CONFIG,500,Traffic-Engineering,https://e360.internal/INC-2024-021
+INC-2024-022,Sev1,Ingress,WAF rule blocking legitimate traffic,4/10/24 10:00,4/10/24 10:02,4/10/24 10:15,MONITORING,CONFIG,350,Traffic-Engineering,https://e360.internal/INC-2024-022
+INC-2024-023,Sev1,Ingress,CDN cache invalidation delay,6/15/24 14:30,6/15/24 14:33,6/15/24 14:50,MONITORING,DEPENDENCY,600,Traffic-Engineering,https://e360.internal/INC-2024-023
+INC-2024-024,Sev1,Ingress,DDoS mitigation false positive,8/20/24 16:45,8/20/24 16:48,8/20/24 17:05,MONITORING,TRAFFIC,800,Traffic-Engineering,https://e360.internal/INC-2024-024
+INC-2024-025,Sev1,Ingress,Load balancer health degradation,10/5/24 11:00,10/5/24 11:02,10/5/24 11:18,MONITORING,CAPACITY,450,Traffic-Engineering,https://e360.internal/INC-2024-025
+INC-2024-026,Sev1,Ingress,Routing table corruption,11/25/24 8:15,11/25/24 8:18,11/25/24 8:35,MONITORING,DEPLOYMENT,550,Traffic-Engineering,https://e360.internal/INC-2024-026
+INC-2024-027,Sev0,MQ,Message broker cluster failure,3/5/24 4:00,3/5/24 4:12,3/5/24 4:48,MANUAL,HARDWARE,3500,Messaging-Team,https://e360.internal/INC-2024-027
+INC-2024-028,Sev0,MQ,Queue storage exhaustion,7/25/24 22:00,7/25/24 22:15,7/25/24 22:55,CUSTOMER,CAPACITY,2800,Messaging-Team,https://e360.internal/INC-2024-028
+INC-2024-029,Sev1,MQ,Consumer lag spike,1/15/24 10:00,1/15/24 10:08,1/15/24 10:35,MONITORING,TRAFFIC,700,Messaging-Team,https://e360.internal/INC-2024-029
+INC-2024-030,Sev1,MQ,Dead letter queue overflow,2/20/24 15:30,2/20/24 15:42,2/20/24 16:10,MANUAL,CONFIG,400,Messaging-Team,https://e360.internal/INC-2024-030
+INC-2024-031,Sev1,MQ,Message ordering violation,4/28/24 9:15,4/28/24 9:22,4/28/24 9:50,MANUAL,CODE,550,Messaging-Team,https://e360.internal/INC-2024-031
+INC-2024-032,Sev1,MQ,Partition rebalancing delays,6/10/24 13:00,6/10/24 13:10,6/10/24 13:45,MONITORING,CAPACITY,600,Messaging-Team,https://e360.internal/INC-2024-032
+INC-2024-033,Sev1,MQ,Authentication service timeout,8/5/24 11:45,8/5/24 11:55,8/5/24 12:25,MANUAL,DEPENDENCY,450,Messaging-Team,https://e360.internal/INC-2024-033
+INC-2024-034,Sev1,MQ,Schema registry unavailable,9/18/24 14:00,9/18/24 14:06,9/18/24 14:30,MONITORING,DEPENDENCY,500,Messaging-Team,https://e360.internal/INC-2024-034
+INC-2024-035,Sev1,MQ,Topic replication lag,11/8/24 16:30,11/8/24 16:38,11/8/24 17:05,MONITORING,CAPACITY,350,Messaging-Team,https://e360.internal/INC-2024-035
+INC-2024-036,Sev1,MQ,Consumer group coordinator failure,12/10/24 8:00,12/10/24 8:12,12/10/24 8:40,MANUAL,DEPLOYMENT,600,Messaging-Team,https://e360.internal/INC-2024-036
+INC-2024-037,Sev0,Maps,Maps service complete unavailability,3/18/24 9:00,3/18/24 9:15,3/18/24 10:30,MANUAL,DEPENDENCY,5200,Maps-Engineering,https://e360.internal/INC-2024-037
+INC-2024-038,Sev0,Maps,Geocoding API failure,8/28/24 14:00,8/28/24 14:18,8/28/24 15:25,CUSTOMER,DEPLOYMENT,4800,Maps-Engineering,https://e360.internal/INC-2024-038
+INC-2024-039,Sev1,Maps,Tile rendering delays,2/5/24 11:00,2/5/24 11:12,2/5/24 12:00,MANUAL,CAPACITY,1200,Maps-Engineering,https://e360.internal/INC-2024-039
+INC-2024-040,Sev1,Maps,Route calculation errors,5/20/24 16:00,5/20/24 16:10,5/20/24 17:05,MANUAL,CODE,800,Maps-Engineering,https://e360.internal/INC-2024-040
+INC-2024-041,Sev1,Maps,Search index corruption,7/12/24 10:30,7/12/24 10:45,7/12/24 11:45,MONITORING,DATA,900,Maps-Engineering,https://e360.internal/INC-2024-041
+INC-2024-042,Sev1,Maps,Traffic data feed failure,10/15/24 8:00,10/15/24 8:08,10/15/24 8:50,MONITORING,DEPENDENCY,600,Maps-Engineering,https://e360.internal/INC-2024-042
+INC-2024-043,Sev1,Maps,Location API high latency,12/5/24 13:15,12/5/24 13:28,12/5/24 14:20,MANUAL,CAPACITY,700,Maps-Engineering,https://e360.internal/INC-2024-043
+INC-2024-044,Sev0,Vega Cache,Cache cluster split brain,5/2/24 6:00,5/2/24 6:05,5/2/24 6:32,MONITORING,NETWORK,3200,Cache-Team,https://e360.internal/INC-2024-044
+INC-2024-045,Sev1,Vega Cache,Cache eviction policy failure,4/8/24 12:00,4/8/24 12:06,4/8/24 12:28,MONITORING,CONFIG,450,Cache-Team,https://e360.internal/INC-2024-045
+INC-2024-046,Sev1,Vega Cache,Memory pressure causing OOM,8/15/24 9:30,8/15/24 9:36,8/15/24 10:00,MONITORING,CAPACITY,600,Cache-Team,https://e360.internal/INC-2024-046
+INC-2024-047,Sev1,Vega Cache,Replication lag to secondary,11/20/24 15:00,11/20/24 15:05,11/20/24 15:25,MONITORING,NETWORK,350,Cache-Team,https://e360.internal/INC-2024-047

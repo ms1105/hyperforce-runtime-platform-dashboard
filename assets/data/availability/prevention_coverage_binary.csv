@@ -1,0 +1,8 @@
+service_name,default_alerting,tracing_coverage,dependency_mapping,alerts_score,tracing_score,deps_score,total_score
+FKP,Yes,Yes,Yes,1,1,1,3
+Mesh,No,Yes,No,0,1,0,1
+Ingress,Yes,Yes,Yes,1,1,1,3
+MQ,No,No,No,0,0,0,0
+Maps,No,No,No,0,0,0,0
+Vega Cache,Yes,Yes,No,1,1,0,2
+

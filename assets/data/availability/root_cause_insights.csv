@@ -1,0 +1,8 @@
+rank,category,issue_title,incident_percentage,incident_count,description,impacted_services
+1,Monitoring Gap,Missing or Insufficient Alerting,42,20,Sev0/Sev1 incidents had no automated alert fire before user impact was detected,"MQ (7),Maps (6),Mesh (4)"
+2,Dependency Blind Spot,Cascading Failures Across Services,28,13,Incidents involved downstream cascade with no visibility into dependency chains,"Mesh → MQ,Maps → FKP"
+3,Change Management,Deployment-Induced Outages,19,9,Incidents traced directly to deployments; 6 of 9 lacked canary or staged rollout,"MQ (4),Maps (3),Mesh (2)"
+4,Resource Saturation,Capacity & Scaling Issues,8,4,Incidents caused by resource exhaustion (CPU/memory) with insufficient auto-scaling,"Vega Cache (2),MQ (2)"
+5,External Dependency,Third-Party Service Failures,3,1,Incident caused by external vendor outage with no circuit breaker in place,Maps (1)
+
+

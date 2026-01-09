@@ -31,22 +31,22 @@
                     </div>
                     
                     <div class="nav-subitems active" id="onboarding-subitems">
-                        <div class="nav-subitem active" data-tab="executive-overview">
+                        <div class="nav-subitem active" data-tab="executive-overview" data-view="exec">
                             <span class="nav-text">Overview</span>
                         </div>
-                        <div class="nav-subitem" data-tab="migration-pipeline">
+                        <div class="nav-subitem" data-tab="migration-pipeline" data-view="exec">
                             <span class="nav-text">Migration Pipeline</span>
                         </div>
-                        <div class="nav-subitem" data-tab="migration-dependencies">
+                        <div class="nav-subitem" data-tab="service-information" data-view="developer">
+                            <span class="nav-text">Overview</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="migration-dependencies" data-view="developer">
                             <span class="nav-text">Migration Dependencies</span>
                         </div>
-                        <div class="nav-subitem" data-tab="service-information">
-                            <span class="nav-text">Service Information</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="cross-customer-analysis">
+                        <div class="nav-subitem" data-tab="cross-customer-analysis" data-view="developer">
                             <span class="nav-text">COGS Analysis</span>
                         </div>
-                        <div class="nav-subitem" data-tab="integrations">
+                        <div class="nav-subitem" data-tab="integrations" data-view="developer">
                             <span class="nav-text">Integrations</span>
                         </div>
                     </div>
@@ -61,56 +61,21 @@
                     </div>
                     
                     <div class="nav-subitems" id="runtime-subitems">
-                        <div class="nav-subitem" data-tab="runtime-overview" data-react-tab="true">
-                            <span class="nav-text">Overview</span>
+                        <div class="nav-subitem" data-tab="runtime-overview" data-view="exec">
+                            <span class="nav-text">Autoscaling</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-hpa" data-react-tab="true">
-                            <span class="nav-text">HPA Adoption</span>
+                        <div class="nav-subitem" data-tab="runtime-hpa" data-view="developer">
+                            <span class="nav-text">Autoscaling</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-incidents" data-react-tab="true">
-                            <span class="nav-text">Incidents & Availability</span>
+                        <div class="nav-subitem" data-tab="runtime-availability" data-view="both">
+                            <span class="nav-text">Availability</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-multiaz" data-react-tab="true">
-                            <span class="nav-text">Multi-AZ</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="runtime-karpenter" data-react-tab="true">
+                        <div class="nav-subitem" data-tab="runtime-karpenter" data-react-tab="true" data-view="both">
                             <span class="nav-text">Karpenter</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Cost to Serve Section -->
-                <div class="nav-section">
-                    <div class="nav-item main-item" data-section="cost">
-                        <span class="nav-icon">💰</span>
-                        <span class="nav-text">Cost to Serve</span>
-                        <span class="nav-arrow">▼</span>
-                    </div>
-                    
-                    <div class="nav-subitems" id="cost-subitems">
-                        <div class="nav-subitem" data-tab="cost-overview" data-react-tab="true">
-                            <span class="nav-text">Overview</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="cost-hcp" data-react-tab="true">
-                            <span class="nav-text">HCP FKP Addon</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Self Serve Section -->
-                <div class="nav-section">
-                    <div class="nav-item main-item" data-section="selfserve">
-                        <span class="nav-icon">🛠️</span>
-                        <span class="nav-text">Self Serve</span>
-                        <span class="nav-arrow">▼</span>
-                    </div>
-                    
-                    <div class="nav-subitems" id="selfserve-subitems">
-                        <div class="nav-subitem" data-tab="selfserve-overview" data-react-tab="true">
-                            <span class="nav-text">Overview</span>
-                        </div>
-                    </div>
-                </div>
             </nav>
         </aside>
 
@@ -122,16 +87,34 @@
                     <h1>Hyperforce Runtime Platform 360</h1>
                     <p class="page-subtitle">Comprehensive platform performance, availability, and cost optimization</p>
                 </div>
+                <div class="header-controls">
+                    <!-- View Toggle -->
+                    <div class="view-toggle-container">
+                        <button class="view-mode-btn active" data-view="exec" onclick="switchViewMode('exec')">
+                            📊 Exec View
+                        </button>
+                        <button class="view-mode-btn" data-view="developer" onclick="switchViewMode('developer')">
+                            🔧 Developer View
+                        </button>
+                    </div>
+                </div>
         </header>
 
-            <!-- Horizontal Filters Bar -->
-            <div class="filters-bar">
+            <!-- Horizontal Filters Bar (Collapsible) -->
+            <div class="filters-bar" id="filters-bar">
                 <div class="filters-header">
-                    <h3>🔍 Filters</h3>
+                    <div class="filters-header-left">
+                        <button class="filters-toggle-btn" onclick="toggleFiltersPanel()">
+                            <span class="filters-toggle-icon">▼</span>
+                            <h3>🔍 Filters</h3>
+                        </button>
+                        <span class="filters-status" id="filters-status">All filters applied</span>
+                    </div>
                     <div class="filter-actions">
                         <button class="btn-reset" onclick="resetAllFilters()">Reset</button>
             </div>
                 </div>
+                <div class="filters-content" id="filters-content">
                 
                 <div class="filters-grid">
                     <!-- Row 1: First 4 filters -->
@@ -392,6 +375,7 @@
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
 
             <div class="content-layout">
@@ -415,40 +399,63 @@
                     
                     <!-- Executive Overview Tab -->
                     <div class="tab-pane active" id="executive-overview">
-                        <div class="tab-header">
-                            <h2>📊 Overview</h2>
-                            <p>High-level FKP adoption metrics across organizational structure</p>
+                        <!-- AI Calls to Action Section -->
+                        <div class="calls-to-action" id="calls-to-action">
+                            <h3>🤖 AI-Generated Calls to Action for Cloud Leaders</h3>
+                            <div id="cta-content">
+                                <p><em>Analyzing service data...</em></p>
+                            </div>
                         </div>
                         
-                        <!-- Calls to Action Section -->
-                        <div class="calls-to-action">
-                            <h3>📋 Calls to Action for Cloud Leaders</h3>
-                            <ol>
-                                <li>
-                                    <strong>Close the gap between Commercial and GovCloud:</strong> Security, HTP, and MonCloud orgs have a significant number of service instances that have been enabled on FKP/Mesh in Commercial, but have not yet migrated in GovCloud. The following is the list of those services that are pending in GovCloud.
-                                    <br><br>
-                                    <strong>Security:</strong> <span class="service-list">Tentacle and SAI, and Ajith Jayamohan - AST</span><br>
-                                    <strong>HTP:</strong> <span class="service-list">PKI & Vault, NetSec/Iris+Menshen, and Quantum, PRA, & IAM services</span><br>
-                                    <strong>Monitoring Cloud:</strong> <span class="service-list">Funnel</span>
-                                </li>
-                                <li>
-                                    <strong>Onboard onto Commercial:</strong> Overall Big Data, Data Cloud, AI Cloud, and MonCloud have a significant amount of service instances which have not yet begun migration on FKP/Mesh in Commercial and/or GovCloud. The following is the list of those services that are in progress, but need to complete migration to FKP/Mesh.
-                                    <br><br>
-                                    <strong>Big Data:</strong> <span class="service-list">Hbase/Gridforce (on GovCloud but not Commercial), and Ajna (multiple microservices)</span><br>
-                                    <strong>Data Cloud:</strong> <span class="service-list">CDP Control Plane (e.g., cdp-billing-service, cdp-authentication-service) and Data Plane (e.g., cdp-data-processing-controller, data-cloud-cdp-fabric-access) services</span><br>
-                                    <strong>Einstein:</strong> <span class="service-list">Hawking (multiple microservices) and Notebook</span><br>
-                                    <strong>Monitoring Cloud:</strong> <span class="service-list">Madeira and CloudWatch Metrics</span>
-                                </li>
-                            </ol>
-    </div>
-
-                        <div class="overview-content">
-                            <div class="metrics-dashboard" id="executive-metrics">
-                                <!-- Dynamic content will be populated by JavaScript -->
+                        <!-- Overall Adoption Metrics (Commercial, GIA, Blackjack) -->
+                        <div class="overall-adoption-metrics" id="overall-adoption-metrics">
+                            <div class="adoption-box commercial">
+                                <div class="adoption-box-header">Commercial</div>
+                                <div class="adoption-box-percentage" id="commercial-adoption-pct">--</div>
+                                <div class="adoption-box-counts" id="commercial-adoption-counts">(--/--)</div>
+                                <div class="adoption-box-label">Service Instances</div>
+                            </div>
+                            <div class="adoption-box gia">
+                                <div class="adoption-box-header">GIA2H</div>
+                                <div class="adoption-box-percentage" id="gia-adoption-pct">--</div>
+                                <div class="adoption-box-counts" id="gia-adoption-counts">(--/--)</div>
+                                <div class="adoption-box-label">Service Instances</div>
+                            </div>
+                            <div class="adoption-box blackjack">
+                                <div class="adoption-box-header">Blackjack-A (Stage)</div>
+                                <div class="adoption-box-percentage" id="blackjack-adoption-pct">--</div>
+                                <div class="adoption-box-counts" id="blackjack-adoption-counts">(--/--)</div>
+                                <div class="adoption-box-label">Service Instances</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Leader/Cloud Roadmap -->
+                        <div class="roadmap-section" id="roadmap-section">
+                            <div class="roadmap-header">
+                                <div class="roadmap-title-section">
+                                    <h3>📅 Customer Roadmap</h3>
+                                    <div class="roadmap-view-toggle">
+                                        <span class="view-by-label">View By:</span>
+                                        <div class="view-toggle-group">
+                                            <button class="view-toggle-btn active" data-view-by="org-leader" onclick="setOverviewViewBy('org-leader')">Leader</button>
+                                            <button class="view-toggle-btn" data-view-by="parent-cloud" onclick="setOverviewViewBy('parent-cloud')">Parent Cloud</button>
+                                            <button class="view-toggle-btn" data-view-by="cloud" onclick="setOverviewViewBy('cloud')">Cloud</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="roadmap-legend">
+                                    <span class="legend-item"><span class="legend-color not-started"></span>Not Started</span>
+                                    <span class="legend-item"><span class="legend-color in-progress"></span>In Progress</span>
+                                    <span class="legend-item"><span class="legend-color prod-complete"></span>Prod Complete</span>
+                                    <span class="legend-item"><span class="legend-color mesh-complete"></span>Mesh Complete</span>
+                                </div>
+                            </div>
+                            <div class="roadmap-timeline" id="roadmap-timeline">
+                                <!-- Dynamic timeline will be populated by JavaScript -->
                                 <div class="placeholder-message">
-                                    <div class="placeholder-icon">📊</div>
-                                    <h3>Loading Executive Metrics...</h3>
-                                    <p>Processing FKP adoption data across organizational hierarchy</p>
+                                    <div class="placeholder-icon">📅</div>
+                                    <h3>Loading Roadmap...</h3>
+                                    <p>Building leader/cloud timeline view</p>
                                 </div>
                             </div>
                         </div>
@@ -598,6 +605,239 @@
                                 </button>
                             </div>
                 </div>
+                    </div>
+
+                    <!-- Autoscaling Exec View Tab -->
+                    <div class="tab-pane" id="runtime-overview">
+                        <div class="tab-header">
+                            <h2>📊 Autoscaling Overview</h2>
+                            <p>Service tier breakdown and HPA adoption metrics</p>
+                        </div>
+                        
+                        <div class="autoscaling-content">
+                            <!-- Metrics Cards Row -->
+                            <div class="autoscaling-metrics-grid" id="autoscaling-exec-metrics">
+                                <!-- Service Tier Breakdown Card -->
+                                <div class="autoscaling-metric-card" id="service-tier-card">
+                                    <div class="metric-card-header">
+                                        <span class="metric-card-label">Service Tier Breakdown</span>
+                                    </div>
+                                    <div class="metric-card-main">
+                                        <span class="metric-big-value" id="total-services-count">--</span>
+                                    </div>
+                                    <div class="metric-card-subtitle">Distribution by Service Tier</div>
+                                    <div class="tier-breakdown">
+                                        <div class="tier-bar" id="tier-progress-bar">
+                                            <div class="tier-segment tier-0" id="tier-0-segment"></div>
+                                            <div class="tier-segment tier-1" id="tier-1-segment"></div>
+                                        </div>
+                                        <div class="tier-details" id="tier-details">
+                                            <!-- Dynamic content -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- HPA Adoption Rate Card -->
+                                <div class="autoscaling-metric-card" id="hpa-adoption-card">
+                                    <div class="metric-card-header">
+                                        <span class="metric-card-label">HPA Adoption Rate</span>
+                                    </div>
+                                    <div class="metric-card-main">
+                                        <span class="metric-big-value metric-blue" id="hpa-adoption-rate">--%</span>
+                                    </div>
+                                    <div class="metric-card-subtitle">Overall Autoscaling Coverage</div>
+                                    <div class="hpa-progress-bar" id="hpa-progress-bar">
+                                        <div class="hpa-progress-fill" id="hpa-progress-fill"></div>
+                                    </div>
+                                    <div class="hpa-details" id="hpa-details">
+                                        <!-- Dynamic content -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Autoscaling Developer View Tab -->
+                    <div class="tab-pane" id="runtime-hpa">
+                        <div class="tab-header">
+                            <h2>📊 Autoscaling Overview</h2>
+                            <p>Service-level HPA adoption details and enrollment actions</p>
+                        </div>
+                        
+                        <div class="autoscaling-developer-content">
+                            <!-- Services Table -->
+                            <div class="autoscaling-table-container">
+                                <table class="autoscaling-services-table" id="autoscaling-services-table">
+                                    <thead>
+                                        <tr>
+                                            <th>SERVICE NAME</th>
+                                            <th>FUNCTIONAL DOMAIN</th>
+                                            <th>TIER</th>
+                                            <th>HPA %</th>
+                                            <th>ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="autoscaling-table-body">
+                                        <!-- Dynamic content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Runtime Availability Tab (shows Exec or Baseline based on view mode) -->
+                    <div class="tab-pane" id="runtime-availability">
+                        <div id="runtime-availability-content">
+                            <!-- Content dynamically switches between Exec and Baseline based on view mode -->
+                        </div>
+                    </div>
+                    
+                    <!-- Availability Exec View Tab (legacy - kept for content) -->
+                    <div class="tab-pane" id="availability-exec" style="display: none;">
+                        <div class="tab-header">
+                            <div class="availability-header">
+                                <div class="availability-title-section">
+                                    <div class="availability-icon">🛡️</div>
+                                    <div>
+                                        <h2>Executive View — HRP Availability at a Glance</h2>
+                                        <p>Sev0/Sev1 Focus • E360 Post-Processed Data</p>
+                                    </div>
+                                </div>
+                                <div class="availability-header-badges">
+                                    <span class="badge badge-success">
+                                        <span class="badge-dot"></span>
+                                        Powered by E360 Post-Processed Data
+                                    </span>
+                                    <span class="last-updated" id="availability-last-updated">
+                                        Last Updated: --
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="availability-content">
+                            <!-- Action Button -->
+                            <div class="availability-actions">
+                                <button class="btn-primary" onclick="exportAvailabilitySummary()">
+                                    📄 Single Page Summary
+                                </button>
+                            </div>
+                            
+                            <!-- Metrics Cards -->
+                            <div class="availability-metrics-grid" id="availability-metrics-grid">
+                                <!-- Dynamic content will be populated by JavaScript -->
+                                <div class="placeholder-message">
+                                    <div class="placeholder-icon">🛡️</div>
+                                    <h3>Loading Availability Metrics...</h3>
+                                    <p>Fetching executive summary data from E360</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Incident Trend Chart -->
+                            <div class="availability-section-row">
+                                <div class="incident-trend-container">
+                                    <div class="chart-header">
+                                        <div class="chart-title">
+                                            <span class="chart-icon">📈</span>
+                                            <h3>Sev0/Sev1 Incident Trend</h3>
+                                        </div>
+                                        <span class="chart-badge">12 MONTHS</span>
+                                    </div>
+                                    <div class="chart-legend">
+                                        <span class="legend-item"><span class="legend-dot sev0"></span> Sev0</span>
+                                        <span class="legend-item"><span class="legend-dot sev1"></span> Sev1</span>
+                                    </div>
+                                    <div class="incident-trend-chart" id="incident-trend-chart">
+                                        <!-- Dynamic chart will be populated by JavaScript -->
+                                        <div class="placeholder-message">
+                                            <div class="placeholder-icon">📈</div>
+                                            <h3>Loading Incident Trend...</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Investment Themes -->
+                                <div class="investment-themes-container">
+                                    <div class="chart-header">
+                                        <div class="chart-title">
+                                            <span class="chart-icon">💡</span>
+                                            <h3>Top 3 Investment Themes</h3>
+                                        </div>
+                                        <span class="chart-badge warning">ACTION REQUIRED</span>
+                                    </div>
+                                    <div class="investment-themes-list" id="investment-themes-list">
+                                        <!-- Dynamic content will be populated by JavaScript -->
+                                        <div class="placeholder-message">
+                                            <div class="placeholder-icon">💡</div>
+                                            <h3>Loading Investment Themes...</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Info Banner -->
+                            <div class="availability-info-banner">
+                                <div class="info-icon">ℹ️</div>
+                                <div class="info-content">
+                                    <h4>About This View</h4>
+                                    <p>This executive summary provides a high-level view of HRP platform availability metrics. Data is sourced from E360 post-processed incident data covering the last 12 months. MTTD = Mean Time to Detect, MTTR = Mean Time to Resolve.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Availability Baseline Tab (Developer View) -->
+                    <div class="tab-pane" id="availability-baseline">
+                        <div class="tab-header">
+                            <h2>🛡️ Availability Baseline</h2>
+                            <p>Service-level MTTD and MTTR metrics with SLA targets</p>
+                        </div>
+                        
+                        <div class="availability-baseline-content">
+                            <div class="baseline-charts-row">
+                                <!-- MTTD by Service -->
+                                <div class="baseline-chart-container">
+                                    <div class="chart-header">
+                                        <div class="chart-title">
+                                            <span class="chart-icon">⏱️</span>
+                                            <h3>MTTD by Service</h3>
+                                        </div>
+                                        <span class="chart-badge">MEAN TIME TO DETECT</span>
+                                    </div>
+                                    <div class="service-bars-chart" id="mttd-service-chart">
+                                        <!-- Dynamic content will be populated by JavaScript -->
+                                        <div class="placeholder-message">
+                                            <div class="placeholder-icon">⏱️</div>
+                                            <h3>Loading MTTD Data...</h3>
+                                        </div>
+                                    </div>
+                                    <div class="chart-footer">
+                                        <span class="sla-note">SLA Target: &lt;10 min (Sev1) • &lt;5 min (Sev0)</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- MTTR by Service -->
+                                <div class="baseline-chart-container">
+                                    <div class="chart-header">
+                                        <div class="chart-title">
+                                            <span class="chart-icon">🔧</span>
+                                            <h3>MTTR by Service</h3>
+                                        </div>
+                                        <span class="chart-badge">MEAN TIME TO RECOVER</span>
+                                    </div>
+                                    <div class="service-bars-chart" id="mttr-service-chart">
+                                        <!-- Dynamic content will be populated by JavaScript -->
+                                        <div class="placeholder-message">
+                                            <div class="placeholder-icon">🔧</div>
+                                            <h3>Loading MTTR Data...</h3>
+                                        </div>
+                                    </div>
+                                    <div class="chart-footer">
+                                        <span class="sla-note">SLA Target: &lt;60 min (Sev1) • &lt;30 min (Sev0)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

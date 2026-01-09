@@ -60,7 +60,10 @@ let fkpDashboard = {
         crossCustomerView: 'all', // 'all', 'discrepancies', 'not-started', 'in-progress', or 'complete' for Cross-Customer Analysis
         activeDropdown: null,        // Track which dropdown is currently open
         dropdownSelectionMode: false, // Track if user is actively making selections
-        selectionTimer: null         // Timer to detect when user is done selecting
+        selectionTimer: null,         // Timer to detect when user is done selecting
+        currentViewMode: 'exec',      // 'exec' or 'developer' - controls which tabs are visible
+        filtersCollapsed: true,       // Whether filters panel is collapsed (default: collapsed)
+        overviewViewBy: 'org-leader'  // 'org-leader', 'parent-cloud', or 'cloud' for roadmap grouping
     }
 };
 
@@ -86,6 +89,127 @@ const debouncedRefresh = debounce(() => {
     updateInterdependentFilters();
     refreshCurrentTab();
 }, 500);
+
+/* ======================
+   VIEW MODE TOGGLE (EXEC/DEVELOPER)
+   ====================== */
+
+/**
+ * Switch between Exec and Developer view modes
+ */
+function switchViewMode(mode) {
+    console.log('🔄 Switching view mode to:', mode);
+    
+    fkpDashboard.state.currentViewMode = mode;
+    
+    // Update body class for CSS-based hiding
+    document.body.classList.remove('exec-view', 'developer-view');
+    document.body.classList.add(mode + '-view');
+    
+    // Update toggle buttons
+    document.querySelectorAll('.view-mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.view === mode) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Show/hide tabs based on view mode
+    document.querySelectorAll('.nav-subitem').forEach(tab => {
+        const tabView = tab.dataset.view;
+        if (mode === 'exec') {
+            // In Exec view, hide developer-only tabs, show exec and both
+            if (tabView === 'developer') {
+                tab.style.display = 'none';
+            } else {
+                tab.style.display = '';
+            }
+        } else {
+            // In Developer view, hide exec-only tabs, show developer and both
+            if (tabView === 'exec') {
+                tab.style.display = 'none';
+            } else {
+                tab.style.display = '';
+            }
+        }
+    });
+    
+    // Tab correspondence mapping (Exec tab → Developer tab)
+    const tabCorrespondence = {
+        // Autoscaling: runtime-overview (exec) ↔ runtime-hpa (developer)
+        'runtime-overview': 'runtime-hpa',
+        'runtime-hpa': 'runtime-overview',
+        // Onboarding Overview: executive-overview (exec) ↔ service-information (developer)
+        'executive-overview': 'service-information',
+        'service-information': 'executive-overview',
+        // CTS Overview: cost-overview (exec) ↔ cost-hcp (developer)
+        'cost-overview': 'cost-hcp',
+        'cost-hcp': 'cost-overview'
+    };
+    
+    const currentTab = fkpDashboard.state.currentTab;
+    const currentTabEl = document.querySelector(`[data-tab="${currentTab}"]`);
+    
+    // Check if current tab is hidden in new view
+    if (currentTabEl && currentTabEl.style.display === 'none') {
+        // Try to find corresponding tab first
+        const correspondingTab = tabCorrespondence[currentTab];
+        if (correspondingTab) {
+            const correspondingTabEl = document.querySelector(`[data-tab="${correspondingTab}"]`);
+            if (correspondingTabEl && correspondingTabEl.style.display !== 'none') {
+                switchTab(correspondingTab);
+                console.log('✅ Switched to corresponding tab:', correspondingTab);
+                return;
+            }
+        }
+        
+        // Fallback: Find first visible tab in current section
+        const parentSection = currentTabEl.closest('.nav-section');
+        if (parentSection) {
+            const firstVisibleInSection = parentSection.querySelector('.nav-subitem:not([style*="display: none"])');
+            if (firstVisibleInSection) {
+                const newTabId = firstVisibleInSection.dataset.tab;
+                switchTab(newTabId);
+                console.log('✅ Switched to first visible tab:', newTabId);
+                return;
+            }
+        }
+    }
+    
+    // If viewing runtime-availability, refresh to show correct content
+    if (fkpDashboard.state.currentTab === 'runtime-availability') {
+        renderRuntimeAvailability();
+    }
+    
+    console.log('✅ View mode switched to:', mode);
+}
+
+/**
+ * Toggle the filters panel (collapse/expand)
+ */
+function toggleFiltersPanel() {
+    const filtersBar = document.getElementById('filters-bar');
+    const isCollapsed = filtersBar.classList.toggle('collapsed');
+    fkpDashboard.state.filtersCollapsed = isCollapsed;
+    
+    console.log('🔍 Filters panel:', isCollapsed ? 'collapsed' : 'expanded');
+}
+
+/**
+ * Initialize view mode on page load
+ */
+function initializeViewMode() {
+    // Default to Exec view
+    switchViewMode('exec');
+    
+    // Default to collapsed filters
+    const filtersBar = document.getElementById('filters-bar');
+    if (filtersBar) {
+        filtersBar.classList.add('collapsed');
+    }
+    
+    console.log('✅ View mode initialized: exec, filters collapsed');
+}
 
 /**
  * Initialize FKP Dashboard
@@ -121,6 +245,10 @@ async function initializeFKPDashboard() {
         
         // Set body class for initial tab (executive-overview)
         document.body.classList.add('executive-overview-active');
+        
+        // Initialize view mode (Exec/Developer toggle)
+        console.log('⏳ Step 7: Initializing view mode...');
+        initializeViewMode();
         
         refreshCurrentTab();
         
@@ -1247,28 +1375,8 @@ function updateViewControls(tabId) {
     
     switch (tabId) {
         case 'executive-overview':
-            controlsHTML = `
-                <div class="view-toggle-group">
-                    <label>View by:</label>
-                    <div class="toggle-buttons">
-                        <button class="toggle-btn ${fkpDashboard.state.viewMode.primary === 'service' ? 'active' : ''}" 
-                                onclick="setViewMode('primary', 'service')">Service</button>
-                        <button class="toggle-btn ${fkpDashboard.state.viewMode.primary === 'instance' ? 'active' : ''}" 
-                                onclick="setViewMode('primary', 'instance')">Instance</button>
-                    </div>
-                </div>
-                <div class="view-toggle-group">
-                    <label>Group by:</label>
-                    <div class="toggle-buttons">
-                        <button class="toggle-btn ${fkpDashboard.state.viewMode.secondary === 'org-leader' ? 'active' : ''}" 
-                                onclick="setViewMode('secondary', 'org-leader')">Org Leader</button>
-                        <button class="toggle-btn ${fkpDashboard.state.viewMode.secondary === 'parent-cloud' ? 'active' : ''}" 
-                                onclick="setViewMode('secondary', 'parent-cloud')">Parent Cloud</button>
-                        <button class="toggle-btn ${fkpDashboard.state.viewMode.secondary === 'cloud' ? 'active' : ''}" 
-                                onclick="setViewMode('secondary', 'cloud')">Cloud</button>
-                    </div>
-                </div>
-            `;
+            // No view controls for Overview tab - toggle is inside the roadmap section
+            controlsHTML = '';
             break;
             
         case 'migration-pipeline':
@@ -1422,57 +1530,53 @@ function updatePageHeader(tabId) {
     
     const tabTitles = {
         'executive-overview': {
-            title: 'Hyperforce Runtime Platform 360',
-            subtitle: 'Comprehensive platform performance, availability, and cost optimization'
+            title: 'Onboarding',
+            subtitle: 'Overview'
         },
         'migration-pipeline': {
-            title: 'Migration Pipeline', 
-            subtitle: 'Track services through 6 stages of FKP migration journey'
+            title: 'Onboarding', 
+            subtitle: 'Migration Pipeline'
         },
         'migration-dependencies': {
-            title: 'Migration Dependencies',
-            subtitle: 'FKP feature requirements and dependent services analysis'
+            title: 'Onboarding',
+            subtitle: 'Migration Dependencies'
         },
         'service-information': {
-            title: 'Service Information',
-            subtitle: 'Detailed service analysis with drill-down capabilities'
+            title: 'Onboarding',
+            subtitle: 'Overview'
         },
         'cross-customer-analysis': {
-            title: 'COGS Analysis - Comm vs Gov',
-            subtitle: 'Services spanning Commercial and GovCloud environments with migration stage comparison'
+            title: 'Onboarding',
+            subtitle: 'COGS Analysis'
         },
         'integrations': {
-            title: 'Integration Services',
-            subtitle: 'Integration services excluded from adoption metrics'
+            title: 'Onboarding',
+            subtitle: 'Integrations'
         },
         // React tabs
         'runtime-overview': {
-            title: 'Runtime Scale & Availability - Overview',
-            subtitle: 'Monitor autoscaling effectiveness, VPA adoption, and availability metrics'
+            title: 'Runtime Scale & Availability',
+            subtitle: 'Autoscaling'
         },
         'runtime-hpa': {
-            title: 'HPA Adoption',
-            subtitle: 'Horizontal Pod Autoscaler adoption and effectiveness'
+            title: 'Runtime Scale & Availability',
+            subtitle: 'Autoscaling'
         },
-        'runtime-incidents': {
-            title: 'Incidents & Availability',
-            subtitle: 'Service incidents and availability tracking'
-        },
-        'runtime-multiaz': {
-            title: 'Multi-AZ Coverage',
-            subtitle: 'Multi-availability zone deployment status'
+        'runtime-availability': {
+            title: 'Runtime Scale & Availability',
+            subtitle: 'Availability'
         },
         'runtime-karpenter': {
-            title: 'Karpenter Rollout',
-            subtitle: 'Karpenter cluster autoscaling rollout progress'
+            title: 'Runtime Scale & Availability',
+            subtitle: 'Karpenter'
         },
         'cost-overview': {
-            title: 'Cost to Serve - Overview',
-            subtitle: 'Platform cost analysis and optimization opportunities'
+            title: 'Cost to Serve',
+            subtitle: 'Overview'
         },
         'cost-hcp': {
-            title: 'HCP FKP Addon',
-            subtitle: 'HCP cost analysis and FKP addon metrics'
+            title: 'Cost to Serve',
+            subtitle: 'Overview'
         },
         'selfserve-overview': {
             title: 'Self Serve',
@@ -1514,7 +1618,304 @@ function refreshCurrentTab() {
         case 'integrations':
             renderIntegrations();
             break;
+        case 'runtime-overview':
+            renderAutoscalingExecView();
+            break;
+        case 'runtime-hpa':
+            renderAutoscalingDeveloperView();
+            break;
+        case 'runtime-availability':
+            renderRuntimeAvailability();
+            break;
+        case 'availability-exec':
+            renderAvailabilityExecView();
+            break;
+        case 'availability-baseline':
+            renderAvailabilityBaseline();
+            break;
     }
+}
+
+/**
+ * Render Runtime Availability tab - shows Exec or Baseline based on view mode
+ */
+async function renderRuntimeAvailability() {
+    console.log('🛡️ Rendering Runtime Availability tab...');
+    
+    const container = document.getElementById('runtime-availability-content');
+    if (!container) return;
+    
+    const viewMode = fkpDashboard.state.currentViewMode || 'exec';
+    
+    // Show loading state first
+    container.innerHTML = `
+        <div class="placeholder-message" style="text-align: center; padding: 40px;">
+            <div class="placeholder-icon">🛡️</div>
+            <h3>Loading Availability Data...</h3>
+        </div>
+    `;
+    
+    // Load all data in parallel first
+    await loadAllAvailabilityData();
+    
+    if (viewMode === 'exec') {
+        // Render Exec View directly into the container
+        await renderAvailabilityExecViewInContainer(container);
+    } else {
+        // Render Baseline directly into the container
+        await renderAvailabilityBaselineInContainer(container);
+    }
+    
+    console.log('✅ Runtime Availability rendered for view mode:', viewMode);
+}
+
+/**
+ * Render Availability Exec View directly into a container
+ */
+async function renderAvailabilityExecViewInContainer(container) {
+    const metrics = availabilityData.executiveSummary;
+    
+    if (!metrics || metrics.length === 0) {
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">⚠️</div>
+                <h3>No Data Available</h3>
+                <p>Could not load availability metrics</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Build the complete exec view HTML
+    let metricsHtml = '';
+    metrics.forEach(metric => {
+        const icon = getAvailabilityMetricIcon(metric.metric_name);
+        const cardClass = getAvailabilityCardClass(metric);
+        const trendClass = getAvailabilityTrendClass(metric);
+        const formattedValue = formatAvailabilityMetricValue(metric);
+        
+        let trendHtml = '';
+        if (metric.trend_value) {
+            const arrow = metric.trend_direction === 'up' ? '↑' : metric.trend_direction === 'down' ? '↓' : '';
+            trendHtml = `<div class="metric-card-trend ${trendClass}">${arrow} ${metric.trend_value}</div>`;
+        } else if (metric.target) {
+            trendHtml = `<div class="metric-card-target">Target: <strong>${metric.target}</strong></div>`;
+        }
+        
+        metricsHtml += `
+            <div class="availability-metric-card ${cardClass}">
+                <div class="metric-card-header">
+                    <span class="metric-card-icon">${icon}</span>
+                    <span class="metric-card-label">${metric.metric_name}</span>
+                </div>
+                <div class="metric-card-value">${formattedValue}</div>
+                ${trendHtml}
+            </div>
+        `;
+    });
+    
+    // Get current timestamp
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    
+    container.innerHTML = `
+        <div class="tab-header">
+            <div class="availability-header">
+                <div class="availability-title-section">
+                    <div class="availability-icon">🛡️</div>
+                    <div>
+                        <h2>Executive View — HRP Availability at a Glance</h2>
+                        <p>Sev0/Sev1 Focus • E360 Post-Processed Data</p>
+                    </div>
+                </div>
+                <div class="availability-header-badges">
+                    <span class="badge badge-success">
+                        <span class="badge-dot"></span>
+                        Powered by E360 Post-Processed Data
+                    </span>
+                    <span class="last-updated">Last Updated: ${formattedDate} @ ${formattedTime}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="availability-content">
+            <div class="availability-metrics-grid">${metricsHtml}</div>
+            
+            <div class="availability-section-row">
+                <div class="incident-trend-container">
+                    <div class="chart-header">
+                        <h3>Sev0/Sev1 Incident Trend</h3>
+                        <div class="chart-legend">
+                            <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Sev0</span>
+                            <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> Sev1</span>
+                        </div>
+                    </div>
+                    <div id="runtime-incident-trend-chart"></div>
+                </div>
+                
+                <div class="investment-themes-container">
+                    <div class="themes-header">
+                        <h3>Top 3 Investment Themes</h3>
+                    </div>
+                    <div id="runtime-investment-themes-list"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Render charts into the new containers
+    renderIncidentTrendChartInContainer(document.getElementById('runtime-incident-trend-chart'));
+    renderInvestmentThemesInContainer(document.getElementById('runtime-investment-themes-list'));
+}
+
+/**
+ * Render incident trend chart into a specific container
+ */
+function renderIncidentTrendChartInContainer(container) {
+    if (!container) return;
+    
+    const monthlyData = getMonthlyIncidentData();
+    if (!monthlyData.length) {
+        container.innerHTML = '<div class="placeholder-message"><p>No incident data available</p></div>';
+        return;
+    }
+    
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyStats = {};
+    
+    monthlyData.forEach(row => {
+        const yearMonth = row.year_month || '';
+        const monthNum = parseInt(yearMonth.split('-')[1]) - 1;
+        const monthName = months[monthNum] || yearMonth;
+        
+        if (!monthlyStats[monthName]) {
+            monthlyStats[monthName] = { sev0: 0, sev1: 0 };
+        }
+        
+        const count = parseInt(row.incident_count) || 0;
+        if (row.severity === 'Sev0') {
+            monthlyStats[monthName].sev0 += count;
+        } else if (row.severity === 'Sev1') {
+            monthlyStats[monthName].sev1 += count;
+        }
+    });
+    
+    let maxCount = 0;
+    months.forEach(month => {
+        if (monthlyStats[month]) {
+            maxCount = Math.max(maxCount, monthlyStats[month].sev0, monthlyStats[month].sev1);
+        }
+    });
+    maxCount = Math.max(maxCount, 6);
+    
+    const chartWidth = 600;
+    const chartHeight = 120;
+    const paddingLeft = 5;
+    const paddingRight = 5;
+    const paddingTop = 10;
+    const paddingBottom = 10;
+    const plotWidth = chartWidth - paddingLeft - paddingRight;
+    const plotHeight = chartHeight - paddingTop - paddingBottom;
+    
+    const sev0Points = [];
+    const sev1Points = [];
+    
+    months.forEach((month, index) => {
+        const stats = monthlyStats[month] || { sev0: 0, sev1: 0 };
+        const x = paddingLeft + (index / (months.length - 1)) * plotWidth;
+        const y0 = paddingTop + plotHeight - ((stats.sev0 / maxCount) * plotHeight);
+        const y1 = paddingTop + plotHeight - ((stats.sev1 / maxCount) * plotHeight);
+        sev0Points.push({ x, y: y0 });
+        sev1Points.push({ x, y: y1 });
+    });
+    
+    const createPath = (points) => 'M ' + points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
+    
+    container.innerHTML = `
+        <div class="line-chart-container">
+            <svg class="line-chart-svg" viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="xMidYMid meet">
+                <path d="${createPath(sev1Points)}" fill="none" stroke="#f59e0b" stroke-width="2.5" />
+                <path d="${createPath(sev0Points)}" fill="none" stroke="#ef4444" stroke-width="2.5" />
+            </svg>
+            <div class="chart-x-axis">${months.map(m => `<span class="chart-x-label">${m}</span>`).join('')}</div>
+        </div>
+    `;
+}
+
+/**
+ * Render investment themes into a specific container
+ */
+function renderInvestmentThemesInContainer(container) {
+    if (!container) return;
+    
+    const themes = getInvestmentThemes();
+    if (!themes.length) {
+        container.innerHTML = '<div class="placeholder-message"><p>No investment themes available</p></div>';
+        return;
+    }
+    
+    const topThemes = themes.slice(0, 3);
+    let html = '';
+    
+    topThemes.forEach((theme, index) => {
+        const priorityClass = theme.theme_priority === 'CRITICAL' ? 'priority-critical' :
+                              theme.theme_priority === 'WARNING' ? 'priority-warning' : 'priority-info';
+        
+        html += `
+            <div class="investment-theme-card ${priorityClass}">
+                <div class="theme-content">
+                    <h4 class="theme-title">${index + 1}. ${theme.theme_title}</h4>
+                    <p class="theme-description">${theme.description}</p>
+                </div>
+                <span class="theme-percentage">${theme.incident_percentage}% of incidents</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+/**
+ * Render Availability Baseline directly into a container
+ */
+async function renderAvailabilityBaselineInContainer(container) {
+    const serviceMetrics = getServiceIncidentMetrics();
+    
+    if (!serviceMetrics.length) {
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">⚠️</div>
+                <h3>No Data Available</h3>
+                <p>Could not load service metrics</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="tab-header">
+            <h2>🛡️ Availability Baseline</h2>
+            <p>Service-level MTTD and MTTR metrics with SLA targets</p>
+        </div>
+        
+        <div class="availability-baseline-content">
+            <div class="mttd-mttr-charts">
+                <div class="chart-section">
+                    <h3>MTTD by Service (Top 10)</h3>
+                    <div id="runtime-mttd-chart"></div>
+                </div>
+                <div class="chart-section">
+                    <h3>MTTR by Service (Top 10)</h3>
+                    <div id="runtime-mttr-chart"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Render the charts
+    renderServiceBarChart('runtime-mttd-chart', serviceMetrics, 'avg_ttd_minutes', 10, 'MTTD');
+    renderServiceBarChart('runtime-mttr-chart', serviceMetrics, 'avg_ttr_minutes', 60, 'MTTR');
 }
 
 /**
@@ -1665,59 +2066,503 @@ function generateCallsToAction() {
 }
 
 /**
- * Render Overview tab
+ * Render Overview tab - Redesigned compact layout
  */
 function renderExecutiveOverview() {
-    console.log('📊 Rendering Overview');
+    console.log('📊 Rendering Overview (Redesigned)');
     
-    // Render service metrics first (includes Growth This Q)
-    renderServiceInformationMetrics();
+    // 1. Render AI Calls to Action
+    renderAICTA();
     
-    const container = document.getElementById('executive-metrics');
+    // 2. Render overall adoption metrics (Commercial, GIA, Blackjack)
+    renderOverallAdoptionMetrics();
     
-    // Get filtered data based on view mode and current filters
-    const { primary, secondary } = fkpDashboard.state.viewMode;
-    const filteredData = getFilteredExecutiveData(primary, secondary);
+    // 3. Render leader/cloud roadmap timeline
+    renderRoadmapTimeline();
+}
+
+/**
+ * Render AI-generated Calls to Action
+ */
+function renderAICTA() {
+    const container = document.getElementById('cta-content');
+    if (!container) return;
     
-    // Render compact cards
-    let html = '<div class="metrics-grid compact">';
+    const callsData = generateCallsToAction();
     
-    filteredData.forEach(entity => {
-        const adoptionRate = entity.adoptionRate || 0;
-        const percentageClass = adoptionRate >= 80 ? 'high' : adoptionRate >= 50 ? 'medium' : 'low';
+    let html = '';
+    
+    // Build CTA content
+    html += `<p><em>Based on analysis of ${Array.from(fkpDashboard.data.processed.services.values()).length} services across Commercial, GIA, and BlackJack environments.</em></p>`;
+    html += '<ol>';
+    
+    // Gap Analysis
+    if (callsData.commercialGovGaps.length > 0 && callsData.cloudAnalysis.length > 0) {
+        const topClouds = callsData.cloudAnalysis.slice(0, 3);
+        html += '<li><strong>🎯 Close Commercial-GovCloud Migration Gaps:</strong> ';
+        html += topClouds.map(c => `<strong>${c.cloud}</strong> (${c.gapCount} services)`).join(', ');
+        html += '</li>';
+    } else {
+        html += '<li><strong>✅ Commercial-GovCloud Gaps:</strong> No significant gaps detected</li>';
+    }
+    
+    // Not Started
+    if (callsData.notStartedServices.length > 0) {
+        html += `<li><strong>🚀 Accelerate Migration:</strong> ${callsData.notStartedServices.length} services have not started FKP migration</li>`;
+    } else {
+        html += '<li><strong>✅ Migration Status:</strong> All services have begun migration</li>';
+    }
+    
+    html += '</ol>';
+    
+    container.innerHTML = html;
+}
+
+/**
+ * Calculate adoption metrics by customer type
+ */
+function calculateAdoptionByCustomerType() {
+    const allServices = Array.from(fkpDashboard.data.processed.services.values());
+    
+    const customerTypes = ['Commercial', 'GIA', 'BlackJack'];
+    const metrics = {};
+    
+    // Get environment filter (Prod, Pre-Prod)
+    const envFilter = fkpDashboard.filters.instanceEnv || [];
+    const filterProd = envFilter.includes('Prod');
+    const filterPreProd = envFilter.includes('Pre-Prod');
+    const noEnvFilter = envFilter.length === 0;
+    
+    customerTypes.forEach(customerType => {
+        let totalInstances = 0;
+        let fkpInstances = 0;
         
-        // Show correct metrics based on view type
-        let primaryMetric, secondaryMetric;
-        if (primary === 'service') {
-            primaryMetric = `Total Services: ${entity.totalServices || 0}`;
-            secondaryMetric = `Services on FKP: ${entity.servicesOnFKP || 0}`;
-        } else {
-            primaryMetric = `Total Instances: ${entity.totalInstances || 0}`;
-            secondaryMetric = `Instances on FKP: ${entity.fkpInstances || 0}`;
-        }
+        allServices.forEach(service => {
+            // Filter instances for this customer type and environment
+            service.instances.forEach(inst => {
+                // Check customer type
+                if (inst.customerType !== customerType) return;
+                
+                // Check environment filter
+                const envMatch = noEnvFilter || 
+                    (filterProd && inst.isProd) || 
+                    (filterPreProd && inst.isPreProd);
+                
+                if (!envMatch) return;
+                
+                totalInstances++;
+                if (inst.isFKP) {
+                    fkpInstances++;
+                }
+            });
+        });
         
-        html += `
-            <div class="metric-card compact">
-                <div class="metric-header">
-                    <div class="metric-title">${entity.name}</div>
-                    <div class="metric-percentage ${percentageClass}">
-                        ${adoptionRate.toFixed(1)}%
-                    </div>
-                </div>
-                <div class="metric-details">
-                    <div class="metric-primary">${primaryMetric}</div>
-                    <div class="metric-secondary">${secondaryMetric}</div>
-                </div>
-            </div>
-        `;
+        const adoptionPct = totalInstances > 0 ? (fkpInstances / totalInstances) * 100 : 0;
+        
+        metrics[customerType] = {
+            totalInstances,
+            fkpInstances,
+            adoptionPct
+        };
     });
     
-    html += '</div>';
-    container.innerHTML = html;
+    console.log('📊 Customer type adoption metrics:', metrics);
+    return metrics;
+}
+
+/**
+ * Render overall adoption metrics boxes (Commercial, GIA, Blackjack)
+ */
+function renderOverallAdoptionMetrics() {
+    console.log('📊 Rendering overall adoption metrics...');
     
-    // Generate and render dynamic calls to action
-    const callsToAction = generateCallsToAction();
-    renderCallsToAction(callsToAction);
+    const metrics = calculateAdoptionByCustomerType();
+    
+    // Commercial
+    const commercialPct = document.getElementById('commercial-adoption-pct');
+    const commercialCounts = document.getElementById('commercial-adoption-counts');
+    if (commercialPct && commercialCounts) {
+        const comm = metrics['Commercial'];
+        commercialPct.textContent = `${comm.adoptionPct.toFixed(1)}%`;
+        commercialCounts.textContent = `(${comm.fkpInstances.toLocaleString()}/${comm.totalInstances.toLocaleString()})`;
+    }
+    
+    // GIA
+    const giaPct = document.getElementById('gia-adoption-pct');
+    const giaCounts = document.getElementById('gia-adoption-counts');
+    if (giaPct && giaCounts) {
+        const gia = metrics['GIA'];
+        giaPct.textContent = `${gia.adoptionPct.toFixed(1)}%`;
+        giaCounts.textContent = `(${gia.fkpInstances.toLocaleString()}/${gia.totalInstances.toLocaleString()})`;
+    }
+    
+    // Blackjack
+    const bjPct = document.getElementById('blackjack-adoption-pct');
+    const bjCounts = document.getElementById('blackjack-adoption-counts');
+    if (bjPct && bjCounts) {
+        const bj = metrics['BlackJack'];
+        bjPct.textContent = `${bj.adoptionPct.toFixed(1)}%`;
+        bjCounts.textContent = `(${bj.fkpInstances.toLocaleString()}/${bj.totalInstances.toLocaleString()})`;
+    }
+    
+    console.log('✅ Overall adoption metrics:', metrics);
+}
+
+/**
+ * Render compact CTA summary bar
+ */
+function renderCTASummary() {
+    const callsData = generateCallsToAction();
+    
+    const summaryText = document.getElementById('cta-summary-text');
+    const detailsContent = document.getElementById('cta-details-content');
+    
+    if (!summaryText) return;
+    
+    // Generate compact summary
+    const gapCount = callsData.commercialGovGaps.length;
+    const notStartedCount = callsData.notStartedServices.length;
+    
+    let summary = '';
+    if (gapCount > 0) {
+        summary += `${gapCount} services have Commercial-GovCloud gaps. `;
+    }
+    if (notStartedCount > 0) {
+        summary += `${notStartedCount} services not yet started.`;
+    }
+    if (gapCount === 0 && notStartedCount === 0) {
+        summary = '✅ All services are on track!';
+    }
+    
+    summaryText.textContent = summary;
+    
+    // Generate detailed content for expandable panel
+    if (detailsContent) {
+        let detailsHtml = '<ol>';
+        
+        if (gapCount > 0 && callsData.cloudAnalysis.length > 0) {
+            const topClouds = callsData.cloudAnalysis.slice(0, 3);
+            detailsHtml += '<li><strong>Commercial-GovCloud Gaps:</strong> ';
+            detailsHtml += topClouds.map(c => `${c.cloud} (${c.gapCount} services)`).join(', ');
+            detailsHtml += '</li>';
+        }
+        
+        if (notStartedCount > 0) {
+            detailsHtml += `<li><strong>Not Started:</strong> ${notStartedCount} services need migration initiation</li>`;
+        }
+        
+        detailsHtml += '</ol>';
+        detailsContent.innerHTML = detailsHtml;
+    }
+}
+
+/**
+ * Toggle CTA details panel visibility
+ */
+function toggleCTADetails() {
+    const panel = document.getElementById('cta-details-panel');
+    const btn = document.querySelector('.cta-expand-btn');
+    
+    if (panel && btn) {
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            btn.textContent = 'Hide ▲';
+        } else {
+            panel.style.display = 'none';
+            btn.textContent = 'Details ▼';
+        }
+    }
+}
+
+/**
+ * Set overview view by (leader, parent-cloud, cloud)
+ */
+function setOverviewViewBy(viewBy) {
+    console.log('🔄 Setting overview view by:', viewBy);
+    
+    // Store current view setting
+    fkpDashboard.state.overviewViewBy = viewBy;
+    
+    // Update button states - check in roadmap-view-toggle
+    document.querySelectorAll('.roadmap-view-toggle .view-toggle-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.viewBy === viewBy) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Re-render roadmap with new grouping
+    renderRoadmapTimeline();
+}
+
+/**
+ * Render roadmap timeline grouped by leader/cloud
+ */
+function renderRoadmapTimeline() {
+    console.log('📅 Rendering roadmap timeline...');
+    
+    const container = document.getElementById('roadmap-timeline');
+    if (!container) return;
+    
+    const viewBy = fkpDashboard.state.overviewViewBy || 'org-leader';
+    const allServices = Array.from(fkpDashboard.data.processed.services.values());
+    
+    console.log('📊 Roadmap view mode:', viewBy, '| Total services:', allServices.length);
+    
+    // Build leader-level data first (always needed)
+    const leaderData = new Map();
+    
+    allServices.forEach(service => {
+        const leaderName = service.orgLeader || 'Unknown Leader';
+        const parentCloudName = service.parentCloud || 'Unknown Parent Cloud';
+        const cloudName = service.cloud || 'Unknown Cloud';
+        
+        // Get instance counts from the service
+        const totalInst = service.stats?.total || 0;
+        const fkpInst = service.stats?.fkp || 0;
+        const stage = calculateServiceMigrationStageNumber(service);
+        
+        // Initialize leader
+        if (!leaderData.has(leaderName)) {
+            leaderData.set(leaderName, {
+                name: leaderName,
+                services: 0,
+                totalInstances: 0,
+                fkpInstances: 0,
+                totalStage: 0,
+                parentClouds: new Map(),
+                clouds: new Map()
+            });
+        }
+        
+        const leader = leaderData.get(leaderName);
+        leader.services++;
+        leader.totalInstances += totalInst;
+        leader.fkpInstances += fkpInst;
+        leader.totalStage += stage;
+        
+        // Track parent clouds under this leader
+        if (!leader.parentClouds.has(parentCloudName)) {
+            leader.parentClouds.set(parentCloudName, {
+                name: parentCloudName,
+                services: 0,
+                totalInstances: 0,
+                fkpInstances: 0,
+                totalStage: 0
+            });
+        }
+        const pc = leader.parentClouds.get(parentCloudName);
+        pc.services++;
+        pc.totalInstances += totalInst;
+        pc.fkpInstances += fkpInst;
+        pc.totalStage += stage;
+        
+        // Track clouds under this leader
+        if (!leader.clouds.has(cloudName)) {
+            leader.clouds.set(cloudName, {
+                name: cloudName,
+                services: 0,
+                totalInstances: 0,
+                fkpInstances: 0,
+                totalStage: 0
+            });
+        }
+        const cl = leader.clouds.get(cloudName);
+        cl.services++;
+        cl.totalInstances += totalInst;
+        cl.fkpInstances += fkpInst;
+        cl.totalStage += stage;
+    });
+    
+    // Sort leaders by total instances (descending)
+    const sortedLeaders = Array.from(leaderData.values())
+        .sort((a, b) => b.totalInstances - a.totalInstances);
+    
+    let html = '';
+    
+    if (viewBy === 'org-leader') {
+        // LEADER VIEW: Just show leaders with their metrics
+        html = '<div class="roadmap-list">';
+        
+        sortedLeaders.forEach(leader => {
+            const adoptionPct = leader.totalInstances > 0 ? 
+                (leader.fkpInstances / leader.totalInstances) * 100 : 0;
+            const avgStage = leader.services > 0 ? 
+                Math.round(leader.totalStage / leader.services) : 1;
+            
+            html += renderRoadmapRow(
+                leader.name,
+                leader.services,
+                leader.fkpInstances,
+                leader.totalInstances,
+                adoptionPct,
+                avgStage
+            );
+        });
+        
+        html += '</div>';
+        
+    } else if (viewBy === 'parent-cloud') {
+        // PARENT CLOUD VIEW: Show leaders, then parent clouds under each
+        sortedLeaders.forEach(leader => {
+            const leaderAdoption = leader.totalInstances > 0 ? 
+                (leader.fkpInstances / leader.totalInstances) * 100 : 0;
+            
+            html += `
+                <div class="roadmap-group">
+                    <div class="roadmap-group-header">
+                        <span class="roadmap-group-name">${leader.name}</span>
+                        <div class="roadmap-group-stats">
+                            <span>${leader.services} services</span>
+                            <span>${leader.fkpInstances.toLocaleString()}/${leader.totalInstances.toLocaleString()} instances</span>
+                            <span>${leaderAdoption.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    <div class="roadmap-items">
+            `;
+            
+            // Sort parent clouds by adoption % (highest first)
+            const sortedPCs = Array.from(leader.parentClouds.values())
+                .map(pc => ({
+                    ...pc,
+                    adoptionPct: pc.totalInstances > 0 ? (pc.fkpInstances / pc.totalInstances) * 100 : 0,
+                    avgStage: pc.services > 0 ? Math.round(pc.totalStage / pc.services) : 1
+                }))
+                .sort((a, b) => b.adoptionPct - a.adoptionPct);
+            
+            sortedPCs.forEach(pc => {
+                html += renderRoadmapRow(
+                    pc.name,
+                    pc.services,
+                    pc.fkpInstances,
+                    pc.totalInstances,
+                    pc.adoptionPct,
+                    pc.avgStage,
+                    true // isSubItem
+                );
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        });
+        
+    } else {
+        // CLOUD VIEW: Show leaders, then clouds under each
+        sortedLeaders.forEach(leader => {
+            const leaderAdoption = leader.totalInstances > 0 ? 
+                (leader.fkpInstances / leader.totalInstances) * 100 : 0;
+            
+            html += `
+                <div class="roadmap-group">
+                    <div class="roadmap-group-header">
+                        <span class="roadmap-group-name">${leader.name}</span>
+                        <div class="roadmap-group-stats">
+                            <span>${leader.services} services</span>
+                            <span>${leader.fkpInstances.toLocaleString()}/${leader.totalInstances.toLocaleString()} instances</span>
+                            <span>${leaderAdoption.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    <div class="roadmap-items">
+            `;
+            
+            // Sort clouds by adoption % (highest first)
+            const sortedClouds = Array.from(leader.clouds.values())
+                .map(cl => ({
+                    ...cl,
+                    adoptionPct: cl.totalInstances > 0 ? (cl.fkpInstances / cl.totalInstances) * 100 : 0,
+                    avgStage: cl.services > 0 ? Math.round(cl.totalStage / cl.services) : 1
+                }))
+                .sort((a, b) => b.adoptionPct - a.adoptionPct);
+            
+            sortedClouds.forEach(cl => {
+                html += renderRoadmapRow(
+                    cl.name,
+                    cl.services,
+                    cl.fkpInstances,
+                    cl.totalInstances,
+                    cl.adoptionPct,
+                    cl.avgStage,
+                    true // isSubItem
+                );
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    if (sortedLeaders.length === 0) {
+        html = `
+            <div class="placeholder-message">
+                <div class="placeholder-icon">📊</div>
+                <h3>No data available</h3>
+                <p>Adjust filters to see roadmap data</p>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+    console.log('✅ Roadmap timeline rendered with', sortedLeaders.length, 'leaders');
+}
+
+/**
+ * Render a single roadmap row with progress bar
+ * Color is based on adoption %, not stage:
+ * - 0% = Not Started (gray)
+ * - 1-50% = In Progress (yellow)
+ * - 50-90% = Prod Complete (green)
+ * - 90-100% = Mesh Complete (cyan)
+ */
+function renderRoadmapRow(name, services, fkpInstances, totalInstances, adoptionPct, avgStage, isSubItem = false) {
+    // Determine color class based on adoption %
+    let colorClass;
+    if (adoptionPct === 0) {
+        colorClass = 'status-not-started';
+    } else if (adoptionPct < 50) {
+        colorClass = 'status-in-progress';
+    } else if (adoptionPct < 90) {
+        colorClass = 'status-prod-complete';
+    } else {
+        colorClass = 'status-mesh-complete';
+    }
+    
+    const barWidth = Math.max(adoptionPct, 3); // Minimum 3% width for visibility
+    
+    return `
+        <div class="roadmap-item ${isSubItem ? 'sub-item' : ''}">
+            <div class="roadmap-item-left">
+                <span class="roadmap-item-name" title="${name}">${name}</span>
+                <span class="roadmap-item-services">${services} services</span>
+            </div>
+            <div class="roadmap-item-bar">
+                <div class="roadmap-item-progress ${colorClass}" style="width: ${barWidth}%;"></div>
+                <span class="roadmap-bar-pct">${adoptionPct.toFixed(1)}%</span>
+            </div>
+            <div class="roadmap-item-right">
+                <span class="stat-instances">${fkpInstances.toLocaleString()}/${totalInstances.toLocaleString()}</span>
+                <span class="stat-eta">ETA: TBD</span>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Get migration stage name from number
+ */
+function getMigrationStageName(stageNum) {
+    const stages = {
+        1: 'Not Started',
+        2: 'Pre-Prod',
+        3: 'Parity Req',
+        4: 'Prod Progress',
+        5: 'Prod Complete',
+        6: 'Mesh'
+    };
+    return stages[stageNum] || 'Unknown';
 }
 
 /**
@@ -4291,6 +5136,8 @@ window.searchDropdownOptions = searchDropdownOptions;
 window.setCrossCustomerView = setCrossCustomerView;
 window.exportServiceInformationCSV = exportServiceInformationCSV;
 window.exportCrossCustomerCSV = exportCrossCustomerCSV;
+window.toggleCTADetails = toggleCTADetails;
+window.setOverviewViewBy = setOverviewViewBy;
 
 /**
  * Get filtered services for Migration Pipeline (respects substrate, customer type, always includes all environments)
@@ -4530,3 +5377,808 @@ console.log('🔗 Global functions registered for HTML access');
  *    - unmapped_services.txt (overwrite with current unmapped services)
  * 4. Provide exact file contents and replacement instructions
  */
+
+/* ======================
+   AUTOSCALING SECTION
+   ====================== */
+
+// Store autoscaling data globally
+let autoscalingData = {
+    services: [],
+    loaded: false
+};
+
+/**
+ * Load Autoscaling Data from CSV
+ */
+async function loadAutoscalingData() {
+    console.log('📊 Loading autoscaling data...');
+    
+    if (autoscalingData.loaded) {
+        console.log('📊 Autoscaling data already loaded, skipping fetch');
+        return;
+    }
+    
+    try {
+        const response = await fetch('assets/data/Autoscaling.csv');
+        if (!response.ok) {
+            throw new Error('Failed to load Autoscaling.csv');
+        }
+        
+        const csvText = await response.text();
+        const lines = csvText.trim().split('\n');
+        
+        // Skip first row (has "Audit Name" headers), second row has actual headers
+        const headers = lines[1].split('\t').map(h => h.trim());
+        console.log('📊 Autoscaling headers:', headers);
+        
+        autoscalingData.services = [];
+        
+        for (let i = 2; i < lines.length; i++) {
+            const values = lines[i].split('\t');
+            if (values.length >= 4) {
+                const tierValue = parseInt(values[3]?.trim());
+                const service = {
+                    srExec: values[0]?.trim() || '',
+                    engManager: values[1]?.trim() || '',
+                    serviceName: values[2]?.trim() || '',
+                    serviceTier: isNaN(tierValue) ? 1 : tierValue, // 0 is valid, only default to 1 if NaN
+                    replicas: parseFloat(values[4]?.replace('%', '').trim()) || 0,
+                    azDistrib: parseFloat(values[5]?.replace('%', '').trim()) || 0,
+                    hpa: parseFloat(values[6]?.replace('%', '').trim()) || 0,
+                    livenessProbe: parseFloat(values[7]?.replace('%', '').trim()) || 0
+                };
+                
+                if (service.serviceName) {
+                    autoscalingData.services.push(service);
+                }
+            }
+        }
+        
+        autoscalingData.loaded = true;
+        
+        // Debug: verify tier counts
+        const tier0Count = autoscalingData.services.filter(s => s.serviceTier === 0).length;
+        const tier1Count = autoscalingData.services.filter(s => s.serviceTier === 1).length;
+        console.log(`📊 Loaded ${autoscalingData.services.length} services from Autoscaling.csv`);
+        console.log(`📊 Tier breakdown: Tier 0 (Critical) = ${tier0Count}, Tier 1 (Standard) = ${tier1Count}`);
+        
+    } catch (error) {
+        console.error('❌ Error loading autoscaling data:', error);
+    }
+}
+
+/**
+ * Render Autoscaling Exec View (Metrics Cards)
+ */
+async function renderAutoscalingExecView() {
+    console.log('📊 Rendering Autoscaling Exec View...');
+    
+    // Ensure data is loaded
+    await loadAutoscalingData();
+    
+    if (!autoscalingData.loaded || autoscalingData.services.length === 0) {
+        console.log('⚠️ No autoscaling data available');
+        return;
+    }
+    
+    const services = autoscalingData.services;
+    const totalServices = services.length;
+    
+    // Calculate tier breakdown
+    const tier0Services = services.filter(s => s.serviceTier === 0);
+    const tier1Services = services.filter(s => s.serviceTier === 1);
+    const tier0Count = tier0Services.length;
+    const tier1Count = tier1Services.length;
+    const tier0Pct = ((tier0Count / totalServices) * 100).toFixed(1);
+    const tier1Pct = ((tier1Count / totalServices) * 100).toFixed(1);
+    
+    // Calculate HPA adoption
+    const hpaEnabledServices = services.filter(s => s.hpa > 0);
+    const hpaEnabledCount = hpaEnabledServices.length;
+    const hpaAdoptionRate = ((hpaEnabledCount / totalServices) * 100).toFixed(2);
+    const servicesWithoutHPA = totalServices - hpaEnabledCount;
+    
+    console.log(`📊 Total: ${totalServices}, Tier0: ${tier0Count}, Tier1: ${tier1Count}`);
+    console.log(`📊 HPA Enabled: ${hpaEnabledCount}, Rate: ${hpaAdoptionRate}%`);
+    
+    // Update Service Tier Card
+    const totalServicesEl = document.getElementById('total-services-count');
+    if (totalServicesEl) {
+        totalServicesEl.textContent = totalServices;
+    }
+    
+    // Update tier bar segments
+    const tier0Segment = document.getElementById('tier-0-segment');
+    const tier1Segment = document.getElementById('tier-1-segment');
+    if (tier0Segment) tier0Segment.style.width = `${tier0Pct}%`;
+    if (tier1Segment) tier1Segment.style.width = `${tier1Pct}%`;
+    
+    // Update tier details
+    const tierDetails = document.getElementById('tier-details');
+    if (tierDetails) {
+        tierDetails.innerHTML = `
+            <div class="tier-row">
+                <span class="tier-label">Total Classified Services</span>
+                <span class="tier-value">100.00%</span>
+            </div>
+            <div class="tier-row">
+                <span class="tier-label">Tier 0 (Critical)</span>
+                <span class="tier-value">${tier0Count} <span class="tier-pct">(${tier0Pct}%)</span></span>
+            </div>
+            <div class="tier-row">
+                <span class="tier-label">Tier 1 (Standard)</span>
+                <span class="tier-value">${tier1Count} <span class="tier-pct">(${tier1Pct}%)</span></span>
+            </div>
+            <div class="tier-row">
+                <span class="tier-label">Total Services</span>
+                <span class="tier-value">${totalServices}</span>
+            </div>
+            <div class="tier-row">
+                <span class="tier-label">Classification</span>
+                <span class="tier-value" style="color: #3b82f6;">100% Covered</span>
+            </div>
+        `;
+    }
+    
+    // Update HPA Adoption Card
+    const hpaRateEl = document.getElementById('hpa-adoption-rate');
+    if (hpaRateEl) {
+        hpaRateEl.textContent = `${hpaAdoptionRate}%`;
+    }
+    
+    // Update HPA progress bar
+    const hpaProgressFill = document.getElementById('hpa-progress-fill');
+    if (hpaProgressFill) {
+        hpaProgressFill.style.width = `${hpaAdoptionRate}%`;
+    }
+    
+    // Update HPA details
+    const hpaDetails = document.getElementById('hpa-details');
+    if (hpaDetails) {
+        hpaDetails.innerHTML = `
+            <div class="hpa-row">
+                <span class="hpa-label">Services with HPA</span>
+                <span class="hpa-value">${hpaAdoptionRate}%</span>
+            </div>
+            <div class="hpa-row">
+                <span class="hpa-label">HPA Enabled Services</span>
+                <span class="hpa-value highlight">${hpaEnabledCount}</span>
+            </div>
+            <div class="hpa-row">
+                <span class="hpa-label">Total Services</span>
+                <span class="hpa-value">${totalServices}</span>
+            </div>
+            <div class="hpa-row">
+                <span class="hpa-label">Services Without HPA</span>
+                <span class="hpa-value">${servicesWithoutHPA}</span>
+            </div>
+            <div class="hpa-row">
+                <span class="hpa-label">Adoption Progress</span>
+                <span class="hpa-value" style="color: #3b82f6;">${hpaAdoptionRate}%</span>
+            </div>
+        `;
+    }
+    
+    console.log('✅ Autoscaling Exec View rendered');
+}
+
+/**
+ * Render Autoscaling Developer View (Services Table)
+ */
+async function renderAutoscalingDeveloperView() {
+    console.log('📊 Rendering Autoscaling Developer View...');
+    
+    // Ensure data is loaded
+    await loadAutoscalingData();
+    
+    if (!autoscalingData.loaded || autoscalingData.services.length === 0) {
+        console.log('⚠️ No autoscaling data available');
+        return;
+    }
+    
+    const tableBody = document.getElementById('autoscaling-table-body');
+    if (!tableBody) {
+        console.log('⚠️ Table body element not found');
+        return;
+    }
+    
+    // Sort services: services without HPA (0%) first, then by HPA ascending, then alphabetically
+    const sortedServices = [...autoscalingData.services].sort((a, b) => {
+        // Services with HPA = 0 come first (needs enrollment)
+        if (a.hpa === 0 && b.hpa > 0) return -1;
+        if (a.hpa > 0 && b.hpa === 0) return 1;
+        // Then sort by HPA percentage ascending
+        if (a.hpa !== b.hpa) return a.hpa - b.hpa;
+        // Finally alphabetically
+        return a.serviceName.localeCompare(b.serviceName);
+    });
+    
+    const rows = sortedServices.map(service => {
+        const tierBadgeClass = service.serviceTier === 0 ? 'tier-badge tier-0' : 'tier-badge';
+        const tierLabel = service.serviceTier === 0 ? 'Tier 0' : 'Tier 1';
+        
+        // HPA percentage styling
+        let hpaBadgeClass = 'hpa-pct-badge';
+        if (service.hpa === 0) {
+            hpaBadgeClass += ' hpa-zero';
+        } else if (service.hpa === 100) {
+            hpaBadgeClass += ' hpa-full';
+        } else if (service.hpa >= 50) {
+            hpaBadgeClass += ' hpa-high';
+        } else {
+            hpaBadgeClass += ' hpa-partial';
+        }
+        
+        // Action button - HPA Enabled if HPA > 0%
+        const actionBtn = service.hpa > 0 
+            ? '<button class="action-btn enabled">HPA Enabled</button>'
+            : '<button class="action-btn enroll">Enroll to HPA</button>';
+        
+        return `
+            <tr>
+                <td>${service.serviceName}</td>
+                <td>Platform Services</td>
+                <td><span class="${tierBadgeClass}">${tierLabel}</span></td>
+                <td><span class="${hpaBadgeClass}">${Math.round(service.hpa)}%</span></td>
+                <td>${actionBtn}</td>
+            </tr>
+        `;
+    }).join('');
+    
+    tableBody.innerHTML = rows;
+    
+    console.log(`✅ Autoscaling Developer View rendered with ${sortedServices.length} services`);
+}
+
+/* ======================
+   AVAILABILITY SECTION
+   ====================== */
+
+// Store availability data globally - cache all data types
+let availabilityData = {
+    executiveSummary: [],
+    monthlyIncidents: [],
+    investmentThemes: [],
+    serviceMetrics: [],
+    loaded: false,
+    allLoaded: false
+};
+
+/**
+ * Parse CSV helper function
+ */
+function parseCSVData(csvText) {
+    const lines = csvText.trim().split('\n');
+    if (lines.length < 2) return [];
+    const headers = lines[0].split(',');
+    return lines.slice(1).filter(line => line.trim()).map(line => {
+        const values = line.split(',');
+        const row = {};
+        headers.forEach((header, index) => {
+            row[header.trim()] = values[index]?.trim() || '';
+        });
+        return row;
+    });
+}
+
+/**
+ * Load ALL Availability Data in Parallel (optimized)
+ */
+async function loadAllAvailabilityData() {
+    if (availabilityData.allLoaded) {
+        console.log('🛡️ Availability data already loaded, using cache');
+        return;
+    }
+    
+    console.log('🛡️ Loading all availability data in parallel...');
+    const startTime = performance.now();
+    
+    try {
+        // Fetch all CSV files in parallel
+        const [execRes, monthlyRes, themesRes, metricsRes] = await Promise.all([
+            fetch('assets/data/availability/executive_summary.csv').catch(() => null),
+            fetch('assets/data/availability/monthly_incident_agg.csv').catch(() => null),
+            fetch('assets/data/availability/investment_themes.csv').catch(() => null),
+            fetch('assets/data/availability/service_incident_metrics.csv').catch(() => null)
+        ]);
+        
+        // Parse all responses in parallel
+        const [execText, monthlyText, themesText, metricsText] = await Promise.all([
+            execRes?.ok ? execRes.text() : '',
+            monthlyRes?.ok ? monthlyRes.text() : '',
+            themesRes?.ok ? themesRes.text() : '',
+            metricsRes?.ok ? metricsRes.text() : ''
+        ]);
+        
+        // Parse CSV data
+        availabilityData.executiveSummary = execText ? parseCSVData(execText) : [];
+        availabilityData.monthlyIncidents = monthlyText ? parseCSVData(monthlyText) : [];
+        availabilityData.investmentThemes = themesText ? parseCSVData(themesText) : [];
+        availabilityData.serviceMetrics = metricsText ? parseCSVData(metricsText) : [];
+        
+        availabilityData.loaded = true;
+        availabilityData.allLoaded = true;
+        
+        const elapsed = (performance.now() - startTime).toFixed(0);
+        console.log(`✅ All availability data loaded in ${elapsed}ms`);
+        console.log(`   - Executive Summary: ${availabilityData.executiveSummary.length} metrics`);
+        console.log(`   - Monthly Incidents: ${availabilityData.monthlyIncidents.length} rows`);
+        console.log(`   - Investment Themes: ${availabilityData.investmentThemes.length} themes`);
+        console.log(`   - Service Metrics: ${availabilityData.serviceMetrics.length} services`);
+        
+    } catch (error) {
+        console.error('❌ Error loading availability data:', error);
+        // Set fallback data
+        availabilityData.executiveSummary = [
+            { metric_name: 'Sev0/Sev1 Trend (12mo)', metric_value: '47', metric_unit: 'incidents', trend_direction: 'up', trend_value: '12% vs prior period', target: '', status: 'WARNING' },
+            { metric_name: 'Avg MTTD (Platform)', metric_value: '7.2', metric_unit: 'min', trend_direction: 'down', trend_value: '18% improved', target: '', status: 'OK' },
+            { metric_name: 'Avg MTTR (Platform)', metric_value: '38', metric_unit: 'min', trend_direction: 'down', trend_value: '8% improved', target: '', status: 'OK' },
+            { metric_name: 'Monitoring Detection %', metric_value: '78', metric_unit: '%', trend_direction: 'neutral', trend_value: '', target: '>90%', status: 'WARNING' },
+            { metric_name: 'Prevention Coverage', metric_value: '4/6', metric_unit: 'services', trend_direction: 'neutral', trend_value: '', target: '6/6', status: 'OK' },
+        ];
+        availabilityData.loaded = true;
+        availabilityData.allLoaded = true;
+    }
+}
+
+/**
+ * Legacy function for backward compatibility
+ */
+async function loadAvailabilityData() {
+    await loadAllAvailabilityData();
+    return availabilityData.executiveSummary;
+}
+
+/**
+ * Get metric icon based on metric name
+ */
+function getAvailabilityMetricIcon(metricName) {
+    if (metricName.includes('Sev0') || metricName.includes('Sev1')) {
+        return '⚠️';
+    }
+    if (metricName.includes('MTTD') || metricName.includes('MTTR')) {
+        return '⏱️';
+    }
+    if (metricName.includes('Detection')) {
+        return '📡';
+    }
+    if (metricName.includes('Prevention') || metricName.includes('Coverage')) {
+        return '🛡️';
+    }
+    return '📊';
+}
+
+/**
+ * Get card class based on metric status and trend
+ */
+function getAvailabilityCardClass(metric) {
+    const metricName = metric.metric_name || '';
+    const trendDirection = metric.trend_direction || '';
+    const status = metric.status || '';
+    
+    // For incident trends, "up" is bad (more incidents)
+    if (metricName.includes('Sev0') || metricName.includes('Sev1')) {
+        if (trendDirection === 'up') return 'trend-up-bad';
+        if (trendDirection === 'down') return 'trend-down-good';
+    }
+    
+    // For MTTD/MTTR, "down" is good (faster detection/resolution)
+    if (metricName.includes('MTTD') || metricName.includes('MTTR')) {
+        if (trendDirection === 'down') return 'trend-down-good';
+        if (trendDirection === 'up') return 'trend-up-bad';
+    }
+    
+    // Based on status
+    if (status === 'WARNING') return 'warning';
+    if (status === 'OK') return 'ok';
+    
+    return '';
+}
+
+/**
+ * Get trend class for the trend indicator
+ */
+function getAvailabilityTrendClass(metric) {
+    const metricName = metric.metric_name || '';
+    const trendDirection = metric.trend_direction || '';
+    
+    // For incidents, up is bad, down is good
+    if (metricName.includes('Sev0') || metricName.includes('Sev1')) {
+        if (trendDirection === 'up') return 'negative';
+        if (trendDirection === 'down') return 'positive';
+    }
+    
+    // For MTTD/MTTR, down is good
+    if (metricName.includes('MTTD') || metricName.includes('MTTR')) {
+        if (trendDirection === 'down') return 'positive';
+        if (trendDirection === 'up') return 'negative';
+    }
+    
+    // For detection %, check status
+    if (metric.status === 'WARNING') return 'warning';
+    
+    return 'neutral';
+}
+
+/**
+ * Format the metric value with units
+ */
+function formatAvailabilityMetricValue(metric) {
+    const value = metric.metric_value || '';
+    const unit = metric.metric_unit || '';
+    
+    if (unit === 'min') {
+        return `${value}<span class="unit">min</span>`;
+    }
+    if (unit === '%') {
+        return `${value}<span class="unit">%</span>`;
+    }
+    return value;
+}
+
+/**
+ * Render Availability Exec View
+ */
+async function renderAvailabilityExecView() {
+    console.log('🛡️ Rendering Availability Exec View...');
+    
+    const container = document.getElementById('availability-metrics-grid');
+    if (!container) {
+        console.error('❌ Availability metrics container not found');
+        return;
+    }
+    
+    // Show loading state
+    container.innerHTML = `
+        <div class="placeholder-message" style="grid-column: 1 / -1;">
+            <div class="placeholder-icon">🛡️</div>
+            <h3>Loading Availability Metrics...</h3>
+            <p>Fetching executive summary data from E360</p>
+        </div>
+    `;
+    
+    // Load ALL data in parallel if not already loaded
+    await loadAllAvailabilityData();
+    
+    const metrics = availabilityData.executiveSummary;
+    
+    if (!metrics || metrics.length === 0) {
+        container.innerHTML = `
+            <div class="placeholder-message" style="grid-column: 1 / -1;">
+                <div class="placeholder-icon">⚠️</div>
+                <h3>No Data Available</h3>
+                <p>Could not load availability metrics</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Build metrics cards HTML
+    let html = '';
+    
+    metrics.forEach(metric => {
+        const icon = getAvailabilityMetricIcon(metric.metric_name);
+        const cardClass = getAvailabilityCardClass(metric);
+        const trendClass = getAvailabilityTrendClass(metric);
+        const formattedValue = formatAvailabilityMetricValue(metric);
+        
+        // Build trend/target display
+        let trendHtml = '';
+        if (metric.trend_value) {
+            const arrow = metric.trend_direction === 'up' ? '↑' : metric.trend_direction === 'down' ? '↓' : '';
+            trendHtml = `
+                <div class="metric-card-trend ${trendClass}">
+                    ${arrow} ${metric.trend_value}
+                </div>
+            `;
+        } else if (metric.target) {
+            trendHtml = `
+                <div class="metric-card-target">
+                    Target: <strong>${metric.target}</strong>
+                </div>
+            `;
+        } else if (metric.metric_unit === 'services') {
+            trendHtml = `
+                <div class="metric-card-target">
+                    Alerts + Tracing
+                </div>
+            `;
+        }
+        
+        html += `
+            <div class="availability-metric-card ${cardClass}">
+                <div class="metric-card-header">
+                    <span class="metric-card-icon">${icon}</span>
+                    <span class="metric-card-label">${metric.metric_name}</span>
+                </div>
+                <div class="metric-card-value">${formattedValue}</div>
+                ${trendHtml}
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    
+    // Update last updated timestamp
+    const lastUpdatedEl = document.getElementById('availability-last-updated');
+    if (lastUpdatedEl) {
+        const now = new Date();
+        const formattedDate = now.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        const formattedTime = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZoneName: 'short'
+        });
+        lastUpdatedEl.textContent = `Last Updated: ${formattedDate} @ ${formattedTime}`;
+    }
+    
+    console.log('✅ Availability Exec View rendered with', metrics.length, 'metrics');
+    
+    // Also render the incident trend chart and investment themes
+    renderIncidentTrendChart();
+    renderInvestmentThemes();
+}
+
+/**
+ * Export availability summary (placeholder for future)
+ */
+function exportAvailabilitySummary() {
+    console.log('📄 Exporting Availability Summary...');
+    showMessage('Single Page Summary export coming soon!', 'info');
+}
+
+/**
+ * Get monthly incident data from cache (no fetch needed)
+ */
+function getMonthlyIncidentData() {
+    return availabilityData.monthlyIncidents || [];
+}
+
+/**
+ * Get investment themes from cache (no fetch needed)
+ */
+function getInvestmentThemes() {
+    return availabilityData.investmentThemes || [];
+}
+
+/**
+ * Get service incident metrics from cache (no fetch needed)
+ */
+function getServiceIncidentMetrics() {
+    return availabilityData.serviceMetrics || [];
+}
+
+/**
+ * Render Incident Trend Chart (SVG Line Chart)
+ */
+function renderIncidentTrendChart() {
+    console.log('📈 Rendering Incident Trend Chart...');
+    
+    const container = document.getElementById('incident-trend-chart');
+    if (!container) return;
+    
+    const monthlyData = getMonthlyIncidentData();
+    if (!monthlyData.length) {
+        container.innerHTML = '<div class="placeholder-message"><p>No incident data available</p></div>';
+        return;
+    }
+    
+    // Group by month
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyStats = {};
+    
+    monthlyData.forEach(row => {
+        const yearMonth = row.year_month || '';
+        const monthNum = parseInt(yearMonth.split('-')[1]) - 1;
+        const monthName = months[monthNum] || yearMonth;
+        
+        if (!monthlyStats[monthName]) {
+            monthlyStats[monthName] = { sev0: 0, sev1: 0 };
+        }
+        
+        const count = parseInt(row.incident_count) || 0;
+        if (row.severity === 'Sev0') {
+            monthlyStats[monthName].sev0 += count;
+        } else if (row.severity === 'Sev1') {
+            monthlyStats[monthName].sev1 += count;
+        }
+    });
+    
+    // Find max for scaling
+    let maxCount = 0;
+    months.forEach(month => {
+        if (monthlyStats[month]) {
+            maxCount = Math.max(maxCount, monthlyStats[month].sev0, monthlyStats[month].sev1);
+        }
+    });
+    maxCount = Math.max(maxCount, 6); // Minimum scale of 6
+    
+    // Chart dimensions - use wider viewBox for proper proportions
+    const chartWidth = 600;
+    const chartHeight = 120;
+    const paddingLeft = 5;
+    const paddingRight = 5;
+    const paddingTop = 10;
+    const paddingBottom = 10;
+    
+    const plotWidth = chartWidth - paddingLeft - paddingRight;
+    const plotHeight = chartHeight - paddingTop - paddingBottom;
+    
+    // Calculate points for each line
+    const sev0Points = [];
+    const sev1Points = [];
+    
+    months.forEach((month, index) => {
+        const stats = monthlyStats[month] || { sev0: 0, sev1: 0 };
+        const x = paddingLeft + (index / (months.length - 1)) * plotWidth;
+        const y0 = paddingTop + plotHeight - ((stats.sev0 / maxCount) * plotHeight);
+        const y1 = paddingTop + plotHeight - ((stats.sev1 / maxCount) * plotHeight);
+        
+        sev0Points.push({ x, y: y0, value: stats.sev0, month });
+        sev1Points.push({ x, y: y1, value: stats.sev1, month });
+    });
+    
+    // Create simple straight-line path (polyline style)
+    function createLinePath(points) {
+        if (points.length < 2) return '';
+        return 'M ' + points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ');
+    }
+    
+    // Build paths
+    const sev0Path = createLinePath(sev0Points);
+    const sev1Path = createLinePath(sev1Points);
+    
+    // X-axis labels
+    let xLabels = months.map((month, i) => 
+        `<span class="chart-x-label">${month}</span>`
+    ).join('');
+    
+    // Y-axis grid lines
+    const ySteps = [0, Math.ceil(maxCount / 3), Math.ceil(maxCount * 2 / 3), maxCount];
+    let gridLines = '';
+    ySteps.forEach((val, i) => {
+        const yPos = paddingTop + plotHeight - ((val / maxCount) * plotHeight);
+        gridLines += `<line x1="${paddingLeft}" y1="${yPos}" x2="${chartWidth - paddingRight}" y2="${yPos}" stroke="#e5e7eb" stroke-width="1" />`;
+    });
+    
+    // Y-axis labels
+    let yLabels = ySteps.slice().reverse().map(val => 
+        `<span class="chart-y-label">${val}</span>`
+    ).join('');
+    
+    const chartHtml = `
+        <div class="line-chart-container">
+            <div class="chart-y-axis">${yLabels}</div>
+            <svg class="line-chart-svg" viewBox="0 0 ${chartWidth} ${chartHeight}" preserveAspectRatio="xMidYMid meet">
+                <!-- Grid lines -->
+                ${gridLines}
+                
+                <!-- Lines - Sev1 (orange) behind, Sev0 (red) in front -->
+                <path d="${sev1Path}" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="${sev0Path}" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="chart-x-axis">${xLabels}</div>
+        </div>
+    `;
+    
+    container.innerHTML = chartHtml;
+    
+    console.log('✅ Incident Trend Line Chart rendered');
+}
+
+/**
+ * Render Investment Themes
+ */
+function renderInvestmentThemes() {
+    console.log('💡 Rendering Investment Themes...');
+    
+    const container = document.getElementById('investment-themes-list');
+    if (!container) return;
+    
+    const themes = getInvestmentThemes();
+    if (!themes.length) {
+        container.innerHTML = '<div class="placeholder-message"><p>No investment themes available</p></div>';
+        return;
+    }
+    
+    // Sort by priority/theme_id and take top 3
+    const topThemes = themes.slice(0, 3);
+    
+    let html = '';
+    topThemes.forEach((theme, index) => {
+        const priorityClass = theme.theme_priority === 'CRITICAL' ? 'priority-critical' :
+                              theme.theme_priority === 'WARNING' ? 'priority-warning' : 'priority-info';
+        
+        html += `
+            <div class="investment-theme-card ${priorityClass}">
+                <div class="theme-content">
+                    <h4 class="theme-title">${index + 1}. ${theme.theme_title}</h4>
+                    <p class="theme-description">${theme.description}</p>
+                    <p class="theme-action">${theme.recommended_action}</p>
+                </div>
+                <span class="theme-percentage">${theme.incident_percentage}% of incidents</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    console.log('✅ Investment Themes rendered');
+}
+
+/**
+ * Render Availability Baseline (Developer View)
+ */
+async function renderAvailabilityBaseline() {
+    console.log('🛡️ Rendering Availability Baseline...');
+    
+    // Ensure all data is loaded
+    await loadAllAvailabilityData();
+    
+    const serviceMetrics = getServiceIncidentMetrics();
+    if (!serviceMetrics.length) {
+        console.warn('⚠️ No service metrics data available');
+        return;
+    }
+    
+    // Render MTTD chart
+    renderServiceBarChart('mttd-service-chart', serviceMetrics, 'avg_ttd_minutes', 10, 'MTTD');
+    
+    // Render MTTR chart
+    renderServiceBarChart('mttr-service-chart', serviceMetrics, 'avg_ttr_minutes', 60, 'MTTR');
+    
+    console.log('✅ Availability Baseline rendered');
+}
+
+/**
+ * Render a service bar chart (MTTD or MTTR)
+ */
+function renderServiceBarChart(containerId, services, valueField, slaTarget, metricType) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    // Find max value for scaling
+    let maxValue = 0;
+    services.forEach(svc => {
+        const val = parseFloat(svc[valueField]) || 0;
+        maxValue = Math.max(maxValue, val);
+    });
+    maxValue = Math.max(maxValue, slaTarget * 1.5); // Ensure bar scaling looks good
+    
+    let html = '';
+    
+    services.forEach(svc => {
+        const value = parseFloat(svc[valueField]) || 0;
+        const percentage = (value / maxValue) * 100;
+        
+        // Determine status based on SLA
+        let status = 'good';
+        let statusClass = 'status-good';
+        if (value > slaTarget) {
+            status = 'bad';
+            statusClass = 'status-bad';
+        } else if (value > slaTarget * 0.7) {
+            status = 'warning';
+            statusClass = 'status-warning';
+        }
+        
+        html += `
+            <div class="service-bar-row">
+                <span class="service-bar-label">${svc.service_name}</span>
+                <div class="service-bar-track">
+                    <div class="service-bar-fill ${statusClass}" style="width: ${percentage}%;"></div>
+                </div>
+                <span class="service-bar-value">
+                    ${value} min
+                    <span class="status-icon ${status}"></span>
+                </span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}

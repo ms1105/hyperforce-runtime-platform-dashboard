@@ -6141,19 +6141,48 @@ function renderServiceBarChart(containerId, services, valueField, slaTarget, met
     const container = document.getElementById(containerId);
     if (!container) return;
     
+    // Sort services by value (highest first) and take top 10
+    const sortedServices = [...services]
+        .filter(svc => parseFloat(svc[valueField]) > 0)
+        .sort((a, b) => parseFloat(b[valueField]) - parseFloat(a[valueField]))
+        .slice(0, 10);
+    
+    if (sortedServices.length === 0) {
+        container.innerHTML = '<div class="placeholder-message" style="padding: 1rem; color: #64748b;">No data available</div>';
+        return;
+    }
+    
     // Find max value for scaling
     let maxValue = 0;
-    services.forEach(svc => {
+    sortedServices.forEach(svc => {
         const val = parseFloat(svc[valueField]) || 0;
         maxValue = Math.max(maxValue, val);
     });
     maxValue = Math.max(maxValue, slaTarget * 1.5); // Ensure bar scaling looks good
     
-    let html = '';
+    // Build legend
+    const legendHtml = `
+        <div class="chart-legend-inline">
+            <span class="legend-inline-item">
+                <span class="legend-inline-dot good"></span>
+                Within SLA (&lt;${Math.round(slaTarget * 0.7)} min)
+            </span>
+            <span class="legend-inline-item">
+                <span class="legend-inline-dot warning"></span>
+                Near SLA (${Math.round(slaTarget * 0.7)}-${slaTarget} min)
+            </span>
+            <span class="legend-inline-item">
+                <span class="legend-inline-dot bad"></span>
+                Above SLA (&gt;${slaTarget} min)
+            </span>
+        </div>
+    `;
     
-    services.forEach(svc => {
+    let barsHtml = '';
+    
+    sortedServices.forEach(svc => {
         const value = parseFloat(svc[valueField]) || 0;
-        const percentage = (value / maxValue) * 100;
+        const percentage = Math.max((value / maxValue) * 100, 2); // Minimum 2% width for visibility
         
         // Determine status based on SLA
         let status = 'good';
@@ -6166,19 +6195,37 @@ function renderServiceBarChart(containerId, services, valueField, slaTarget, met
             statusClass = 'status-warning';
         }
         
-        html += `
+        // Format service name (truncate if too long)
+        const serviceName = svc.service_name?.length > 12 
+            ? svc.service_name.substring(0, 12) + '...' 
+            : svc.service_name || 'Unknown';
+        
+        barsHtml += `
             <div class="service-bar-row">
-                <span class="service-bar-label">${svc.service_name}</span>
+                <span class="service-bar-label" title="${svc.service_name}">${serviceName}</span>
                 <div class="service-bar-track">
                     <div class="service-bar-fill ${statusClass}" style="width: ${percentage}%;"></div>
                 </div>
                 <span class="service-bar-value">
-                    ${value} min
+                    <span class="value-text">${Math.round(value)} min</span>
                     <span class="status-icon ${status}"></span>
                 </span>
             </div>
         `;
     });
     
-    container.innerHTML = html;
+    // SLA target info
+    const slaInfoHtml = `
+        <div class="sla-target-info">
+            SLA Target: ${slaTarget} min
+        </div>
+    `;
+    
+    container.innerHTML = `
+        ${legendHtml}
+        <div class="service-bars-chart">
+            ${barsHtml}
+        </div>
+        ${slaInfoHtml}
+    `;
 }

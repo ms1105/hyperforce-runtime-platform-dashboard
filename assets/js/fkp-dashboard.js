@@ -5,6 +5,10 @@
 
 console.log('🚀 FKP Dashboard Script Loaded');
 
+// Debug mode - set to true for verbose logging
+const DEBUG_MODE = false;
+const debugLog = (...args) => { if (DEBUG_MODE) console.log(...args); };
+
 // Integration services that should be excluded from adoption metrics
 const INTEGRATION_SERVICES = [
     'stampy-webhook', 'madkub-watchdog', 'collection', 'madkub-injection-webhook',
@@ -12,10 +16,6 @@ const INTEGRATION_SERVICES = [
     'identity-controller', 'clustermanagement', 'collectioninjectortest', 
     'visibility-agent', 'vault', 'mars', 'authzwebhook', 'kubesyntheticscaler'
 ];
-
-// Immediate test to verify script is running
-console.log('🔧 Testing immediate JavaScript execution...');
-console.log('📊 Current timestamp:', new Date().toISOString());
 
 // Global state management
 let fkpDashboard = {
@@ -296,7 +296,7 @@ async function loadAllData() {
         
         // Debug sample of previous quarter data
         if (fkpDashboard.data.instancesPrevQ.length > 0) {
-            console.log('📋 Sample previous quarter data:', fkpDashboard.data.instancesPrevQ[0]);
+            debugLog('📋 Sample previous quarter data:', fkpDashboard.data.instancesPrevQ[0]);
         }
         
         // Load service cloud mapping data
@@ -378,12 +378,12 @@ async function loadAllData() {
         console.log(`✅ Loaded ${fkpDashboard.data.timelineRequirements.length} timeline and requirement records`);
         
         // Debug: Log sample timeline data and services with requirements
-        console.log('🔍 DEBUG: Sample timeline records:', fkpDashboard.data.timelineRequirements.slice(0, 3));
+        debugLog('🔍 DEBUG: Sample timeline records:', fkpDashboard.data.timelineRequirements.slice(0, 3));
         const servicesWithRequirements = fkpDashboard.data.timelineRequirements.filter(record => {
             const requirements = record['Requirements'];
             return requirements && requirements.trim() !== '' && requirements.toLowerCase() !== 'none';
         });
-        console.log(`🔍 DEBUG: Found ${servicesWithRequirements.length} services with requirements:`, 
+        debugLog(`🔍 DEBUG: Found ${servicesWithRequirements.length} services with requirements:`, 
                     servicesWithRequirements.map(r => ({ 
                         name: r['Service Name'], 
                         requirements: r['Requirements'] 
@@ -394,7 +394,7 @@ async function loadAllData() {
             return fkpDashboard.data.instances.some(inst => inst.label_p_servicename === r['Service Name']) ||
                    fkpDashboard.data.blackjackInstances.some(inst => inst.label_p_servicename === r['Service Name']);
         });
-        console.log(`🔍 DEBUG: Services with requirements that exist in main FKP/BlackJack data: ${servicesInMainData.length}`, 
+        debugLog(`🔍 DEBUG: Services with requirements that exist in main FKP/BlackJack data: ${servicesInMainData.length}`, 
                     servicesInMainData.map(r => r['Service Name']));
         
         // Debug: Check specific services mentioned by user
@@ -403,7 +403,7 @@ async function loadAllData() {
             const hasRequirements = servicesWithRequirements.some(r => r['Service Name'] === serviceName);
             const existsInData = fkpDashboard.data.instances.some(inst => inst.label_p_servicename === serviceName) ||
                                fkpDashboard.data.blackjackInstances.some(inst => inst.label_p_servicename === serviceName);
-            console.log(`🔍 DEBUG Specific Service: ${serviceName} - HasRequirements: ${hasRequirements}, ExistsInData: ${existsInData}`);
+            debugLog(`🔍 DEBUG Specific Service: ${serviceName} - HasRequirements: ${hasRequirements}, ExistsInData: ${existsInData}`);
         });
         
         // Validate data
@@ -546,8 +546,8 @@ function processData() {
         // Classify instance
         const classification = classifyInstance(instance);
         
-        if (isIntegrationService) {
-            console.log(`🔧 DEBUG FKP: Found integration service in data: ${serviceName}`);
+        if (isIntegrationService && DEBUG_MODE) {
+            debugLog(`🔧 DEBUG FKP: Found integration service in data: ${serviceName}`);
         }
         
         // Initialize service if not exists (in appropriate map)
@@ -640,8 +640,8 @@ function processData() {
         const classification = classifyInstance(instance);
         classification.customerType = 'BlackJack'; // Override for BlackJack instances
         
-        if (isIntegrationService) {
-            console.log(`🔧 DEBUG BlackJack: Found integration service in data: ${serviceName}`);
+        if (isIntegrationService && DEBUG_MODE) {
+            debugLog(`🔧 DEBUG BlackJack: Found integration service in data: ${serviceName}`);
         }
         
         // Initialize service if not exists (in appropriate map)
@@ -701,32 +701,7 @@ function processData() {
     calculateAdoptionPercentages(processed);
     
     fkpDashboard.data.processed = processed;
-    console.log('✅ Data processing completed');
-    console.log(`📊 Processed ${processed.services.size} regular services with mappings`);
-    console.log(`🔗 Processed ${processed.integrationServices.size} integration services`);
-    console.log(`📊 Regular FKP: ${processedCount} instances, skipped ${skippedCount} (unmapped services)`);
-    console.log(`⚫ BlackJack: ${blackjackProcessedCount} instances, skipped ${blackjackSkippedCount} (unmapped services)`);
-    console.log(`📈 Total instances processed: ${processedCount + blackjackProcessedCount}`);
-    console.log(`📊 Org Leaders: ${processed.orgLeaders.size}`);
-    console.log(`📊 Parent Clouds: ${processed.parentClouds.size}`);
-    console.log(`📊 Clouds: ${processed.clouds.size}`);
-    console.log(`📊 Teams: ${processed.teams.size}`);
-    
-    // Debug integration services detection
-    console.log('🔍 DEBUG Integration Services:');
-    console.log('🔍 Integration services found:', Array.from(processed.integrationServices.keys()));
-    console.log('🔍 Expected integration services:', INTEGRATION_SERVICES);
-    const foundIntegrationServices = INTEGRATION_SERVICES.filter(serviceName => 
-        fkpDashboard.data.instances.some(inst => inst.label_p_servicename === serviceName) ||
-        fkpDashboard.data.blackjackInstances.some(inst => inst.label_p_servicename === serviceName)
-    );
-    console.log('🔍 Integration services that exist in data:', foundIntegrationServices);
-    
-    console.log(`ℹ️ Unmapped services are listed in assets/data/unmapped_services.txt`);
-    
-    // Debug first few entries
-    console.log('🔍 First 5 Org Leaders:', Array.from(processed.orgLeaders.keys()).slice(0, 5));
-    console.log('🔍 First 5 Parent Clouds:', Array.from(processed.parentClouds.keys()).slice(0, 5));
+    console.log(`✅ Data processing completed: ${processed.services.size} services, ${processedCount + blackjackProcessedCount} instances`);
 }
 
 /**
@@ -2962,7 +2937,7 @@ function calculateServiceMigrationStageNumber(service) {
     
     // Check Stage 3 FIRST - Requirements override other stages
     if (hasParityRequirements(service.name)) {
-        console.log(`🟡 DEBUG Stage 3: Service ${service.name} has parity requirements - assigning Stage 3`);
+        debugLog(`🟡 DEBUG Stage 3: Service ${service.name} has parity requirements - assigning Stage 3`);
         return 3; // Stage 3: Parity Required (services with requirements)
     }
     
@@ -2991,7 +2966,7 @@ function calculateServiceMigrationStageNumber(service) {
  */
 function hasParityRequirements(serviceName) {
     if (!fkpDashboard.data.timelineRequirements || fkpDashboard.data.timelineRequirements.length === 0) {
-        console.log('🔍 DEBUG Stage 3: No timeline requirements data loaded');
+        debugLog('🔍 DEBUG Stage 3: No timeline requirements data loaded');
         return false;
     }
     
@@ -3003,10 +2978,10 @@ function hasParityRequirements(serviceName) {
         // Log specific services mentioned by user for debugging
         const debugServices = ['cdp-byoc-krc', 'cdp-dpc-eks', 'eanalytics', 'notebook'];
         if (debugServices.includes(serviceName)) {
-            console.log(`🔍 DEBUG Stage 3 SPECIFIC: No timeline record found for service: ${serviceName}`);
+            debugLog(`🔍 DEBUG Stage 3 SPECIFIC: No timeline record found for service: ${serviceName}`);
             console.log('🔍 Available services in timeline (first 10):', fkpDashboard.data.timelineRequirements.slice(0, 10).map(r => r['Service Name']));
         } else if (Math.random() < 0.01) {
-            console.log(`🔍 DEBUG Stage 3: No timeline record found for service: ${serviceName}`);
+            debugLog(`🔍 DEBUG Stage 3: No timeline record found for service: ${serviceName}`);
         }
         return false;
     }
@@ -3015,12 +2990,12 @@ function hasParityRequirements(serviceName) {
     const hasRequirements = requirements && requirements.trim() !== '' && requirements.toLowerCase() !== 'none';
     
     if (hasRequirements) {
-        console.log(`🟡 DEBUG Stage 3: Found service with requirements: ${serviceName} - Requirements: ${requirements}`);
+        debugLog(`🟡 DEBUG Stage 3: Found service with requirements: ${serviceName} - Requirements: ${requirements}`);
     } else {
         // Debug services that should have requirements but don't
         const debugServices = ['cdp-byoc-krc', 'cdp-dpc-eks', 'eanalytics', 'notebook'];
         if (debugServices.includes(serviceName)) {
-            console.log(`🔍 DEBUG Stage 3 SPECIFIC: Service ${serviceName} found in timeline but requirements = "${requirements}"`);
+            debugLog(`🔍 DEBUG Stage 3 SPECIFIC: Service ${serviceName} found in timeline but requirements = "${requirements}"`);
         }
     }
     
@@ -4151,8 +4126,8 @@ function renderIntegrations() {
     // Check if integration tab is active and visible
     const integrationsTab = document.getElementById('integrations');
     if (integrationsTab) {
-        console.log('🔧 DEBUG: Integration tab found, visibility:', window.getComputedStyle(integrationsTab).display);
-        console.log('🔧 DEBUG: Integration tab classes:', integrationsTab.className);
+        debugLog('🔧 DEBUG: Integration tab found, visibility:', window.getComputedStyle(integrationsTab).display);
+        debugLog('🔧 DEBUG: Integration tab classes:', integrationsTab.className);
     } else {
         console.error('❌ Integration tab not found in DOM');
     }
@@ -4174,14 +4149,14 @@ function renderIntegrationsMetrics() {
     }
     
     const integrationServices = Array.from(fkpDashboard.data.processed.integrationServices.values());
-    console.log('🔧 DEBUG Integration Metrics: Found', integrationServices.length, 'integration services');
-    console.log('🔧 DEBUG Integration Services:', integrationServices.map(s => s.name));
+    debugLog('🔧 DEBUG Integration Metrics: Found', integrationServices.length, 'integration services');
+    debugLog('🔧 DEBUG Integration Services:', integrationServices.map(s => s.name));
     
     const totalIntegrationServices = integrationServices.length;
     const totalInstances = integrationServices.reduce((sum, service) => sum + service.stats.total, 0);
     const fkpInstances = integrationServices.reduce((sum, service) => sum + service.stats.fkp, 0);
     
-    console.log('🔧 DEBUG Metrics:', {
+    debugLog('🔧 DEBUG Metrics:', {
         totalServices: totalIntegrationServices,
         totalInstances: totalInstances,
         fkpInstances: fkpInstances
@@ -4210,9 +4185,9 @@ function renderIntegrationsMetrics() {
     `;
     
     metricsContainer.innerHTML = html;
-    console.log('🔧 DEBUG: Metrics container after innerHTML:', metricsContainer);
-    console.log('🔧 DEBUG: Metrics container children.length:', metricsContainer.children.length);
-    console.log('🔧 DEBUG: Metrics container visibility:', window.getComputedStyle(metricsContainer).display);
+    debugLog('🔧 DEBUG: Metrics container after innerHTML:', metricsContainer);
+    debugLog('🔧 DEBUG: Metrics container children.length:', metricsContainer.children.length);
+    debugLog('🔧 DEBUG: Metrics container visibility:', window.getComputedStyle(metricsContainer).display);
     console.log('📊 Rendered integration metrics successfully');
 }
 
@@ -4227,11 +4202,11 @@ function renderIntegrationsTable() {
     }
     
     const integrationServices = getFilteredIntegrationServices();
-    console.log('🔧 DEBUG Integration Table: Found', integrationServices.length, 'filtered integration services');
+    debugLog('🔧 DEBUG Integration Table: Found', integrationServices.length, 'filtered integration services');
     
     if (integrationServices.length === 0) {
-        console.log('🔧 DEBUG: No integration services found, showing empty state');
-        console.log('🔧 DEBUG: Total integration services in data:', fkpDashboard.data.processed?.integrationServices?.size || 0);
+        debugLog('🔧 DEBUG: No integration services found, showing empty state');
+        debugLog('🔧 DEBUG: Total integration services in data:', fkpDashboard.data.processed?.integrationServices?.size || 0);
         tableContainer.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">🔧</div>
@@ -4280,9 +4255,9 @@ function renderIntegrationsTable() {
     
     tableContainer.innerHTML = tableHtml;
     console.log(`📊 Rendered integration services table with ${integrationServices.length} services`);
-    console.log('🔧 DEBUG: tableContainer after innerHTML:', tableContainer);
-    console.log('🔧 DEBUG: tableContainer.children.length:', tableContainer.children.length);
-    console.log('🔧 DEBUG: tableContainer visibility:', window.getComputedStyle(tableContainer).display);
+    debugLog('🔧 DEBUG: tableContainer after innerHTML:', tableContainer);
+    debugLog('🔧 DEBUG: tableContainer.children.length:', tableContainer.children.length);
+    debugLog('🔧 DEBUG: tableContainer visibility:', window.getComputedStyle(tableContainer).display);
 }
 
 /**
@@ -4290,18 +4265,18 @@ function renderIntegrationsTable() {
  */
 function getFilteredIntegrationServices() {
     if (!fkpDashboard.data.processed || !fkpDashboard.data.processed.integrationServices) {
-        console.log('🔧 DEBUG Filter: No integration services data available');
+        debugLog('🔧 DEBUG Filter: No integration services data available');
         return [];
     }
     
     const filters = fkpDashboard.filters;
     const allIntegrationServices = Array.from(fkpDashboard.data.processed.integrationServices.values());
     
-    console.log('🔧 DEBUG Filter: Starting with', allIntegrationServices.length, 'integration services');
-    console.log('🔧 DEBUG Filter: Current filters:', filters);
+    debugLog('🔧 DEBUG Filter: Starting with', allIntegrationServices.length, 'integration services');
+    debugLog('🔧 DEBUG Filter: Current filters:', filters);
     
     const filteredServices = allIntegrationServices.filter(service => {
-        console.log(`🔧 DEBUG Filter: Checking service ${service.name}:`, {
+        debugLog(`🔧 DEBUG Filter: Checking service ${service.name}:`, {
             orgLeader: service.orgLeader,
             parentCloud: service.parentCloud,
             cloud: service.cloud,
@@ -4313,7 +4288,7 @@ function getFilteredIntegrationServices() {
         // Skip organizational filters (orgLeader, parentCloud, cloud, team, service) since these are in a dedicated tab
         
         if (filters.substrate.length > 0 && !filters.substrate.includes('AWS')) {
-            console.log(`🔧 DEBUG Filter: ${service.name} filtered out by substrate`);
+            debugLog(`🔧 DEBUG Filter: ${service.name} filtered out by substrate`);
             return false;
         }
         
@@ -4327,7 +4302,7 @@ function getFilteredIntegrationServices() {
                 }
             });
             if (!hasValidCustomerType) {
-                console.log(`🔧 DEBUG Filter: ${service.name} filtered out by customerType (${filters.customerType}) - stats:`, {
+                debugLog(`🔧 DEBUG Filter: ${service.name} filtered out by customerType (${filters.customerType}) - stats:`, {
                     commercial: service.stats.commercial,
                     gia: service.stats.gia,
                     blackjack: service.stats.blackjack
@@ -4345,7 +4320,7 @@ function getFilteredIntegrationServices() {
                 }
             });
             if (!hasValidEnv) {
-                console.log(`🔧 DEBUG Filter: ${service.name} filtered out by instanceEnv (${filters.instanceEnv}) - stats:`, {
+                debugLog(`🔧 DEBUG Filter: ${service.name} filtered out by instanceEnv (${filters.instanceEnv}) - stats:`, {
                     prod: service.stats.prod,
                     preProd: service.stats.preProd
                 });
@@ -4353,11 +4328,11 @@ function getFilteredIntegrationServices() {
             }
         }
         
-        console.log(`🔧 DEBUG Filter: ✅ ${service.name} passed all filters (integration services use permissive filtering)`);
+        debugLog(`🔧 DEBUG Filter: ✅ ${service.name} passed all filters (integration services use permissive filtering)`);
         return true;
     });
     
-    console.log(`🔧 DEBUG Filter: Final result: ${filteredServices.length} services passed filtering`);
+    debugLog(`🔧 DEBUG Filter: Final result: ${filteredServices.length} services passed filtering`);
     return filteredServices;
 }
 

@@ -9,18 +9,9 @@ import HCPCTSProgram from './components/HCPCTSProgram';
 import AvailabilityExecView from './components/AvailabilityExecView';
 import './index.css';
 
-// Mock/Static data loader for GitHub Pages
+// Static data for GitHub Pages (no network requests to avoid 404 errors)
 const loadDashboardData = async () => {
-  try {
-    const response = await fetch('/assets/data/dashboard-data.json');
-    if (response.ok) {
-      return await response.json();
-    }
-  } catch (error) {
-    console.warn('Could not load dashboard-data.json, using mock data');
-  }
-  
-  // Fallback mock data
+  // Return static data directly - no fetch needed for GitHub Pages
   return {
     hrpAdoption: {
       totalServices: 3420,
@@ -72,15 +63,7 @@ const loadDashboardData = async () => {
 };
 
 const loadCTSData = async () => {
-  try {
-    const response = await fetch('/assets/data/cts-data.json');
-    if (response.ok) {
-      return await response.json();
-    }
-  } catch (error) {
-    console.warn('Could not load cts-data.json, using mock data');
-  }
-  
+  // Return static data directly - no fetch needed for GitHub Pages
   return {
     summary: {
       totalCost: 10792328,

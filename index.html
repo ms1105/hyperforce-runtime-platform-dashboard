@@ -4,9 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hyperforce Runtime Platform 360 - FKP Adoption Dashboard</title>
+    <!-- Favicon (prevents 404) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
     <link rel="stylesheet" href="assets/css/fkp-dashboard.css">
-    <!-- Tailwind CSS for React components -->
+    <!-- Tailwind CSS (CDN for GitHub Pages - production warning is expected) -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Suppress Tailwind CDN warning in console
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = { corePlugins: { preflight: false } };
+        }
+    </script>
     <!-- Choices.js CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
     <!-- Choices.js JavaScript -->

@@ -5520,6 +5520,12 @@ async function renderAutoscalingExecView() {
         hpaRateEl.textContent = `${hpaAdoptionRate}%`;
     }
     
+    // Update HPA coverage percentage
+    const hpaCoveragePctEl = document.getElementById('hpa-coverage-pct');
+    if (hpaCoveragePctEl) {
+        hpaCoveragePctEl.textContent = `${hpaAdoptionRate}%`;
+    }
+    
     // Update HPA progress bar
     const hpaProgressFill = document.getElementById('hpa-progress-fill');
     if (hpaProgressFill) {
@@ -5530,17 +5536,17 @@ async function renderAutoscalingExecView() {
     const hpaDetails = document.getElementById('hpa-details');
     if (hpaDetails) {
         hpaDetails.innerHTML = `
-            <div class="hpa-row clickable" onclick="filterAutoscalingByHpaStatus('enrolled')">
-                <span class="hpa-label">HPA Enabled Services</span>
-                <span class="hpa-value highlight">${hpaEnabledCount} <span class="link-icon">↗</span></span>
+            <div class="tier-hpa-detail-row clickable" onclick="filterAutoscalingByHpaStatus('enrolled')">
+                <span class="tier-hpa-detail-label">HPA Enabled Services</span>
+                <span class="tier-hpa-detail-value">${hpaEnabledCount} <span class="link-icon">↗</span></span>
             </div>
-            <div class="hpa-row clickable" onclick="filterAutoscalingByHpaStatus('not-enrolled')">
-                <span class="hpa-label">Services Without HPA</span>
-                <span class="hpa-value">${servicesWithoutHPA} <span class="link-icon">↗</span></span>
+            <div class="tier-hpa-detail-row clickable" onclick="filterAutoscalingByHpaStatus('not-enrolled')">
+                <span class="tier-hpa-detail-label">Services Without HPA</span>
+                <span class="tier-hpa-detail-value">${servicesWithoutHPA} <span class="link-icon">↗</span></span>
             </div>
-            <div class="hpa-row">
-                <span class="hpa-label">Total Services</span>
-                <span class="hpa-value">${totalServices}</span>
+            <div class="tier-hpa-detail-row">
+                <span class="tier-hpa-detail-label">Total Services</span>
+                <span class="tier-hpa-detail-value">${totalServices}</span>
             </div>
         `;
     }

@@ -651,7 +651,9 @@
                                         <span class="tier-hpa-title">SERVICE TIER BREAKDOWN</span>
                                     </div>
                                     <div class="tier-hpa-main">
-                                        <span class="tier-hpa-percentage" id="total-services-count">--</span>
+                                        <span class="tier-hpa-percentage clickable-number" id="total-services-count" onclick="switchTab('runtime-hpa'); event.stopPropagation();" style="cursor: pointer;">--</span>
+                                        <span class="tier-hpa-link-icon">↗</span>
+                                        <span class="tier-hpa-click-badge">CLICK</span>
                                     </div>
                                     <div class="tier-hpa-subtitle">Distribution by Service Tier</div>
                                     <div class="tier-hpa-coverage">
@@ -672,7 +674,9 @@
                                         <span class="tier-hpa-title">HPA ADOPTION RATE</span>
                                     </div>
                                     <div class="tier-hpa-main">
-                                        <span class="tier-hpa-percentage" id="hpa-adoption-rate">--%</span>
+                                        <span class="tier-hpa-percentage clickable-number" id="hpa-adoption-rate" onclick="switchTab('runtime-hpa'); event.stopPropagation();" style="cursor: pointer;">--%</span>
+                                        <span class="tier-hpa-link-icon">↗</span>
+                                        <span class="tier-hpa-click-badge">CLICK</span>
                                     </div>
                                     <div class="tier-hpa-subtitle">Overall Autoscaling Coverage</div>
                                     <div class="tier-hpa-coverage">

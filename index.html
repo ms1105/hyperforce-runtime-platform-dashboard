@@ -78,7 +78,7 @@
                         <div class="nav-subitem" data-tab="runtime-availability" data-view="both">
                             <span class="nav-text">Availability</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-karpenter" data-react-tab="true" data-view="both">
+                        <div class="nav-subitem" data-tab="runtime-karpenter" data-view="both">
                             <span class="nav-text">Karpenter</span>
                         </div>
                     </div>
@@ -623,7 +623,7 @@
                         </div>
                         
                         <div class="autoscaling-content">
-                            <!-- Metrics Cards Row -->
+                            <!-- Overview Metrics Cards Row -->
                             <div class="autoscaling-metrics-grid" id="autoscaling-exec-metrics">
                                 <!-- Service Tier Breakdown Card -->
                                 <div class="autoscaling-metric-card" id="service-tier-card">
@@ -662,6 +662,63 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Tier 0 and Tier 1 HPA Adoption Cards -->
+                            <div class="tier-hpa-cards-grid" id="tier-hpa-cards">
+                                <!-- Tier 0 HPA Adoption Card -->
+                                <div class="tier-hpa-card tier-0-card" id="tier0-hpa-card" onclick="filterAutoscalingByTier(0)">
+                                    <div class="tier-hpa-header">
+                                        <span class="tier-hpa-title">Tier 0 HPA Adoption</span>
+                                    </div>
+                                    <div class="tier-hpa-main">
+                                        <span class="tier-hpa-percentage" id="tier0-hpa-pct">--%</span>
+                                        <span class="tier-hpa-link-icon">↗</span>
+                                        <span class="tier-hpa-click-badge">CLICK</span>
+                                    </div>
+                                    <div class="tier-hpa-subtitle">Critical Services Autoscaling</div>
+                                    <div class="tier-hpa-coverage">
+                                        <span class="tier-hpa-coverage-label">Tier 0 HPA Coverage</span>
+                                        <span class="tier-hpa-coverage-value" id="tier0-coverage-pct">--%</span>
+                                    </div>
+                                    <div class="tier-hpa-progress-bar">
+                                        <div class="tier-hpa-progress-fill" id="tier0-progress-fill"></div>
+                                    </div>
+                                    <div class="tier-hpa-details" id="tier0-details">
+                                        <!-- Dynamic content -->
+                                    </div>
+                                    <div class="tier-hpa-priority">
+                                        <span class="tier-hpa-priority-label">Priority Level</span>
+                                        <span class="tier-hpa-priority-value mission-critical">Mission Critical ↗</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tier 1 HPA Adoption Card -->
+                                <div class="tier-hpa-card tier-1-card" id="tier1-hpa-card" onclick="filterAutoscalingByTier(1)">
+                                    <div class="tier-hpa-header">
+                                        <span class="tier-hpa-title">Tier 1 HPA Adoption</span>
+                                    </div>
+                                    <div class="tier-hpa-main">
+                                        <span class="tier-hpa-percentage" id="tier1-hpa-pct">--%</span>
+                                        <span class="tier-hpa-link-icon">↗</span>
+                                        <span class="tier-hpa-click-badge">CLICK</span>
+                                    </div>
+                                    <div class="tier-hpa-subtitle">Standard Services Autoscaling</div>
+                                    <div class="tier-hpa-coverage">
+                                        <span class="tier-hpa-coverage-label">Tier 1 HPA Coverage</span>
+                                        <span class="tier-hpa-coverage-value" id="tier1-coverage-pct">--%</span>
+                                    </div>
+                                    <div class="tier-hpa-progress-bar">
+                                        <div class="tier-hpa-progress-fill" id="tier1-progress-fill"></div>
+                                    </div>
+                                    <div class="tier-hpa-details" id="tier1-details">
+                                        <!-- Dynamic content -->
+                                    </div>
+                                    <div class="tier-hpa-priority">
+                                        <span class="tier-hpa-priority-label">Priority Level</span>
+                                        <span class="tier-hpa-priority-value production-standard">Production Standard ↗</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -673,6 +730,34 @@
                         </div>
                         
                         <div class="autoscaling-developer-content">
+                            <!-- Filter Controls -->
+                            <div class="autoscaling-filters" id="autoscaling-dev-filters">
+                                <div class="autoscaling-filter-group">
+                                    <label class="autoscaling-filter-label">Tier</label>
+                                    <select id="autoscaling-tier-filter" onchange="applyAutoscalingFilters()">
+                                        <option value="all">All Tiers</option>
+                                        <option value="0">Tier 0 (Critical)</option>
+                                        <option value="1">Tier 1 (Standard)</option>
+                                    </select>
+                                </div>
+                                <div class="autoscaling-filter-group">
+                                    <label class="autoscaling-filter-label">HPA Status</label>
+                                    <select id="autoscaling-hpa-filter" onchange="applyAutoscalingFilters()">
+                                        <option value="all">All Services</option>
+                                        <option value="enrolled">HPA Enabled (>0%)</option>
+                                        <option value="not-enrolled">Not Enrolled (0%)</option>
+                                    </select>
+                                </div>
+                                <div class="autoscaling-filter-actions">
+                                    <button class="autoscaling-reset-btn" onclick="resetAutoscalingFilters()">
+                                        🔄 Reset Filters
+                                    </button>
+                                </div>
+                                <div class="autoscaling-filter-status" id="autoscaling-filter-status">
+                                    Showing all services
+                                </div>
+                            </div>
+                            
                             <!-- Services Table -->
                             <div class="autoscaling-table-container">
                                 <table class="autoscaling-services-table" id="autoscaling-services-table">
@@ -697,6 +782,60 @@
                     <div class="tab-pane" id="runtime-availability">
                         <div id="runtime-availability-content">
                             <!-- Content dynamically switches between Exec and Baseline based on view mode -->
+                        </div>
+                    </div>
+                    
+                    <!-- Karpenter Tab (shows Exec or Developer based on view mode) -->
+                    <div class="tab-pane" id="runtime-karpenter">
+                        <div class="tab-header">
+                            <h2>📦 Karpenter - Bin-Packing Efficiency</h2>
+                            <p>CPU allocation metrics and cluster efficiency analysis</p>
+                        </div>
+                        
+                        <!-- Karpenter Filters (synced between Exec and Dev views) -->
+                        <div class="karpenter-filters" id="karpenter-filters">
+                            <div class="karpenter-filter-row">
+                                <div class="karpenter-filter-group">
+                                    <label class="karpenter-filter-label">Falcon Instance (FI)</label>
+                                    <select id="karpenter-fi-filter" onchange="applyKarpenterFilters()">
+                                        <option value="all">All FI</option>
+                                    </select>
+                                </div>
+                                <div class="karpenter-filter-group">
+                                    <label class="karpenter-filter-label">Functional Domain (FD)</label>
+                                    <select id="karpenter-fd-filter" onchange="applyKarpenterFilters()">
+                                        <option value="all">All FD</option>
+                                    </select>
+                                </div>
+                                <div class="karpenter-filter-group">
+                                    <label class="karpenter-filter-label">Environment</label>
+                                    <select id="karpenter-env-filter" onchange="applyKarpenterFilters()">
+                                        <option value="all">All Environments</option>
+                                    </select>
+                                </div>
+                                <div class="karpenter-filter-group">
+                                    <label class="karpenter-filter-label">Cluster Name</label>
+                                    <select id="karpenter-cluster-filter" onchange="applyKarpenterFilters()">
+                                        <option value="all">All Clusters</option>
+                                    </select>
+                                </div>
+                                <div class="karpenter-filter-group">
+                                    <label class="karpenter-filter-label">Month</label>
+                                    <select id="karpenter-month-filter" onchange="applyKarpenterFilters()">
+                                        <option value="all">All Months</option>
+                                    </select>
+                                </div>
+                                <div class="karpenter-filter-actions">
+                                    <button class="karpenter-reset-btn" onclick="resetKarpenterFilters()">
+                                        🔄 Reset Filters
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Karpenter Content (switches based on view mode) -->
+                        <div id="karpenter-content">
+                            <!-- Dynamically rendered content -->
                         </div>
                     </div>
                     

@@ -176,9 +176,11 @@ function switchViewMode(mode) {
         }
     }
     
-    // If viewing runtime-availability, refresh to show correct content
+    // If viewing runtime-availability or runtime-karpenter, refresh to show correct content
     if (fkpDashboard.state.currentTab === 'runtime-availability') {
         renderRuntimeAvailability();
+    } else if (fkpDashboard.state.currentTab === 'runtime-karpenter') {
+        renderKarpenter();
     }
     
     console.log('✅ View mode switched to:', mode);
@@ -1283,13 +1285,22 @@ function updateFilterVisibility() {
     const navItem = document.querySelector(`[data-tab="${currentTab}"]`);
     const isReactTab = navItem && navItem.hasAttribute('data-react-tab');
     
-    // Hide filters bar for all tabs except onboarding tabs
-    const onboardingTabs = ['executive-overview', 'migration-pipeline', 'migration-dependencies', 
-                            'service-information', 'cross-customer-analysis', 'integrations'];
-    const isOnboardingTab = onboardingTabs.includes(currentTab);
+    // Define Onboarding Exec View tabs (should NOT show filters)
+    const onboardingExecTabs = ['executive-overview', 'migration-pipeline'];
+    
+    // Define Onboarding Developer View tabs (should show filters)
+    const onboardingDevTabs = ['migration-dependencies', 'service-information', 
+                               'cross-customer-analysis', 'integrations'];
+    
+    const isOnboardingExecTab = onboardingExecTabs.includes(currentTab);
+    const isOnboardingDevTab = onboardingDevTabs.includes(currentTab);
     
     if (filtersBar) {
-        if (isOnboardingTab) {
+        if (isOnboardingExecTab) {
+            // Hide filters for Onboarding Exec View tabs
+            filtersBar.style.display = 'none';
+        } else if (isOnboardingDevTab) {
+            // Show filters for Onboarding Developer View tabs
             filtersBar.style.display = 'block';
             
             // Show/hide individual filters based on tab
@@ -1299,12 +1310,6 @@ function updateFilterVisibility() {
                 let show = true;
                 
                 switch (currentTab) {
-                    case 'executive-overview':
-                        show = ['substrate', 'customer-type', 'instance-env'].includes(filterType);
-                        break;
-                    case 'migration-pipeline':
-                        show = ['substrate', 'customer-type'].includes(filterType);
-                        break;
                     case 'service-information':
                         // All filters apply to service information tab
                         show = true;
@@ -1326,7 +1331,7 @@ function updateFilterVisibility() {
                 group.style.display = show ? 'block' : 'none';
             });
         } else {
-            // Hide filters bar for React tabs
+            // Hide filters bar for React tabs and other tabs
             filtersBar.style.display = 'none';
         }
     }
@@ -1601,6 +1606,9 @@ function refreshCurrentTab() {
             break;
         case 'runtime-availability':
             renderRuntimeAvailability();
+            break;
+        case 'runtime-karpenter':
+            renderKarpenter();
             break;
         case 'availability-exec':
             renderAvailabilityExecView();
@@ -5426,6 +5434,12 @@ async function loadAutoscalingData() {
 /**
  * Render Autoscaling Exec View (Metrics Cards)
  */
+// Store autoscaling filter state
+let autoscalingFilterState = {
+    tier: 'all',
+    hpaStatus: 'all'
+};
+
 async function renderAutoscalingExecView() {
     console.log('📊 Rendering Autoscaling Exec View...');
     
@@ -5448,16 +5462,28 @@ async function renderAutoscalingExecView() {
     const tier0Pct = ((tier0Count / totalServices) * 100).toFixed(1);
     const tier1Pct = ((tier1Count / totalServices) * 100).toFixed(1);
     
-    // Calculate HPA adoption
+    // Calculate overall HPA adoption
     const hpaEnabledServices = services.filter(s => s.hpa > 0);
     const hpaEnabledCount = hpaEnabledServices.length;
     const hpaAdoptionRate = ((hpaEnabledCount / totalServices) * 100).toFixed(2);
     const servicesWithoutHPA = totalServices - hpaEnabledCount;
     
+    // Calculate HPA adoption for Tier 0
+    const tier0WithHPA = tier0Services.filter(s => s.hpa > 0);
+    const tier0HpaCount = tier0WithHPA.length;
+    const tier0HpaPct = tier0Count > 0 ? ((tier0HpaCount / tier0Count) * 100).toFixed(1) : 0;
+    
+    // Calculate HPA adoption for Tier 1
+    const tier1WithHPA = tier1Services.filter(s => s.hpa > 0);
+    const tier1HpaCount = tier1WithHPA.length;
+    const tier1HpaPct = tier1Count > 0 ? ((tier1HpaCount / tier1Count) * 100).toFixed(1) : 0;
+    
     console.log(`📊 Total: ${totalServices}, Tier0: ${tier0Count}, Tier1: ${tier1Count}`);
     console.log(`📊 HPA Enabled: ${hpaEnabledCount}, Rate: ${hpaAdoptionRate}%`);
+    console.log(`📊 Tier 0: ${tier0HpaCount} with HPA (${tier0HpaPct}%)`);
+    console.log(`📊 Tier 1: ${tier1HpaCount} with HPA (${tier1HpaPct}%)`);
     
-    // Update Service Tier Card
+    // ============ UPDATE SERVICE TIER BREAKDOWN CARD ============
     const totalServicesEl = document.getElementById('total-services-count');
     if (totalServicesEl) {
         totalServicesEl.textContent = totalServices;
@@ -5473,30 +5499,22 @@ async function renderAutoscalingExecView() {
     const tierDetails = document.getElementById('tier-details');
     if (tierDetails) {
         tierDetails.innerHTML = `
-            <div class="tier-row">
-                <span class="tier-label">Total Classified Services</span>
-                <span class="tier-value">100.00%</span>
-            </div>
-            <div class="tier-row">
+            <div class="tier-row clickable" onclick="filterAutoscalingByTier(0)">
                 <span class="tier-label">Tier 0 (Critical)</span>
-                <span class="tier-value">${tier0Count} <span class="tier-pct">(${tier0Pct}%)</span></span>
+                <span class="tier-value">${tier0Count} <span class="tier-pct">(${tier0Pct}%)</span> <span class="link-icon">↗</span></span>
             </div>
-            <div class="tier-row">
+            <div class="tier-row clickable" onclick="filterAutoscalingByTier(1)">
                 <span class="tier-label">Tier 1 (Standard)</span>
-                <span class="tier-value">${tier1Count} <span class="tier-pct">(${tier1Pct}%)</span></span>
+                <span class="tier-value">${tier1Count} <span class="tier-pct">(${tier1Pct}%)</span> <span class="link-icon">↗</span></span>
             </div>
             <div class="tier-row">
                 <span class="tier-label">Total Services</span>
                 <span class="tier-value">${totalServices}</span>
             </div>
-            <div class="tier-row">
-                <span class="tier-label">Classification</span>
-                <span class="tier-value" style="color: #3b82f6;">100% Covered</span>
-            </div>
         `;
     }
     
-    // Update HPA Adoption Card
+    // ============ UPDATE HPA ADOPTION RATE CARD ============
     const hpaRateEl = document.getElementById('hpa-adoption-rate');
     if (hpaRateEl) {
         hpaRateEl.textContent = `${hpaAdoptionRate}%`;
@@ -5512,30 +5530,197 @@ async function renderAutoscalingExecView() {
     const hpaDetails = document.getElementById('hpa-details');
     if (hpaDetails) {
         hpaDetails.innerHTML = `
-            <div class="hpa-row">
-                <span class="hpa-label">Services with HPA</span>
-                <span class="hpa-value">${hpaAdoptionRate}%</span>
-            </div>
-            <div class="hpa-row">
+            <div class="hpa-row clickable" onclick="filterAutoscalingByHpaStatus('enrolled')">
                 <span class="hpa-label">HPA Enabled Services</span>
-                <span class="hpa-value highlight">${hpaEnabledCount}</span>
+                <span class="hpa-value highlight">${hpaEnabledCount} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="hpa-row clickable" onclick="filterAutoscalingByHpaStatus('not-enrolled')">
+                <span class="hpa-label">Services Without HPA</span>
+                <span class="hpa-value">${servicesWithoutHPA} <span class="link-icon">↗</span></span>
             </div>
             <div class="hpa-row">
                 <span class="hpa-label">Total Services</span>
                 <span class="hpa-value">${totalServices}</span>
             </div>
-            <div class="hpa-row">
-                <span class="hpa-label">Services Without HPA</span>
-                <span class="hpa-value">${servicesWithoutHPA}</span>
+        `;
+    }
+    
+    // ============ UPDATE TIER 0 CARD ============
+    const tier0PctEl = document.getElementById('tier0-hpa-pct');
+    if (tier0PctEl) tier0PctEl.textContent = `${tier0HpaPct}%`;
+    
+    const tier0CoveragePctEl = document.getElementById('tier0-coverage-pct');
+    if (tier0CoveragePctEl) tier0CoveragePctEl.textContent = `${tier0HpaPct}%`;
+    
+    const tier0ProgressFill = document.getElementById('tier0-progress-fill');
+    if (tier0ProgressFill) tier0ProgressFill.style.width = `${tier0HpaPct}%`;
+    
+    const tier0Details = document.getElementById('tier0-details');
+    if (tier0Details) {
+        tier0Details.innerHTML = `
+            <div class="tier-hpa-detail-row clickable" onclick="event.stopPropagation(); filterAutoscalingByTierAndHpa(0, 'enrolled')">
+                <span class="tier-hpa-detail-label">Services with HPA</span>
+                <span class="tier-hpa-detail-value">${tier0HpaCount} <span class="link-icon">↗</span></span>
             </div>
-            <div class="hpa-row">
-                <span class="hpa-label">Adoption Progress</span>
-                <span class="hpa-value" style="color: #3b82f6;">${hpaAdoptionRate}%</span>
+            <div class="tier-hpa-detail-row clickable" onclick="event.stopPropagation(); filterAutoscalingByTier(0)">
+                <span class="tier-hpa-detail-label">Total Tier 0 Services</span>
+                <span class="tier-hpa-detail-value">${tier0Count} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row">
+                <span class="tier-hpa-detail-label">HPA Adoption Rate</span>
+                <span class="tier-hpa-detail-value">${tier0HpaPct}%</span>
+            </div>
+        `;
+    }
+    
+    // ============ UPDATE TIER 1 CARD ============
+    const tier1PctEl = document.getElementById('tier1-hpa-pct');
+    if (tier1PctEl) tier1PctEl.textContent = `${tier1HpaPct}%`;
+    
+    const tier1CoveragePctEl = document.getElementById('tier1-coverage-pct');
+    if (tier1CoveragePctEl) tier1CoveragePctEl.textContent = `${tier1HpaPct}%`;
+    
+    const tier1ProgressFill = document.getElementById('tier1-progress-fill');
+    if (tier1ProgressFill) tier1ProgressFill.style.width = `${tier1HpaPct}%`;
+    
+    const tier1Details = document.getElementById('tier1-details');
+    if (tier1Details) {
+        tier1Details.innerHTML = `
+            <div class="tier-hpa-detail-row clickable" onclick="event.stopPropagation(); filterAutoscalingByTierAndHpa(1, 'enrolled')">
+                <span class="tier-hpa-detail-label">Services with HPA</span>
+                <span class="tier-hpa-detail-value">${tier1HpaCount} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row clickable" onclick="event.stopPropagation(); filterAutoscalingByTier(1)">
+                <span class="tier-hpa-detail-label">Total Tier 1 Services</span>
+                <span class="tier-hpa-detail-value">${tier1Count} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row">
+                <span class="tier-hpa-detail-label">HPA Adoption Rate</span>
+                <span class="tier-hpa-detail-value">${tier1HpaPct}%</span>
             </div>
         `;
     }
     
     console.log('✅ Autoscaling Exec View rendered');
+}
+
+/**
+ * Filter autoscaling table by tier - called when clicking on Tier cards
+ */
+function filterAutoscalingByTier(tier) {
+    console.log(`📊 Filtering autoscaling by Tier ${tier}`);
+    
+    // Set the filter state
+    autoscalingFilterState.tier = tier.toString();
+    autoscalingFilterState.hpaStatus = 'all'; // Reset HPA filter when filtering by tier only
+    
+    // Switch to Developer View
+    switchViewMode('developer');
+    
+    // Switch to the autoscaling tab
+    switchTab('runtime-hpa');
+    
+    // Apply the filter
+    setTimeout(() => {
+        const tierFilter = document.getElementById('autoscaling-tier-filter');
+        const hpaFilter = document.getElementById('autoscaling-hpa-filter');
+        if (tierFilter) {
+            tierFilter.value = tier.toString();
+        }
+        if (hpaFilter) {
+            hpaFilter.value = 'all';
+        }
+        applyAutoscalingFilters();
+    }, 100);
+}
+
+/**
+ * Filter autoscaling table by tier AND HPA status - called when clicking on specific links
+ */
+function filterAutoscalingByTierAndHpa(tier, hpaStatus) {
+    console.log(`📊 Filtering autoscaling by Tier ${tier} and HPA status: ${hpaStatus}`);
+    
+    // Set the filter state
+    autoscalingFilterState.tier = tier.toString();
+    autoscalingFilterState.hpaStatus = hpaStatus;
+    
+    // Switch to Developer View
+    switchViewMode('developer');
+    
+    // Switch to the autoscaling tab
+    switchTab('runtime-hpa');
+    
+    // Apply the filter
+    setTimeout(() => {
+        const tierFilter = document.getElementById('autoscaling-tier-filter');
+        const hpaFilter = document.getElementById('autoscaling-hpa-filter');
+        if (tierFilter) {
+            tierFilter.value = tier.toString();
+        }
+        if (hpaFilter) {
+            hpaFilter.value = hpaStatus;
+        }
+        applyAutoscalingFilters();
+    }, 100);
+}
+
+/**
+ * Filter autoscaling table by HPA status only - called from HPA Adoption card
+ */
+function filterAutoscalingByHpaStatus(hpaStatus) {
+    console.log(`📊 Filtering autoscaling by HPA status: ${hpaStatus}`);
+    
+    // Set the filter state
+    autoscalingFilterState.tier = 'all'; // Show all tiers
+    autoscalingFilterState.hpaStatus = hpaStatus;
+    
+    // Switch to Developer View
+    switchViewMode('developer');
+    
+    // Switch to the autoscaling tab
+    switchTab('runtime-hpa');
+    
+    // Apply the filter
+    setTimeout(() => {
+        const tierFilter = document.getElementById('autoscaling-tier-filter');
+        const hpaFilter = document.getElementById('autoscaling-hpa-filter');
+        if (tierFilter) {
+            tierFilter.value = 'all';
+        }
+        if (hpaFilter) {
+            hpaFilter.value = hpaStatus;
+        }
+        applyAutoscalingFilters();
+    }, 100);
+}
+
+/**
+ * Apply autoscaling filters in Developer View
+ */
+function applyAutoscalingFilters() {
+    const tierFilter = document.getElementById('autoscaling-tier-filter');
+    const hpaFilter = document.getElementById('autoscaling-hpa-filter');
+    
+    autoscalingFilterState.tier = tierFilter ? tierFilter.value : 'all';
+    autoscalingFilterState.hpaStatus = hpaFilter ? hpaFilter.value : 'all';
+    
+    renderAutoscalingDeveloperView();
+}
+
+/**
+ * Reset autoscaling filters
+ */
+function resetAutoscalingFilters() {
+    autoscalingFilterState.tier = 'all';
+    autoscalingFilterState.hpaStatus = 'all';
+    
+    const tierFilter = document.getElementById('autoscaling-tier-filter');
+    const hpaFilter = document.getElementById('autoscaling-hpa-filter');
+    
+    if (tierFilter) tierFilter.value = 'all';
+    if (hpaFilter) hpaFilter.value = 'all';
+    
+    renderAutoscalingDeveloperView();
 }
 
 /**
@@ -5558,8 +5743,24 @@ async function renderAutoscalingDeveloperView() {
         return;
     }
     
+    // Apply filters
+    let filteredServices = [...autoscalingData.services];
+    
+    // Filter by tier
+    if (autoscalingFilterState.tier !== 'all') {
+        const tierValue = parseInt(autoscalingFilterState.tier);
+        filteredServices = filteredServices.filter(s => s.serviceTier === tierValue);
+    }
+    
+    // Filter by HPA status
+    if (autoscalingFilterState.hpaStatus === 'enrolled') {
+        filteredServices = filteredServices.filter(s => s.hpa > 0);
+    } else if (autoscalingFilterState.hpaStatus === 'not-enrolled') {
+        filteredServices = filteredServices.filter(s => s.hpa === 0);
+    }
+    
     // Sort services: services without HPA (0%) first, then by HPA ascending, then alphabetically
-    const sortedServices = [...autoscalingData.services].sort((a, b) => {
+    const sortedServices = filteredServices.sort((a, b) => {
         // Services with HPA = 0 come first (needs enrollment)
         if (a.hpa === 0 && b.hpa > 0) return -1;
         if (a.hpa > 0 && b.hpa === 0) return 1;
@@ -5568,6 +5769,16 @@ async function renderAutoscalingDeveloperView() {
         // Finally alphabetically
         return a.serviceName.localeCompare(b.serviceName);
     });
+    
+    // Update filter status
+    const filterStatus = document.getElementById('autoscaling-filter-status');
+    if (filterStatus) {
+        const tierLabel = autoscalingFilterState.tier === 'all' ? 'all tiers' : 
+                          autoscalingFilterState.tier === '0' ? 'Tier 0 (Critical)' : 'Tier 1 (Standard)';
+        const hpaLabel = autoscalingFilterState.hpaStatus === 'all' ? '' : 
+                         autoscalingFilterState.hpaStatus === 'enrolled' ? ', HPA enabled' : ', not enrolled';
+        filterStatus.textContent = `Showing ${sortedServices.length} services (${tierLabel}${hpaLabel})`;
+    }
     
     const rows = sortedServices.map(service => {
         const tierBadgeClass = service.serviceTier === 0 ? 'tier-badge tier-0' : 'tier-badge';
@@ -5604,6 +5815,747 @@ async function renderAutoscalingDeveloperView() {
     tableBody.innerHTML = rows;
     
     console.log(`✅ Autoscaling Developer View rendered with ${sortedServices.length} services`);
+}
+
+/* ======================
+   KARPENTER SECTION
+   ====================== */
+
+// Store Karpenter data globally
+let karpenterData = {
+    monthlySummary: [],
+    environmentSummary: [],
+    clusterSummary: [],
+    fiSummary: [],
+    fdSummary: [],
+    filterOptions: {},
+    clusterTrend: [],
+    loaded: false
+};
+
+// Store Karpenter filter state (synced between Exec and Dev views)
+let karpenterFilterState = {
+    fi: 'all',
+    fd: 'all',
+    environment: 'all',
+    cluster: 'all',
+    month: 'all'
+};
+
+/**
+ * Load all Karpenter data files
+ */
+async function loadKarpenterData() {
+    if (karpenterData.loaded) {
+        console.log('📦 Karpenter data already loaded');
+        return;
+    }
+    
+    console.log('📦 Loading Karpenter data...');
+    
+    try {
+        const baseUrl = 'assets/data/karpenter';
+        
+        const [main, monthly, env, cluster, fi, fd, filters, trend] = await Promise.all([
+            fetch(`${baseUrl}/main_summary.csv`).then(r => r.text()),
+            fetch(`${baseUrl}/monthly_summary.csv`).then(r => r.text()),
+            fetch(`${baseUrl}/environment_summary.csv`).then(r => r.text()),
+            fetch(`${baseUrl}/cluster_summary.csv`).then(r => r.text()),
+            fetch(`${baseUrl}/fi_summary.csv`).then(r => r.text()),
+            fetch(`${baseUrl}/fd_summary.csv`).then(r => r.text()),
+            fetch(`${baseUrl}/filter_options.json`).then(r => r.json()),
+            fetch(`${baseUrl}/cluster_trend.csv`).then(r => r.text())
+        ]);
+        
+        karpenterData.mainSummary = parseCSV(main);  // Comprehensive data with all filter columns
+        karpenterData.monthlySummary = parseCSV(monthly);
+        karpenterData.environmentSummary = parseCSV(env);
+        karpenterData.clusterSummary = parseCSV(cluster);
+        karpenterData.fiSummary = parseCSV(fi);
+        karpenterData.fdSummary = parseCSV(fd);
+        karpenterData.filterOptions = filters;
+        karpenterData.clusterTrend = parseCSV(trend);
+        karpenterData.loaded = true;
+        
+        console.log('✅ Karpenter data loaded:', {
+            main: karpenterData.mainSummary.length,
+            months: karpenterData.monthlySummary.length,
+            clusters: karpenterData.clusterSummary.length,
+            filterOptions: Object.keys(karpenterData.filterOptions)
+        });
+        
+        // Populate filter dropdowns
+        populateKarpenterFilters();
+        
+    } catch (error) {
+        console.error('❌ Error loading Karpenter data:', error);
+    }
+}
+
+/**
+ * Populate Karpenter filter dropdowns
+ */
+function populateKarpenterFilters() {
+    const options = karpenterData.filterOptions;
+    
+    // Falcon Instance
+    const fiSelect = document.getElementById('karpenter-fi-filter');
+    if (fiSelect && options.falcon_instances) {
+        fiSelect.innerHTML = '<option value="all">All FI</option>' +
+            options.falcon_instances.map(fi => `<option value="${fi}">${fi}</option>`).join('');
+    }
+    
+    // Functional Domain
+    const fdSelect = document.getElementById('karpenter-fd-filter');
+    if (fdSelect && options.functional_domains) {
+        fdSelect.innerHTML = '<option value="all">All FD</option>' +
+            options.functional_domains.map(fd => `<option value="${fd}">${fd}</option>`).join('');
+    }
+    
+    // Environment (exclude "other" as it has no data)
+    const envSelect = document.getElementById('karpenter-env-filter');
+    if (envSelect && options.environments) {
+        const validEnvironments = options.environments.filter(env => env !== 'other');
+        envSelect.innerHTML = '<option value="all">All Environments</option>' +
+            validEnvironments.map(env => `<option value="${env}">${env.charAt(0).toUpperCase() + env.slice(1)}</option>`).join('');
+    }
+    
+    // Cluster
+    const clusterSelect = document.getElementById('karpenter-cluster-filter');
+    if (clusterSelect && options.clusters) {
+        clusterSelect.innerHTML = '<option value="all">All Clusters</option>' +
+            options.clusters.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+    
+    // Month
+    const monthSelect = document.getElementById('karpenter-month-filter');
+    if (monthSelect && options.months) {
+        monthSelect.innerHTML = '<option value="all">All Months</option>' +
+            options.months.map(m => {
+                const date = new Date(m + '-01');
+                const monthName = date.toLocaleString('default', { month: 'long' });
+                return `<option value="${m}">${monthName}</option>`;
+            }).join('');
+    }
+}
+
+/**
+ * Apply Karpenter filters
+ */
+function applyKarpenterFilters() {
+    karpenterFilterState.fi = document.getElementById('karpenter-fi-filter')?.value || 'all';
+    karpenterFilterState.fd = document.getElementById('karpenter-fd-filter')?.value || 'all';
+    karpenterFilterState.environment = document.getElementById('karpenter-env-filter')?.value || 'all';
+    karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
+    karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
+    
+    console.log('📦 Karpenter filters applied:', karpenterFilterState);
+    
+    renderKarpenter();
+}
+
+/**
+ * Reset Karpenter filters
+ */
+function resetKarpenterFilters() {
+    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all' };
+    
+    document.getElementById('karpenter-fi-filter').value = 'all';
+    document.getElementById('karpenter-fd-filter').value = 'all';
+    document.getElementById('karpenter-env-filter').value = 'all';
+    document.getElementById('karpenter-cluster-filter').value = 'all';
+    document.getElementById('karpenter-month-filter').value = 'all';
+    
+    renderKarpenter();
+}
+
+/**
+ * Filter Karpenter data based on current filter state
+ */
+function filterKarpenterData(data, includeMonth = true) {
+    return data.filter(row => {
+        // Only check filters if the column exists in the data
+        if (karpenterFilterState.fi !== 'all' && 'falcon_instance' in row && row.falcon_instance !== karpenterFilterState.fi) return false;
+        if (karpenterFilterState.fd !== 'all' && 'functional_domain' in row && row.functional_domain !== karpenterFilterState.fd) return false;
+        if (karpenterFilterState.environment !== 'all' && 'environment' in row && row.environment !== karpenterFilterState.environment) return false;
+        if (karpenterFilterState.cluster !== 'all' && 'cluster' in row && row.cluster !== karpenterFilterState.cluster) return false;
+        if (includeMonth && karpenterFilterState.month !== 'all' && row.month !== karpenterFilterState.month) return false;
+        return true;
+    });
+}
+
+/**
+ * Render Karpenter tab based on current view mode
+ */
+async function renderKarpenter() {
+    console.log('📦 Rendering Karpenter...');
+    
+    await loadKarpenterData();
+    
+    if (!karpenterData.loaded) {
+        console.log('⚠️ Karpenter data not loaded');
+        return;
+    }
+    
+    const container = document.getElementById('karpenter-content');
+    if (!container) return;
+    
+    const viewMode = fkpDashboard.state.currentViewMode || 'exec';
+    
+    if (viewMode === 'exec') {
+        renderKarpenterExecView(container);
+    } else {
+        renderKarpenterDeveloperView(container);
+    }
+}
+
+/**
+ * Render Karpenter Exec View
+ */
+function renderKarpenterExecView(container) {
+    console.log('📦 Rendering Karpenter Exec View...');
+    
+    // Use main_summary which has ALL filter columns for proper cross-filtering
+    const filteredData = filterKarpenterData(karpenterData.mainSummary, true);
+    
+    console.log('📦 Filtered main summary:', filteredData.length, 'rows');
+    
+    // Helper to calculate weighted average grouped by a dimension
+    // Aggregates data by the groupBy field, calculates avg for each group, then averages those
+    const calcGroupedAvg = (data, groupBy) => {
+        if (!data || data.length === 0) return { avg: '--', trend: 0 };
+        
+        // Group by month and the dimension
+        const byMonth = {};
+        data.forEach(r => {
+            const month = r.month;
+            const key = r[groupBy] || 'unknown';
+            if (!byMonth[month]) byMonth[month] = {};
+            if (!byMonth[month][key]) byMonth[month][key] = { sum: 0, count: 0 };
+            byMonth[month][key].sum += parseFloat(r.avg_cpu || 0);
+            byMonth[month][key].count += 1;
+        });
+        
+        // Calculate average for each month (average of group averages)
+        const months = Object.keys(byMonth).sort();
+        const monthlyAvgs = months.map(m => {
+            const groups = Object.values(byMonth[m]);
+            const groupAvgs = groups.map(g => g.sum / g.count);
+            return groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length;
+        });
+        
+        // Overall average
+        const avg = monthlyAvgs.length > 0 
+            ? (monthlyAvgs.reduce((a, b) => a + b, 0) / monthlyAvgs.length).toFixed(1)
+            : '--';
+        
+        // Trend: compare last 2 months
+        let trend = 0;
+        if (monthlyAvgs.length >= 2) {
+            trend = monthlyAvgs[monthlyAvgs.length - 1] - monthlyAvgs[monthlyAvgs.length - 2];
+        }
+        
+        return { avg, trend };
+    };
+    
+    // Calculate metrics for each dimension
+    const fiMetrics = calcGroupedAvg(filteredData, 'falcon_instance');
+    const fdMetrics = calcGroupedAvg(filteredData, 'functional_domain');
+    const clusterMetrics = calcGroupedAvg(filteredData, 'cluster');
+    const envMetrics = calcGroupedAvg(filteredData, 'environment');
+    
+    const avgFI = fiMetrics.avg;
+    const avgFD = fdMetrics.avg;
+    const avgCluster = clusterMetrics.avg;
+    const avgEnv = envMetrics.avg;
+    
+    const trendFI = fiMetrics.trend;
+    const trendFD = fdMetrics.trend;
+    const trendCluster = clusterMetrics.trend;
+    const trendEnv = envMetrics.trend;
+    
+    // Build trend chart data from filtered main summary (already have filteredData above)
+    const monthlyAgg = {};
+    filteredData.forEach(r => {
+        const key = r.month;
+        if (!monthlyAgg[key]) {
+            monthlyAgg[key] = { month: r.month, month_name: r.month_name, sum: 0, count: 0 };
+        }
+        monthlyAgg[key].sum += parseFloat(r.avg_cpu || 0);
+        monthlyAgg[key].count += 1;
+    });
+    const trendData = Object.values(monthlyAgg)
+        .sort((a, b) => a.month.localeCompare(b.month))
+        .map(m => ({
+            month: m.month_name,
+            value: m.count > 0 ? (m.sum / m.count) : 0
+        }));
+    
+    // Build environment bar chart data - aggregate by environment from filtered data
+    const envAgg = {};
+    const latestMonth = trendData.length > 0 
+        ? Object.values(monthlyAgg).sort((a, b) => b.month.localeCompare(a.month))[0]?.month 
+        : null;
+    const envFiltered = karpenterFilterState.month !== 'all' 
+        ? filteredData.filter(r => r.month === karpenterFilterState.month)
+        : filteredData.filter(r => r.month === latestMonth);
+    
+    envFiltered.forEach(r => {
+        const key = r.environment;
+        if (!envAgg[key]) {
+            envAgg[key] = { name: key.charAt(0).toUpperCase() + key.slice(1), sum: 0, count: 0 };
+        }
+        envAgg[key].sum += parseFloat(r.avg_cpu || 0);
+        envAgg[key].count += 1;
+    });
+    const envBarData = Object.values(envAgg).map(e => ({
+        name: e.name,
+        value: e.count > 0 ? (e.sum / e.count) : 0
+    }));
+    
+    container.innerHTML = `
+        <div class="karpenter-exec-content">
+            <!-- Metric Cards -->
+            <div class="karpenter-metrics-grid">
+                <div class="karpenter-metric-card">
+                    <div class="karpenter-metric-header">
+                        <span class="karpenter-metric-label">Avg. Bin-Packing Efficiency - FI</span>
+                        <span class="karpenter-metric-icon">📊</span>
+                    </div>
+                    <div class="karpenter-metric-value">${avgFI}%</div>
+                    <div class="karpenter-metric-trend ${trendFI >= 0 ? 'trend-up' : 'trend-down'}">
+                        ${trendFI >= 0 ? '+' : ''}${trendFI.toFixed(1)}% from last period
+                    </div>
+                </div>
+                
+                <div class="karpenter-metric-card">
+                    <div class="karpenter-metric-header">
+                        <span class="karpenter-metric-label">Avg. Bin-Packing Efficiency - FD</span>
+                        <span class="karpenter-metric-icon">⚙️</span>
+                    </div>
+                    <div class="karpenter-metric-value">${avgFD}%</div>
+                    <div class="karpenter-metric-trend ${trendFD >= 0 ? 'trend-up' : 'trend-down'}">
+                        ${trendFD >= 0 ? '+' : ''}${trendFD.toFixed(1)}% from last period
+                    </div>
+                </div>
+                
+                <div class="karpenter-metric-card">
+                    <div class="karpenter-metric-header">
+                        <span class="karpenter-metric-label">Avg. Bin-Packing Efficiency - Cluster</span>
+                        <span class="karpenter-metric-icon">🖥️</span>
+                    </div>
+                    <div class="karpenter-metric-value">${avgCluster}%</div>
+                    <div class="karpenter-metric-trend ${trendCluster >= 0 ? 'trend-up' : 'trend-down'}">
+                        ${trendCluster >= 0 ? '+' : ''}${trendCluster.toFixed(1)}% from last period
+                    </div>
+                </div>
+                
+                <div class="karpenter-metric-card">
+                    <div class="karpenter-metric-header">
+                        <span class="karpenter-metric-label">Avg. Bin-Packing Efficiency - Environment</span>
+                        <span class="karpenter-metric-icon">🌐</span>
+                    </div>
+                    <div class="karpenter-metric-value">${avgEnv}%</div>
+                    <div class="karpenter-metric-trend ${trendEnv >= 0 ? 'trend-up' : 'trend-down'}">
+                        ${trendEnv >= 0 ? '+' : ''}${trendEnv.toFixed(1)}% from last period
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Row -->
+            <div class="karpenter-charts-row">
+                <!-- Trend Chart -->
+                <div class="karpenter-chart-card">
+                    <div class="karpenter-chart-header">
+                        <h3>Bin-Packing Efficiency Trends (CPU Allocation Rate)</h3>
+                        <div class="karpenter-chart-legend">
+                            <span class="legend-item"><span class="legend-dot trend"></span> Bin-Packing Efficiency (%) - CPU Allocation Rate</span>
+                        </div>
+                    </div>
+                    <div class="karpenter-trend-chart" id="karpenter-trend-chart">
+                        ${renderKarpenterTrendChart(trendData)}
+                    </div>
+                </div>
+                
+                <!-- Environment Bar Chart -->
+                <div class="karpenter-chart-card">
+                    <div class="karpenter-chart-header">
+                        <h3>Efficiency by Environment</h3>
+                        <div class="karpenter-chart-legend">
+                            <span class="legend-item"><span class="legend-dot env"></span> CPU Allocation Rate (%)</span>
+                        </div>
+                    </div>
+                    <div class="karpenter-bar-chart" id="karpenter-bar-chart">
+                        ${renderKarpenterBarChart(envBarData)}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    console.log('✅ Karpenter Exec View rendered');
+}
+
+/**
+ * Render Karpenter Developer View (Cluster Table)
+ */
+/**
+ * Calculate efficiency indicator based on CPU % and environment
+ * Matches the logic in process_karpenter_data.py
+ */
+function getEfficiencyIndicator(avgCpu, environment) {
+    if (environment === 'prod' || environment === 'esvc') {
+        if (avgCpu > 80) return 'Efficient';
+        if (avgCpu >= 50) return 'Moderately Efficient';
+        return 'Inefficient';
+    } else {
+        // test, perf, dev, staging, other
+        if (avgCpu > 90) return 'Efficient';
+        if (avgCpu >= 70) return 'Moderately Efficient';
+        return 'Inefficient';
+    }
+}
+
+function renderKarpenterDeveloperView(container) {
+    console.log('📦 Rendering Karpenter Developer View...');
+    
+    // Get filtered cluster data
+    let filteredData = filterKarpenterData(karpenterData.clusterSummary, true);
+    
+    // Group by cluster and find latest month for each
+    const clusterMap = {};
+    filteredData.forEach(row => {
+        const cluster = row.cluster;
+        if (!clusterMap[cluster]) {
+            clusterMap[cluster] = [];
+        }
+        clusterMap[cluster].push(row);
+    });
+    
+    // For each cluster, get latest month data
+    const clusterLatest = [];
+    const allMonths = [...new Set(filteredData.map(r => r.month))].sort();
+    const latestMonth = allMonths.length > 0 ? allMonths[allMonths.length - 1] : null;
+    const prevMonth = allMonths.length >= 2 ? allMonths[allMonths.length - 2] : null;
+    
+    Object.keys(clusterMap).forEach(cluster => {
+        const clusterRows = clusterMap[cluster];
+        
+        // Group by month and aggregate avg_cpu (mean across all FI/FD combinations)
+        const monthGroups = {};
+        clusterRows.forEach(row => {
+            const month = row.month;
+            if (!monthGroups[month]) {
+                monthGroups[month] = {
+                    month: month,
+                    month_name: row.month_name,
+                    cpuValues: [],
+                    environments: []
+                };
+            }
+            monthGroups[month].cpuValues.push(parseFloat(row.avg_cpu || 0));
+            monthGroups[month].environments.push(row.environment || 'other');
+        });
+        
+        // Calculate aggregated avg_cpu for each month
+        const monthData = Object.values(monthGroups).map(m => ({
+            month: m.month,
+            month_name: m.month_name,
+            avgCpu: m.cpuValues.reduce((sum, val) => sum + val, 0) / m.cpuValues.length,
+            // Get most common environment for this month
+            environment: m.environments.reduce((a, b, _, arr) => 
+                arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+            )
+        }));
+        
+        // Sort by month descending to get latest
+        monthData.sort((a, b) => b.month.localeCompare(a.month));
+        const latestMonthData = monthData[0];
+        
+        // Get unique months for display (sorted chronologically)
+        const uniqueMonths = [...new Set(clusterRows.map(r => r.month))].sort();
+        const allClusterMonths = uniqueMonths.map(month => {
+            const firstRow = clusterRows.find(r => r.month === month);
+            return {
+                month: month,
+                month_name: firstRow.month_name
+            };
+        });
+        
+        // Find previous month aggregated data
+        let prevMonthData = null;
+        if (prevMonth && monthData.length >= 2) {
+            prevMonthData = monthData.find(m => m.month === prevMonth);
+        }
+        
+        // Calculate improvement using aggregated values
+        let improvement = null;
+        let improvementLabel = 'No Change';
+        let improvementClass = 'stable';
+        
+        if (prevMonthData) {
+            improvement = latestMonthData.avgCpu - prevMonthData.avgCpu;
+            if (improvement > 0) {
+                improvementLabel = '↑ Improved Packing';
+                improvementClass = 'improved';
+            } else if (improvement < 0) {
+                improvementLabel = '↓ Regressed Packing';
+                improvementClass = 'regressed';
+            } else {
+                improvementLabel = '→ No Change';
+                improvementClass = 'stable';
+            }
+        }
+        
+        // Calculate efficiency indicator based on aggregated latest month's CPU % and environment
+        const avgCpu = latestMonthData.avgCpu;
+        const environment = latestMonthData.environment;
+        const efficiencyIndicator = getEfficiencyIndicator(avgCpu, environment);
+        const efficiencyClass = efficiencyIndicator === 'Efficient' ? 'efficient' : 
+                               (efficiencyIndicator === 'Moderately Efficient' ? 'moderate' : 'inefficient');
+        
+        clusterLatest.push({
+            cluster: cluster,
+            avgCpu: avgCpu,
+            month: latestMonthData.month,
+            monthName: latestMonthData.month_name,
+            allMonths: allClusterMonths,
+            improvement: improvement,
+            improvementLabel: improvementLabel,
+            improvementClass: improvementClass,
+            efficiencyIndicator: efficiencyIndicator,
+            efficiencyClass: efficiencyClass
+        });
+    });
+    
+    // Sort by efficiency indicator (Efficient > Moderately Efficient > Inefficient), then by avg_cpu descending
+    const efficiencyOrder = { 'Efficient': 3, 'Moderately Efficient': 2, 'Inefficient': 1 };
+    clusterLatest.sort((a, b) => {
+        const aOrder = efficiencyOrder[a.efficiencyIndicator] || 0;
+        const bOrder = efficiencyOrder[b.efficiencyIndicator] || 0;
+        if (aOrder !== bOrder) return bOrder - aOrder; // Higher efficiency first
+        return b.avgCpu - a.avgCpu; // Then by CPU descending
+    });
+    
+    // Helper function to render heatmap tiles
+    const renderHeatmap = (clusters, title) => {
+        if (clusters.length === 0) {
+            return `<div class="karpenter-heatmap-section">
+                <h3 class="karpenter-heatmap-title">${title}</h3>
+                <div class="no-data">No clusters available</div>
+            </div>`;
+        }
+        
+        const tiles = clusters.map(cluster => {
+            return `
+                <div class="karpenter-heatmap-tile ${cluster.efficiencyClass}">
+                    <div class="heatmap-cluster-name">${cluster.cluster}</div>
+                    <div class="heatmap-efficiency-pct">${cluster.avgCpu.toFixed(1)}%</div>
+                </div>
+            `;
+        }).join('');
+        
+        return `
+            <div class="karpenter-heatmap-section">
+                <h3 class="karpenter-heatmap-title">${title}</h3>
+                <div class="karpenter-heatmap-grid">
+                    ${tiles}
+                </div>
+            </div>
+        `;
+    };
+    
+    // Get top 5 most efficient (first 5 from sorted list, or all if <5)
+    const top5MostEfficient = clusterLatest.slice(0, Math.min(5, clusterLatest.length));
+    
+    // Get top 5 least efficient (last 5 from sorted list, or all if <5, reversed to show worst first)
+    const top5LeastEfficient = clusterLatest.length <= 5 
+        ? [...clusterLatest].reverse() // If 5 or fewer, show all reversed
+        : clusterLatest.slice(-5).reverse(); // Otherwise, last 5 reversed
+    
+    // Build heatmaps
+    const allClustersHeatmap = renderHeatmap(clusterLatest, 'Bin-Packing Efficiency Heatmap - All Clusters');
+    const top5MostHeatmap = renderHeatmap(top5MostEfficient, 'Top 5 - Most Efficient Clusters');
+    const top5LeastHeatmap = renderHeatmap(top5LeastEfficient, 'Top 5 - Least Efficient Clusters');
+    
+    // Build table rows
+    const tableRows = clusterLatest.map(cluster => {
+        // Build month display with latest month in bold
+        const monthDisplay = cluster.allMonths.map(m => {
+            const isLatest = m.month === cluster.month;
+            return isLatest ? `<strong>${m.month_name}</strong>` : m.month_name;
+        }).join(', ');
+        
+        return `
+            <tr>
+                <td class="cluster-name">${cluster.cluster}</td>
+                <td class="month-column">${monthDisplay}</td>
+                <td class="avg-cpu">${cluster.avgCpu.toFixed(2)}</td>
+                <td><span class="improvement-badge ${cluster.improvementClass}">${cluster.improvementLabel}</span></td>
+                <td><span class="efficiency-badge ${cluster.efficiencyClass}">${cluster.efficiencyIndicator}</span></td>
+            </tr>
+        `;
+    }).join('');
+    
+    container.innerHTML = `
+        <div class="karpenter-dev-content">
+            <!-- Heatmaps Section -->
+            <div class="karpenter-heatmaps-container">
+                ${allClustersHeatmap}
+                ${top5MostHeatmap}
+                ${top5LeastHeatmap}
+            </div>
+            
+            <!-- Table Section -->
+            <div class="karpenter-table-container">
+                <table class="karpenter-table">
+                    <thead>
+                        <tr>
+                            <th>Cluster</th>
+                            <th>Month</th>
+                            <th>Avg CPU (%)</th>
+                            <th>Bin Packing Improvement</th>
+                            <th>Bin Packing Efficiency Indicator</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows || '<tr><td colspan="5" class="no-data">No data available</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    console.log(`✅ Karpenter Developer View rendered with ${clusterLatest.length} clusters`);
+}
+
+/**
+ * Calculate trend for Karpenter data
+ */
+function calculateKarpenterTrend(data, field) {
+    if (!data || data.length < 2) return 0;
+    
+    const months = [...new Set(data.map(r => r.month))].sort();
+    if (months.length < 2) return 0;
+    
+    const prevMonth = months[months.length - 2];
+    const currMonth = months[months.length - 1];
+    
+    const prevAvg = data.filter(r => r.month === prevMonth)
+        .reduce((sum, r) => sum + parseFloat(r[field] || 0), 0) / 
+        data.filter(r => r.month === prevMonth).length || 0;
+    
+    const currAvg = data.filter(r => r.month === currMonth)
+        .reduce((sum, r) => sum + parseFloat(r[field] || 0), 0) / 
+        data.filter(r => r.month === currMonth).length || 0;
+    
+    return currAvg - prevAvg;
+}
+
+/**
+ * Render Karpenter trend line chart
+ */
+function renderKarpenterTrendChart(data) {
+    if (!data || data.length === 0) {
+        return '<div class="no-data">No trend data available</div>';
+    }
+    
+    // Fixed 0-100% range
+    const chartMin = 0;
+    const chartMax = 100;
+    const chartRange = 100;
+    
+    const width = 100;
+    const height = 60;
+    const pointSpacing = width / (data.length - 1 || 1);
+    
+    // Generate SVG path for line
+    const points = data.map((d, i) => {
+        const x = i * pointSpacing;
+        const y = height - ((d.value - chartMin) / chartRange * height);
+        return `${x},${y}`;
+    });
+    
+    const linePath = `M ${points.join(' L ')}`;
+    const areaPath = `M 0,${height} L ${points.join(' L ')} L ${width},${height} Z`;
+    
+    // Generate Y-axis labels (0% to 100% in 20% steps)
+    const yLabels = ['100%', '80%', '60%', '40%', '20%', '0%'];
+    
+    // Generate horizontal grid lines (at 20%, 40%, 60%, 80%)
+    const gridLines = [];
+    for (let i = 1; i < 5; i++) {
+        const y = (height / 5) * i;
+        gridLines.push(`<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="#e2e8f0" stroke-width="0.2" />`);
+    }
+    
+    return `
+        <div class="chart-container">
+            <div class="chart-y-axis">
+                ${yLabels.map(label => `<span class="y-label">${label}</span>`).join('')}
+            </div>
+            <div class="chart-main">
+                <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="trend-svg">
+                    <defs>
+                        <linearGradient id="karpenterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.05" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Grid lines -->
+                    ${gridLines.join('')}
+                    <!-- Area fill -->
+                    <path d="${areaPath}" fill="url(#karpenterGradient)" />
+                    <!-- Line -->
+                    <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="0.5" />
+                    <!-- Data points -->
+                    ${data.map((d, i) => {
+                        const x = i * pointSpacing;
+                        const y = height - ((d.value - chartMin) / chartRange * height);
+                        return `<circle cx="${x}" cy="${y}" r="1.2" fill="#22c55e" />`;
+                    }).join('')}
+                </svg>
+                <div class="chart-x-axis">
+                    ${data.map(d => `<span class="x-label">${d.month}</span>`).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Render Karpenter environment bar chart
+ */
+function renderKarpenterBarChart(data) {
+    if (!data || data.length === 0) {
+        return '<div class="no-data">No environment data available</div>';
+    }
+    
+    const maxValue = 100; // Percentage max
+    const colors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'];
+    
+    return `
+        <div class="bar-chart-container">
+            <div class="bar-chart-y-axis">
+                <span>100%</span>
+                <span>80%</span>
+                <span>60%</span>
+                <span>40%</span>
+                <span>20%</span>
+                <span>0%</span>
+            </div>
+            <div class="bar-chart-main">
+                ${data.map((d, i) => `
+                    <div class="bar-item">
+                        <div class="bar-wrapper">
+                            <div class="bar" style="height: ${d.value}%; background-color: ${colors[i % colors.length]};"></div>
+                        </div>
+                        <span class="bar-label">${d.name}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
 }
 
 /* ======================

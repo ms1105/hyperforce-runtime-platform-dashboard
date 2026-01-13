@@ -1,0 +1,73 @@
+{
+  "falcon_instances": [
+    "aws-prod0-uswest2",
+    "aws-prod1-useast1",
+    "aws-prod10-apsoutheast1",
+    "aws-prod11-saeast1",
+    "aws-prod12-euwest3",
+    "aws-prod13-euwest2",
+    "aws-prod14-apnortheast2",
+    "aws-prod15-eucentral2",
+    "aws-prod16-eunorth1",
+    "aws-prod17-apsoutheast3",
+    "aws-prod18-mecentral1",
+    "aws-prod19-eusouth1",
+    "aws-prod2-apsouth1",
+    "aws-prod20-ilcentral1",
+    "aws-prod21-useast2",
+    "aws-prod22-apnortheast3",
+    "aws-prod24-apsouth2",
+    "aws-prod3-eucentral1",
+    "aws-prod4-apsoutheast2",
+    "aws-prod8-cacentral1",
+    "aws-prod9-apnortheast1",
+    "aws-stage1-useast2",
+    "dev1-uswest2",
+    "perf1-useast2",
+    "test1-uswest2"
+  ],
+  "functional_domains": [
+    "core002",
+    "core1",
+    "core3",
+    "core4"
+  ],
+  "environments": [
+    "dev",
+    "other",
+    "perf",
+    "prod",
+    "staging",
+    "test"
+  ],
+  "clusters": [
+    "sam-bigdata1",
+    "sam-bigdata2",
+    "sam-bigdata3",
+    "sam-bigdata4",
+    "sam-bigdata5",
+    "sam-bigdata6",
+    "sam-highscale-processing1",
+    "sam-hs-processing1",
+    "sam-processing-sc1",
+    "sam-processing-sc2",
+    "sam-processing-sc3",
+    "sam-processing-sc4",
+    "sam-processing-sc5",
+    "sam-processing-sc6",
+    "sam-processing00001",
+    "sam-processing00002",
+    "sam-processing1",
+    "sam-processing2",
+    "sam-processing3"
+  ],
+  "months": [
+    "2025-04",
+    "2025-05",
+    "2025-06",
+    "2025-07",
+    "2025-08",
+    "2025-09",
+    "2025-10"
+  ]
+}

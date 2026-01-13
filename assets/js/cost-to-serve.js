@@ -675,5 +675,178 @@ function renderCostToServeDevelopersView(data) {
         </div>
     `;
     
+    // Add bar charts section for each initiative
+    devHTML += `
+        <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 2rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 1.5rem;">Monthly Comparison Charts by Initiative</h3>
+            <div id="initiative-charts-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(600px, 1fr)); gap: 2rem;">
+                <!-- Charts will be rendered here -->
+            </div>
+        </div>
+    `;
+    
     devViewDiv.innerHTML = devHTML;
+    
+    // Render bar charts for each initiative
+    renderInitiativeBarCharts();
+}
+
+// Render bar charts for each initiative showing Original Estimate vs Actuals per month
+function renderInitiativeBarCharts() {
+    const container = document.getElementById('initiative-charts-container');
+    if (!container) return;
+    
+    // Initiative data: Original Estimate and Actuals per month
+    const initiativesData = [
+        {
+            name: 'Improve Bin Packing with Karpenter- Platform',
+            original: [0, 0, 0, 0, 340000, 340000, 410000, 410000, 450000, 460000, 510000, 520000],
+            actuals: [0, 0, 56052.81, 182939.00, 247071.39, 270730.00, 277983.00, 269015.81, 277983.00, 269015.81, 277983.00, 277983.00]
+        },
+        {
+            name: 'Rightsizing of HCP AddOns- Platform',
+            original: [0, 0, 0, 0, 340000, 350000, 400000, 450000, 450000, 450000, 480000, 480000],
+            actuals: [0, 0, 15796.38, 24796.40, 64949.00, 114385.00, 149472.00, 149472.00, 280928.77, 331305.84, 356843.00, 356843.00]
+        },
+        {
+            name: 'Reduce Storage Waste-non-sam(gp2-gp3)- Tenant',
+            original: [0, 0, 0, 0, 30000, 30000, 30000, 30000, 30000, 50000, 50000, 50000],
+            actuals: [0, 0, 37200.00, 37200.00, 37200.00, 71600.00, 71600.00, 101800.00, 101800.00, 101800.00, 101800.00, 101800.00]
+        },
+        {
+            name: 'Mesh / IG- Platform',
+            original: [0, 0, 0, 0, 90000, 90000, 90000, 90000, 90000, 90000, 90000, 100000],
+            actuals: [0, 0, 0, 0, 38595.30, 38595.30, 102228.60, 125819.60, 125819.60, 125819.60, 125819.60, 125819.60]
+        },
+        {
+            name: 'Decom of Redundant Compute- Tenant',
+            original: [0, 0, 0, 0, 30000, 30000, 30000, 30000, 30000, 50000, 50000, 50000],
+            actuals: [25675.65, 26047.65, 26047.65, 26047.65, 33859.65, 35595.65, 42291.65, 42291.65, 42291.65, 42291.65, 42291.65, 42291.65]
+        },
+        {
+            name: 'Right-sizing Supercell Clusters',
+            original: [0, 0, 0, 0, 0, 10000, 81000, 252000, 215000, 220000, 306000, 306000],
+            actuals: [0, 0, 0, 0, 0, 0, 95101.07, 181285.53, 171534.92, 172903.26, 213271.85, 297467.45]
+        }
+    ];
+    
+    const months = ['Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec', 'Jan'];
+    
+    initiativesData.forEach((initiative, index) => {
+        // Convert to millions for display
+        const originalInMillions = initiative.original.map(v => v / 1000000);
+        const actualsInMillions = initiative.actuals.map(v => v / 1000000);
+        
+        // Create chart container
+        const chartDiv = document.createElement('div');
+        chartDiv.style.cssText = 'background: #f7fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #e2e8f0;';
+        chartDiv.innerHTML = `
+            <h4 style="font-size: 1rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem; text-align: center;">
+                ${initiative.name.length > 60 ? initiative.name.substring(0, 60) + '...' : initiative.name}
+            </h4>
+            <canvas id="initiative-chart-${index}" style="max-height: 300px;"></canvas>
+        `;
+        container.appendChild(chartDiv);
+        
+        // Wait for DOM to be ready, then render chart
+        setTimeout(() => {
+            const ctx = document.getElementById(`initiative-chart-${index}`);
+            if (!ctx) return;
+            
+            // Destroy existing chart if it exists
+            if (window[`initiativeChart${index}`]) {
+                window[`initiativeChart${index}`].destroy();
+            }
+            
+            window[`initiativeChart${index}`] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months.map(m => {
+                        const monthNames = { 'Feb': 'Feb', 'Mar': 'Mar', 'Apr': 'Apr', 'May': 'May', 'June': 'Jun', 'July': 'Jul', 'Aug': 'Aug', 'Sept': 'Sep', 'Oct': 'Oct', 'Nov': 'Nov', 'Dec': 'Dec', 'Jan': 'Jan' };
+                        return monthNames[m] || m;
+                    }),
+                    datasets: [
+                        {
+                            label: 'Original Estimate',
+                            data: originalInMillions,
+                            backgroundColor: 'rgba(156, 163, 175, 0.7)',
+                            borderColor: '#9ca3af',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Actuals',
+                            data: actualsInMillions,
+                            backgroundColor: 'rgba(5, 150, 105, 0.7)',
+                            borderColor: '#059669',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: { family: "'Salesforce Sans', sans-serif", size: 12, weight: '500' },
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { family: "'Salesforce Sans', sans-serif", size: 13, weight: '600' },
+                            bodyFont: { family: "'Salesforce Sans', sans-serif", size: 12 },
+                            callbacks: {
+                                label: function(context) {
+                                    return (context.dataset.label || '') + ': ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                font: { family: "'Salesforce Sans', sans-serif", size: 10 },
+                                color: '#4a5568'
+                            },
+                            grid: { display: false, drawBorder: false },
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: { family: "'Salesforce Sans', sans-serif", size: 11, weight: '600' },
+                                color: '#2c3e50',
+                                padding: { top: 10, bottom: 5 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return `$${value.toFixed(2)}M`;
+                                },
+                                font: { family: "'Salesforce Sans', sans-serif", size: 10 },
+                                color: '#4a5568'
+                            },
+                            grid: { color: '#e2e8f0', drawBorder: false },
+                            title: {
+                                display: true,
+                                text: 'Savings ($M)',
+                                font: { family: "'Salesforce Sans', sans-serif", size: 11, weight: '600' },
+                                color: '#2c3e50',
+                                padding: { top: 10, bottom: 10 }
+                            }
+                        }
+                    }
+                }
+            });
+        }, 100 * (index + 1)); // Stagger chart creation to avoid DOM issues
+    });
 }

@@ -33,32 +33,8 @@ function renderExecView(data) {
     const variancePercent = totalForecast > 0 ? ((variance / totalForecast) * 100).toFixed(2) : 0;
     const achievementRate = totalForecast > 0 ? ((totalActual / totalForecast) * 100).toFixed(2) : 0;
     
-    // FY26 Cost to Serve Tiles
-    let execHTML = `
-        <div style="margin-bottom: 2rem;">
-            <h3 style="font-size: 1.125rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">FY26 Cost to Serve</h3>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: white;">
-                    <div style="font-size: 0.875rem; font-weight: 500; opacity: 0.9; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Original Estimate</div>
-                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${formatCurrency(totalOriginal)}</div>
-                    <div style="font-size: 0.75rem; opacity: 0.8;">Initial FY26 Target</div>
-                </div>
-                <div style="background: linear-gradient(135deg, #3182ce 0%, #2563eb 100%); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: white;">
-                    <div style="font-size: 0.875rem; font-weight: 500; opacity: 0.9; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Revised Estimate</div>
-                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${formatCurrency(totalForecast)}</div>
-                    <div style="font-size: 0.75rem; opacity: 0.8;">Updated Forecast</div>
-                </div>
-                <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: white;">
-                    <div style="font-size: 0.875rem; font-weight: 500; opacity: 0.9; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Realized Savings</div>
-                    <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${formatCurrency(totalActual)}</div>
-                    <div style="font-size: 0.75rem; opacity: 0.8;">Actual Performance</div>
-                </div>
-            </div>
-        </div>
-    `;
-    
     // Executive Summary Cards
-    execHTML += `
+    let execHTML = `
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
             <div class="exec-metric-card" style="border-left-color: #3182ce;">
                 <div class="exec-metric-label">Total Predicted Savings</div>

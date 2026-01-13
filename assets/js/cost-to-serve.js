@@ -96,13 +96,13 @@ function renderExecView(data) {
         </div>
     `;
     
-    // Initiative Trend Lines Chart
+    // Initiative Performance Charts - Small Multiples
     execHTML += `
         <div class="exec-chart-container" style="margin-top: 2rem;">
             <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 1.5rem;">Initiative Performance Trends</h3>
             <p style="font-size: 0.875rem; color: #718096; margin-bottom: 1.5rem;">Original Estimate vs Actuals by Initiative</p>
-            <div style="margin-bottom: 2rem;">
-                <canvas id="initiative-trends-chart" style="max-height: 500px;"></canvas>
+            <div id="initiative-charts-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-bottom: 2rem;">
+                <!-- Individual initiative charts will be rendered here -->
             </div>
         </div>
     `;
@@ -148,7 +148,7 @@ function renderExecView(data) {
         renderCumulativeForecastActualsChart(data, months, originalMonthly, revisedMonthly, actualsMonthly);
         renderMonthlyForecastActualsChart(data, months, originalMonthly, revisedMonthly, actualsMonthly);
         renderCumulativeInitiativesChart(data, months);
-        renderInitiativeTrendsChart();
+        renderInitiativeSmallMultiples();
     }, 100);
 }
 
@@ -690,14 +690,13 @@ function renderCostToServeDevelopersView(data) {
     devViewDiv.innerHTML = devHTML;
 }
 
-// Render Initiative Trends Chart - Single chart with all initiatives
-function renderInitiativeTrendsChart() {
-    const ctx = document.getElementById('initiative-trends-chart');
-    if (!ctx) return;
+// Render Initiative Small Multiples - Individual charts for each initiative
+function renderInitiativeSmallMultiples() {
+    const container = document.getElementById('initiative-charts-grid');
+    if (!container) return;
     
-    if (window.initiativeTrendsChart) {
-        window.initiativeTrendsChart.destroy();
-    }
+    // Clear any existing charts
+    container.innerHTML = '';
     
     // Initiative data: Original Estimate and Actuals per month (in dollars, will convert to millions)
     const initiativesData = [
@@ -743,120 +742,136 @@ function renderInitiativeTrendsChart() {
         { original: '#f472b6', actuals: '#db2777' }  // Pink shades - Decom of Redundant Compute
     ];
     
-    // Build datasets - one line for Original Estimate and one for Actuals per initiative
-    const datasets = [];
+    // Create individual chart for each initiative
     initiativesData.forEach((initiative, index) => {
         const colorSet = colors[index % colors.length];
         const originalInMillions = initiative.original.map(v => v / 1000000);
         const actualsInMillions = initiative.actuals.map(v => v / 1000000);
         
-        // Original Estimate line (dashed)
-        datasets.push({
-            label: `${initiative.name} - Original`,
-            data: originalInMillions,
-            borderColor: colorSet.original,
-            backgroundColor: 'transparent',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            fill: false,
-            tension: 0.4,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            pointBackgroundColor: colorSet.original,
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 1
-        });
+        // Create chart container
+        const chartDiv = document.createElement('div');
+        chartDiv.style.cssText = 'background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);';
+        chartDiv.innerHTML = `
+            <h4 style="font-size: 0.95rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem; text-align: center; line-height: 1.3;">
+                ${initiative.name}
+            </h4>
+            <canvas id="initiative-chart-${index}" style="max-height: 250px;"></canvas>
+        `;
+        container.appendChild(chartDiv);
         
-        // Actuals line (solid)
-        datasets.push({
-            label: `${initiative.name} - Actuals`,
-            data: actualsInMillions,
-            borderColor: colorSet.actuals,
-            backgroundColor: 'transparent',
-            borderWidth: 2,
-            fill: false,
-            tension: 0.4,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            pointBackgroundColor: colorSet.actuals,
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 1
-        });
-    });
-    
-    window.initiativeTrendsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: monthLabels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            interaction: {
-                mode: 'index',
-                intersect: false
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        font: { family: "'Salesforce Sans', sans-serif", size: 11, weight: '500' },
-                        padding: 12,
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 10
-                    }
+        // Wait for DOM to be ready, then render chart
+        setTimeout(() => {
+            const ctx = document.getElementById(`initiative-chart-${index}`);
+            if (!ctx) return;
+            
+            // Destroy existing chart if it exists
+            if (window[`initiativeChart${index}`]) {
+                window[`initiativeChart${index}`].destroy();
+            }
+            
+            window[`initiativeChart${index}`] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthLabels,
+                    datasets: [
+                        {
+                            label: 'Original Estimate',
+                            data: originalInMillions,
+                            borderColor: colorSet.original,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: colorSet.original,
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 1
+                        },
+                        {
+                            label: 'Actuals',
+                            data: actualsInMillions,
+                            borderColor: colorSet.actuals,
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: colorSet.actuals,
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 1
+                        }
+                    ]
                 },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    padding: 12,
-                    titleFont: { family: "'Salesforce Sans', sans-serif", size: 13, weight: '600' },
-                    bodyFont: { family: "'Salesforce Sans', sans-serif", size: 11 },
-                    callbacks: {
-                        label: function(context) {
-                            return (context.dataset.label || '') + ': ' + formatCurrency(context.parsed.y);
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: { family: "'Salesforce Sans', sans-serif", size: 10, weight: '500' },
+                                padding: 8,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 10,
+                            titleFont: { family: "'Salesforce Sans', sans-serif", size: 12, weight: '600' },
+                            bodyFont: { family: "'Salesforce Sans', sans-serif", size: 11 },
+                            callbacks: {
+                                label: function(context) {
+                                    return (context.dataset.label || '') + ': ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                font: { family: "'Salesforce Sans', sans-serif", size: 9 },
+                                color: '#4a5568',
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: { color: '#e2e8f0', drawBorder: false },
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: { family: "'Salesforce Sans', sans-serif", size: 10, weight: '600' },
+                                color: '#2c3e50',
+                                padding: { top: 8, bottom: 5 }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return `$${value.toFixed(2)}M`;
+                                },
+                                font: { family: "'Salesforce Sans', sans-serif", size: 9 },
+                                color: '#4a5568'
+                            },
+                            grid: { color: '#e2e8f0', drawBorder: false },
+                            title: {
+                                display: true,
+                                text: 'Savings ($M)',
+                                font: { family: "'Salesforce Sans', sans-serif", size: 10, weight: '600' },
+                                color: '#2c3e50',
+                                padding: { top: 8, bottom: 8 }
+                            }
                         }
                     }
                 }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        font: { family: "'Salesforce Sans', sans-serif", size: 11 },
-                        color: '#4a5568'
-                    },
-                    grid: { color: '#e2e8f0', drawBorder: false },
-                    title: {
-                        display: true,
-                        text: 'Month',
-                        font: { family: "'Salesforce Sans', sans-serif", size: 12, weight: '600' },
-                        color: '#2c3e50',
-                        padding: { top: 10, bottom: 10 }
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return `$${value.toFixed(2)}M`;
-                        },
-                        font: { family: "'Salesforce Sans', sans-serif", size: 11 },
-                        color: '#4a5568'
-                    },
-                    grid: { color: '#e2e8f0', drawBorder: false },
-                    title: {
-                        display: true,
-                        text: 'Savings ($M)',
-                        font: { family: "'Salesforce Sans', sans-serif", size: 12, weight: '600' },
-                        color: '#2c3e50',
-                        padding: { top: 10, bottom: 10 }
-                    }
-                }
-            }
-        }
+            });
+        }, 100 * (index + 1)); // Stagger chart creation to avoid DOM issues
     });
 }

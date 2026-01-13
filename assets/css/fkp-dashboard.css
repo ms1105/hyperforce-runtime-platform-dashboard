@@ -4859,6 +4859,18 @@ body.developer-view .sidebar-subtitle::after {
     width: 100%;
     border-radius: 4px 4px 0 0;
     transition: height 0.3s ease;
+    position: relative;
+}
+
+.bar-value-label {
+    position: absolute;
+    top: -1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
 }
 
 .bar-label {

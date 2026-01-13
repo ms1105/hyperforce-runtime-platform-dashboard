@@ -423,6 +423,10 @@ case 'my-new-tab':
 - Charts should be responsive and use CSS for styling
 - Y-axis should have clear labels and grid lines
 - Fixed ranges (0-100%) for consistency where applicable
+- **Percentage Labels**: Show percentage values above data points/bars for clarity
+  - Line charts: Text labels above circle markers
+  - Bar charts: Labels positioned at top of each bar
+  - Format: `XX.X%` with appropriate font size and positioning
 
 ### Table Rendering
 - Aggregate data properly when same entity appears multiple times
@@ -547,20 +551,25 @@ Data is cached in `availabilityData` object with `allLoaded` flag.
 **Source**: Large CSV files in `/Users/aravinthramesh/Documents/Karpenter/` (can be 50MB+ each)
 **Processing Script**: `scripts/process_karpenter_data.py`
 
+**⚠️ IMPORTANT: Dashboard uses ONLY summarized files, NOT raw files**
+- Raw files are processed by Python script to generate summaries
+- Dashboard loads only the summary files from `assets/data/karpenter/`
+- To update data: Run Python script → regenerates summaries → dashboard uses new summaries
+
 **To regenerate Karpenter data:**
 ```bash
 python3 scripts/process_karpenter_data.py
 ```
 
 **Output Files** (in `assets/data/karpenter/`):
-- `main_summary.csv` - Comprehensive data with ALL filter columns (falcon_instance, functional_domain, environment, cluster, month)
-- `monthly_summary.csv` - Overall monthly averages
-- `environment_summary.csv` - Aggregated by environment and month
+- `main_summary.csv` - **PRIMARY DATA SOURCE** - Comprehensive data with ALL filter columns (falcon_instance, functional_domain, environment, cluster, month). Used for all filtering and metric calculations.
+- `monthly_summary.csv` - Overall monthly averages (loaded but not currently used)
+- `environment_summary.csv` - Aggregated by environment and month (loaded but not currently used)
 - `cluster_summary.csv` - Aggregated by cluster, month, FI, FD, environment (for Developer View table)
-- `fi_summary.csv` - Aggregated by Falcon Instance and month
-- `fd_summary.csv` - Aggregated by Functional Domain and month
+- `fi_summary.csv` - Aggregated by Falcon Instance and month (loaded but not currently used)
+- `fd_summary.csv` - Aggregated by Functional Domain and month (loaded but not currently used)
 - `filter_options.json` - Unique values for all filter dropdowns
-- `cluster_trend.csv` - Trend data for clusters
+- `cluster_trend.csv` - Trend data for clusters (loaded but not currently used)
 
 **Note**: Files must be <25MB total for GitHub Pages deployment.
 
@@ -593,14 +602,23 @@ Calculated based on `avg_cpu` and `environment`:
 - Avg. Bin-Packing Efficiency - Environment
 
 **Charts**:
-- Bin-Packing Efficiency Trends (line chart, 0-100% Y-axis)
-- Efficiency by Environment (bar chart)
+- **Bin-Packing Efficiency Trends** (line chart, 0-100% Y-axis)
+  - Shows trend over time with percentage labels above each data point
+  - Displays all months in filtered data
+  - Area fill with gradient, line with circular markers
+- **Efficiency by Environment** (bar chart)
+  - Shows efficiency by environment with percentage labels above each bar
+  - Color-coded bars (green/orange/purple/blue/red)
+  - Uses latest month data when "All Months" selected, or selected month data
 
 **Data Aggregation**: Uses `main_summary.csv` for cross-filtering. Metrics are calculated by:
 1. Filtering `main_summary` based on active filters
 2. Grouping by dimension (FI/FD/Cluster/Env)
 3. Calculating average of group averages
-4. Comparing latest month to previous month for trends
+4. **Trend Calculation**:
+   - If month filter is selected: Compares selected month vs previous month (with same other filters)
+   - If "All Months" selected: Compares latest month vs previous month
+   - Previous month data fetched separately with same filters (FI/FD/Env/Cluster) but different month
 
 ### Karpenter Developer View
 **Filters**: Same as Exec View (synced between views)
@@ -645,3 +663,17 @@ karpenterFilterState             // Current filter state (fi, fd, environment, c
 - **Environment filter excludes "other"** - no data available, so removed from dropdown
 - All filters apply to both Exec and Developer views
 - Filters are synced between views when switching
+
+### Month Filter Implementation
+- **Month Display**: Uses direct month name mapping (not Date parsing) to avoid timezone issues
+- **Month Format**: Displays as "MonthName Year" (e.g., "October 2025")
+- **Sorting**: Months sorted in reverse order (latest first) in dropdown
+- **Month Mapping**: `filter_options.json` contains month codes (e.g., "2025-10") which are mapped to display names
+- **Timezone Fix**: Avoided `new Date()` parsing which caused off-by-one month errors; uses direct mapping instead
+
+### Chart Features
+- **Percentage Labels**: Both charts show percentage values above data points/bars
+  - Trend chart: Text labels above each circle point showing `XX.X%`
+  - Bar chart: Labels above each bar showing `XX.X%`
+- **Chart Styling**: SVG-based charts with CSS styling for GitHub Pages compatibility
+- **Responsive Design**: Charts scale with container, maintain aspect ratio

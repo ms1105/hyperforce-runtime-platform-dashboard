@@ -5883,6 +5883,7 @@ async function loadKarpenterData() {
             clusters: karpenterData.clusterSummary.length,
             filterOptions: Object.keys(karpenterData.filterOptions)
         });
+        console.log('📦 Months in filterOptions:', karpenterData.filterOptions.months);
         
         // Populate filter dropdowns
         populateKarpenterFilters();
@@ -5927,15 +5928,33 @@ function populateKarpenterFilters() {
             options.clusters.map(c => `<option value="${c}">${c}</option>`).join('');
     }
     
-    // Month
+    // Month (sort in reverse order - latest first)
     const monthSelect = document.getElementById('karpenter-month-filter');
     if (monthSelect && options.months) {
+        const sortedMonths = [...options.months].sort((a, b) => b.localeCompare(a)); // Reverse sort
+        console.log('📦 Populating month filter with months:', sortedMonths);
+        
+        // Month name mapping to avoid timezone issues
+        const monthNames = {
+            '01': 'January', '02': 'February', '03': 'March', '04': 'April',
+            '05': 'May', '06': 'June', '07': 'July', '08': 'August',
+            '09': 'September', '10': 'October', '11': 'November', '12': 'December'
+        };
+        
         monthSelect.innerHTML = '<option value="all">All Months</option>' +
-            options.months.map(m => {
-                const date = new Date(m + '-01');
-                const monthName = date.toLocaleString('default', { month: 'long' });
-                return `<option value="${m}">${monthName}</option>`;
+            sortedMonths.map(m => {
+                try {
+                    const [year, month] = m.split('-');
+                    const monthName = monthNames[month] || month;
+                    const displayText = `${monthName} ${year}`;
+                    console.log(`📦 Adding month option: ${m} -> ${displayText}`);
+                    return `<option value="${m}">${displayText}</option>`;
+                } catch (e) {
+                    console.warn('⚠️ Error parsing month:', m, e);
+                    return `<option value="${m}">${m}</option>`;
+                }
             }).join('');
+        console.log('📦 Month filter populated. Total options:', monthSelect.options.length);
     }
 }
 
@@ -6018,7 +6037,53 @@ function renderKarpenterExecView(container) {
     // Use main_summary which has ALL filter columns for proper cross-filtering
     const filteredData = filterKarpenterData(karpenterData.mainSummary, true);
     
+    // Check which months are in the filtered data
+    const monthsInData = [...new Set(filteredData.map(r => r.month))].sort();
     console.log('📦 Filtered main summary:', filteredData.length, 'rows');
+    console.log('📦 Months in filtered data:', monthsInData);
+    
+    // Get all available months from full dataset to find previous month
+    const allMonths = [...new Set(karpenterData.mainSummary.map(r => r.month))].sort();
+    
+    // Helper function to get previous month
+    const getPreviousMonth = (month) => {
+        const monthIndex = allMonths.indexOf(month);
+        return monthIndex > 0 ? allMonths[monthIndex - 1] : null;
+    };
+    
+    // Helper to get data for a specific month with same filters (except month)
+    const getDataForMonth = (month) => {
+        // Filter data with same filters but different month
+        return karpenterData.mainSummary.filter(row => {
+            // Apply all current filters except month
+            if (karpenterFilterState.fi !== 'all' && 'falcon_instance' in row && row.falcon_instance !== karpenterFilterState.fi) return false;
+            if (karpenterFilterState.fd !== 'all' && 'functional_domain' in row && row.functional_domain !== karpenterFilterState.fd) return false;
+            if (karpenterFilterState.environment !== 'all' && 'environment' in row && row.environment !== karpenterFilterState.environment) return false;
+            if (karpenterFilterState.cluster !== 'all' && 'cluster' in row && row.cluster !== karpenterFilterState.cluster) return false;
+            // Use the specified month instead of filter state
+            if (row.month !== month) return false;
+            return true;
+        });
+    };
+    
+    // Helper to calculate weighted average for a dataset grouped by a dimension
+    const calcAvgForData = (data, groupBy) => {
+        if (!data || data.length === 0) return null;
+        
+        // Group by the dimension
+        const byGroup = {};
+        data.forEach(r => {
+            const key = r[groupBy] || 'unknown';
+            if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
+            byGroup[key].sum += parseFloat(r.avg_cpu || 0);
+            byGroup[key].count += 1;
+        });
+        
+        // Calculate average for each group, then average those
+        const groups = Object.values(byGroup);
+        const groupAvgs = groups.map(g => g.sum / g.count);
+        return groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length;
+    };
     
     // Helper to calculate weighted average grouped by a dimension
     // Aggregates data by the groupBy field, calculates avg for each group, then averages those
@@ -6038,21 +6103,40 @@ function renderKarpenterExecView(container) {
         
         // Calculate average for each month (average of group averages)
         const months = Object.keys(byMonth).sort();
-        const monthlyAvgs = months.map(m => {
+        const monthlyAvgs = {};
+        months.forEach(m => {
             const groups = Object.values(byMonth[m]);
             const groupAvgs = groups.map(g => g.sum / g.count);
-            return groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length;
+            monthlyAvgs[m] = groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length;
         });
         
-        // Overall average
-        const avg = monthlyAvgs.length > 0 
-            ? (monthlyAvgs.reduce((a, b) => a + b, 0) / monthlyAvgs.length).toFixed(1)
-            : '--';
+        // Determine which month to use for average and trend calculation
+        const selectedMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : null;
+        const targetMonth = selectedMonth || months[months.length - 1]; // Use selected month or latest
         
-        // Trend: compare last 2 months
+        // Overall average: if month selected, use that month; otherwise average all months
+        let avg;
+        if (selectedMonth && monthlyAvgs[selectedMonth] !== undefined) {
+            avg = monthlyAvgs[selectedMonth].toFixed(1);
+        } else {
+            const allAvgs = Object.values(monthlyAvgs);
+            avg = allAvgs.length > 0 
+                ? (allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length).toFixed(1)
+                : '--';
+        }
+        
+        // Trend: compare target month with previous month
         let trend = 0;
-        if (monthlyAvgs.length >= 2) {
-            trend = monthlyAvgs[monthlyAvgs.length - 1] - monthlyAvgs[monthlyAvgs.length - 2];
+        if (monthlyAvgs[targetMonth] !== undefined) {
+            const prevMonth = getPreviousMonth(targetMonth);
+            if (prevMonth) {
+                // Get previous month data with same filters (except month)
+                const prevMonthData = getDataForMonth(prevMonth);
+                const prevAvg = calcAvgForData(prevMonthData, groupBy);
+                if (prevAvg !== null) {
+                    trend = monthlyAvgs[targetMonth] - prevAvg;
+                }
+            }
         }
         
         return { avg, trend };
@@ -6514,6 +6598,12 @@ function renderKarpenterTrendChart(data) {
                         const y = height - ((d.value - chartMin) / chartRange * height);
                         return `<circle cx="${x}" cy="${y}" r="1.2" fill="#22c55e" />`;
                     }).join('')}
+                    <!-- Value labels above points -->
+                    ${data.map((d, i) => {
+                        const x = i * pointSpacing;
+                        const y = height - ((d.value - chartMin) / chartRange * height);
+                        return `<text x="${x}" y="${Math.max(y - 3, 3)}" text-anchor="middle" font-size="2.5" fill="#374151" font-weight="600">${d.value.toFixed(1)}%</text>`;
+                    }).join('')}
                 </svg>
                 <div class="chart-x-axis">
                     ${data.map(d => `<span class="x-label">${d.month}</span>`).join('')}
@@ -6548,7 +6638,9 @@ function renderKarpenterBarChart(data) {
                 ${data.map((d, i) => `
                     <div class="bar-item">
                         <div class="bar-wrapper">
-                            <div class="bar" style="height: ${d.value}%; background-color: ${colors[i % colors.length]};"></div>
+                            <div class="bar" style="height: ${d.value}%; background-color: ${colors[i % colors.length]};">
+                                <span class="bar-value-label">${d.value.toFixed(1)}%</span>
+                            </div>
                         </div>
                         <span class="bar-label">${d.name}</span>
                     </div>

@@ -5493,6 +5493,9 @@ async function renderAutoscalingExecView() {
     const tier0SegmentOverall = document.getElementById('tier-0-segment-overall');
     if (tier0SegmentOverall) tier0SegmentOverall.style.width = `${tier0Pct}%`;
     
+    const tier0CoveragePctOverallEl = document.getElementById('tier0-coverage-pct-overall');
+    if (tier0CoveragePctOverallEl) tier0CoveragePctOverallEl.textContent = `${tier0Pct}%`;
+    
     // Update tier details
     const tierDetails = document.getElementById('tier-details');
     if (tierDetails) {

@@ -5499,17 +5499,17 @@ async function renderAutoscalingExecView() {
     const tierDetails = document.getElementById('tier-details');
     if (tierDetails) {
         tierDetails.innerHTML = `
-            <div class="tier-row clickable" onclick="filterAutoscalingByTier(0)">
-                <span class="tier-label">Tier 0 (Critical)</span>
-                <span class="tier-value">${tier0Count} <span class="tier-pct">(${tier0Pct}%)</span> <span class="link-icon">↗</span></span>
+            <div class="tier-hpa-detail-row clickable" onclick="filterAutoscalingByTier(0)">
+                <span class="tier-hpa-detail-label">Tier 0 (Critical)</span>
+                <span class="tier-hpa-detail-value">${tier0Count} <span style="color: #3b82f6; font-weight: 600;">(${tier0Pct}%)</span> <span class="link-icon">↗</span></span>
             </div>
-            <div class="tier-row clickable" onclick="filterAutoscalingByTier(1)">
-                <span class="tier-label">Tier 1 (Standard)</span>
-                <span class="tier-value">${tier1Count} <span class="tier-pct">(${tier1Pct}%)</span> <span class="link-icon">↗</span></span>
+            <div class="tier-hpa-detail-row clickable" onclick="filterAutoscalingByTier(1)">
+                <span class="tier-hpa-detail-label">Tier 1 (Standard)</span>
+                <span class="tier-hpa-detail-value">${tier1Count} <span style="color: #3b82f6; font-weight: 600;">(${tier1Pct}%)</span> <span class="link-icon">↗</span></span>
             </div>
-            <div class="tier-row">
-                <span class="tier-label">Total Services</span>
-                <span class="tier-value">${totalServices}</span>
+            <div class="tier-hpa-detail-row">
+                <span class="tier-hpa-detail-label">Total Services</span>
+                <span class="tier-hpa-detail-value">${totalServices}</span>
             </div>
         `;
     }

@@ -5490,10 +5490,8 @@ async function renderAutoscalingExecView() {
     }
     
     // Update tier bar segments
-    const tier0Segment = document.getElementById('tier-0-segment');
-    const tier1Segment = document.getElementById('tier-1-segment');
-    if (tier0Segment) tier0Segment.style.width = `${tier0Pct}%`;
-    if (tier1Segment) tier1Segment.style.width = `${tier1Pct}%`;
+    const tier0SegmentOverall = document.getElementById('tier-0-segment-overall');
+    if (tier0SegmentOverall) tier0SegmentOverall.style.width = `${tier0Pct}%`;
     
     // Update tier details
     const tierDetails = document.getElementById('tier-details');

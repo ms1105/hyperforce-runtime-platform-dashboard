@@ -1,0 +1,647 @@
+# Cursor Rules - Hyperforce Runtime Platform 360
+
+## 🛑 MANDATORY: Ask Before Executing
+
+**BEFORE making ANY code changes, file edits, or executing commands, you MUST:**
+
+1. **Clarify the request** - Ask clarifying questions to understand:
+   - What exactly needs to be changed?
+   - Which specific files/components are affected?
+   - What is the expected outcome?
+   - Are there any edge cases to consider?
+
+2. **Confirm understanding** - Summarize back what you understood and get confirmation before proceeding.
+
+3. **Propose a plan** - Outline the steps you'll take and wait for approval.
+
+**Only proceed with execution AFTER receiving explicit approval from the user.**
+
+---
+
+## 📋 Project Context
+
+This is **Hyperforce Runtime Platform 360 (HRP360)** - a dashboard for Salesforce's Hyperforce infrastructure monitoring.
+
+**⚠️ IMPORTANT: This is a GitHub Pages project - NO React bundling. Use vanilla JavaScript only.**
+
+### Current Dashboard Sections
+| Section | Description |
+|---------|-------------|
+| **Onboarding** | FKP/Mesh adoption tracking, migration pipeline, service information |
+| **Runtime Scale & Availability** | Autoscaling, Availability, Karpenter metrics |
+
+### Removed Sections (no longer exist)
+- ~~Cost to Serve~~ (removed)
+- ~~Self Serve~~ (removed)
+
+---
+
+## 🏗️ Architecture
+
+### Primary Stack
+- **ALL tabs**: Vanilla JavaScript (`assets/js/fkp-dashboard.js` - ~7100+ lines)
+- **Styling**: Custom CSS (`assets/css/fkp-dashboard.css`)
+- **Data**: CSV and JSON files in `assets/data/`
+- **Data Processing**: Python scripts in `scripts/` directory
+
+### Legacy React (being phased out)
+- React components in `src/components/` - avoid using for new features
+- React is loaded via CDN but should NOT be used for new features
+- All tabs have been converted to vanilla JavaScript (Karpenter, Autoscaling, Availability)
+
+### View Modes
+The dashboard has two view modes controlled by toggle buttons in the header:
+
+| Mode | Purpose |
+|------|---------|
+| **Exec View** | High-level executive summary metrics |
+| **Developer View** | Detailed technical data and tables |
+
+Tabs have `data-view` attribute: `"exec"`, `"developer"`, or `"both"`
+
+---
+
+## 📂 File Structure
+
+### Key Files
+| File | Purpose |
+|------|---------|
+| `index.html` | Main dashboard HTML, sidebar navigation, tab panes |
+| `assets/js/fkp-dashboard.js` | ALL dashboard logic (~6000 lines) |
+| `assets/css/fkp-dashboard.css` | ALL custom styles |
+| `assets/data/` | CSV and JSON data files |
+
+### Data Files
+| Directory | Contents |
+|-----------|----------|
+| `assets/data/` | Main adoption CSVs (fkp_adoption.csv, blackjack_adoption.csv) |
+| `assets/data/availability/` | Availability metrics CSVs |
+| `assets/data/Autoscaling.csv` | Autoscaling/HPA data (tab-separated) |
+| `assets/data/karpenter/` | Karpenter summary CSVs and filter options JSON |
+| `assets/data/dashboard-data.json` | Mock data for legacy React components |
+| `assets/data/cts-data.json` | Mock data for legacy React components |
+
+### Data Processing Scripts
+| Script | Purpose |
+|--------|---------|
+| `scripts/process_karpenter_data.py` | Aggregates large Karpenter CSV files into summary CSVs for dashboard |
+
+---
+
+## 🔧 Tab Structure
+
+### Onboarding Section
+| Tab ID | Name | View Mode |
+|--------|------|-----------|
+| `executive-overview` | Overview | exec |
+| `migration-pipeline` | Migration Pipeline | exec |
+| `service-information` | Overview | developer |
+| `migration-dependencies` | Migration Dependencies | developer |
+| `cross-customer-analysis` | COGS Analysis | developer |
+| `integrations` | Integrations | developer |
+
+### Runtime Scale & Availability Section
+| Tab ID | Name | View Mode |
+|--------|------|-----------|
+| `runtime-overview` | Autoscaling | exec |
+| `runtime-hpa` | Autoscaling | developer |
+| `runtime-availability` | Availability | both |
+| `runtime-karpenter` | Karpenter | both |
+
+---
+
+## 🔑 Key Terminology
+
+| Term | Definition |
+|------|------------|
+| **FKP** | Falcon Kubernetes Platform - managed K8s |
+| **Mesh** | Service mesh (mTLS) |
+| **HCP** | Hyperforce Control Plane |
+| **HRP** | Hyperforce Runtime Platform |
+| **Commercial** | Standard Salesforce cloud |
+| **GIA/GovCloud** | Government cloud (FedRAMP) |
+| **BlackJack** | DoD cloud - highest security |
+| **HPA** | Horizontal Pod Autoscaler |
+| **MTTD** | Mean Time to Detect |
+| **MTTR** | Mean Time to Resolve |
+
+### FKP Detection Logic
+Instance is FKP if cluster name contains `"sam"` (case-insensitive)
+
+### Migration Stages (1-6)
+1. Not Started
+2. Pre-Prod Progress
+3. Parity Required
+4. Prod Progress
+5. Prod Complete
+6. Mesh Complete
+
+---
+
+## 💡 Key Functions in fkp-dashboard.js
+
+### Tab Management
+```javascript
+switchTab(tabId)           // Switch to a tab
+refreshCurrentTab()        // Refresh current tab content
+switchViewMode(mode)       // Switch between 'exec' and 'developer'
+```
+
+### Data Loading
+```javascript
+loadAdoptionData()         // Load FKP adoption CSV data
+loadAutoscalingData()      // Load Autoscaling.csv
+loadAllAvailabilityData()  // Load all availability CSVs in parallel
+```
+
+### Rendering Functions
+```javascript
+renderExecutiveOverview()           // Onboarding overview (with metrics and roadmap)
+renderOverallAdoptionMetrics()       // Commercial/GIA/Blackjack adoption cards
+renderRoadmapTimeline()             // Leader/Cloud roadmap timeline
+renderAICTA()                       // AI-generated calls to action
+renderAutoscalingExecView()         // Autoscaling metrics cards
+renderAutoscalingDeveloperView()    // Autoscaling services table
+renderRuntimeAvailability()         // Availability (both views)
+renderKarpenter()                   // Karpenter (routes to Exec/Dev view)
+```
+
+### Global State
+```javascript
+fkpDashboard.state.currentTab        // Current active tab ID
+fkpDashboard.state.currentViewMode   // 'exec' or 'developer'
+fkpDashboard.state.overviewViewBy   // 'org-leader', 'parent-cloud', or 'cloud' for roadmap
+fkpDashboard.data.processed          // Processed adoption data
+autoscalingData                      // Cached autoscaling data
+availabilityData                     // Cached availability data
+karpenterData                        // Cached Karpenter data
+karpenterFilterState                 // Karpenter filter state
+```
+
+---
+
+## ⚠️ Common Pitfalls & Fixes
+
+### 1. Async/Await Issues
+**Problem:** Calling async functions without `await` causes data to not be loaded before rendering.
+```javascript
+// ❌ WRONG
+renderAvailabilityExecView();
+const html = container.innerHTML; // Empty!
+
+// ✅ CORRECT
+await renderAvailabilityExecView();
+const html = container.innerHTML; // Has content
+```
+
+### 2. Falsy Value Defaults
+**Problem:** Using `|| defaultValue` with numbers where 0 is valid.
+```javascript
+// ❌ WRONG - 0 becomes 1
+serviceTier: parseInt(value) || 1
+
+// ✅ CORRECT - 0 stays 0
+const tier = parseInt(value);
+serviceTier: isNaN(tier) ? 1 : tier
+```
+
+### 3. CSV Encoding Issues
+CSV files from Excel may be UTF-16LE encoded. Convert to UTF-8:
+```bash
+iconv -f UTF-16LE -t UTF-8 input.csv > output.csv
+```
+
+### 4. Tab-Separated Files
+`Autoscaling.csv` uses TABS not commas:
+```javascript
+const values = line.split('\t');  // NOT split(',')
+```
+
+### 5. React Tab Detection
+Tabs with `data-react-tab="true"` attribute are handled by React:
+```javascript
+const isReactTab = navItem.hasAttribute('data-react-tab');
+```
+To convert to vanilla JS: remove the attribute and add a tab-pane div.
+
+### 6. Filter Visibility
+Filters are hidden for certain tabs:
+- `executive-overview` (Onboarding Exec View) - filters hidden
+- `migration-pipeline` (Onboarding Exec View) - filters hidden
+- All other tabs show filters
+
+### 7. View Mode Switching
+When switching between Exec/Developer view:
+- If current tab has corresponding view, switch to that tab
+- Otherwise, default to first visible tab in that section
+- Example: On "Autoscaling" in Exec View → switch to "Autoscaling" in Developer View
+
+### 8. Data Aggregation for Karpenter
+When a cluster appears multiple times in the same month (different FI/FD combinations):
+- **Month Column**: Shows unique months only (no duplicates)
+- **Avg CPU**: Aggregated mean across all FI/FD combinations for that cluster+month
+- **Improvement**: Compares aggregated latest month vs aggregated previous month
+- **Efficiency Indicator**: Calculated from aggregated CPU % and most common environment
+
+---
+
+## 🎨 CSS Conventions
+
+### Color Classes
+| Class | Color | Use Case |
+|-------|-------|----------|
+| `.tier-0` | Red | Critical tier |
+| `.tier-1` | Blue | Standard tier |
+| `.hpa-zero` | Red | 0% HPA |
+| `.hpa-partial` | Yellow | 1-49% HPA |
+| `.hpa-high` | Green | 50-99% HPA |
+| `.hpa-full` | Green | 100% HPA |
+
+### Debug Logging Prefixes
+- `📊` for data/metrics
+- `🔄` for updates/refresh
+- `⚠️` for warnings
+- `❌` for errors
+- `✅` for success
+- `🛡️` for availability
+- `📈` for charts
+- `📦` for Karpenter
+
+### UI Sizing Conventions
+**Compact Design Philosophy**: Recent updates prioritize compact, space-efficient UI:
+- **Metric Cards**: Reduced padding (0.75rem), smaller fonts (1.25rem for percentages)
+- **Heatmap Tiles**: 65px height, 0.5rem padding, 120px min-width
+- **Table Spacing**: Reduced gaps and margins throughout
+- **Filter Sections**: Collapsible to save space
+
+---
+
+## 🚀 Running Locally
+
+```bash
+# Start local server (GitHub Pages compatible)
+python3 -m http.server 8005
+
+# Then open: http://localhost:8005
+```
+
+**Note:** Do NOT use `npm run dev` or `npm run build` - this project is designed for GitHub Pages static hosting.
+
+## 📦 Data Processing Workflow
+
+### Karpenter Data Processing
+**When to run**: When new Karpenter data files are added or updated
+
+**Steps**:
+1. Place raw CSV files in `/Users/aravinthramesh/Documents/Karpenter/`
+2. If files are `.numbers` format, export them as CSV from Apple Numbers first
+3. Run processing script:
+   ```bash
+   python3 scripts/process_karpenter_data.py
+   ```
+4. Script will:
+   - Load all CSV files from source directory
+   - Extract month from filename
+   - Calculate environment from `falcon_instance`
+   - Calculate efficiency indicators
+   - Generate aggregated summary files
+   - Save to `assets/data/karpenter/`
+
+**File Size Limits**:
+- GitHub Pages has a 25MB file size limit
+- All generated summary files must total <25MB
+- If files are too large, adjust aggregation level in processing script
+
+### CSV Encoding
+- Always ensure CSVs are UTF-8 encoded
+- Excel may export as UTF-16LE - convert if needed:
+  ```bash
+  iconv -f UTF-16LE -t UTF-8 input.csv > output.csv
+  ```
+
+---
+
+## 🎨 Recent UI Updates
+
+### Compact Design Changes
+- **Onboarding Metrics**: Reduced from 2rem percentage to 1.25rem, padding 1.25rem → 0.75rem
+- **Karpenter Heatmaps**: Compact tiles (65px height, 0.5rem padding, 120px min-width)
+- **Autoscaling Cards**: More compact spacing and font sizes
+- **General**: Reduced gaps, margins, and padding throughout for space efficiency
+
+### Filter Improvements
+- Filters are collapsible to save screen space
+- Dropdown overflow fixed (z-index and overflow properties)
+- Filter visibility controlled per tab (hidden for Exec Overview tabs)
+
+### Chart Improvements
+- Fixed Y-axis ranges (0-100%) for Karpenter trend charts
+- Clear grid lines and axis labels
+- CSS-only charts (no external libraries)
+
+---
+
+## 📝 Adding New Features
+
+### Adding a New Vanilla JS Tab
+
+1. **Add navigation item** in `index.html`:
+```html
+<div class="nav-subitem" data-tab="my-new-tab" data-view="exec">
+    <span class="nav-text">My Tab</span>
+</div>
+```
+
+2. **Add tab pane** in `index.html`:
+```html
+<div class="tab-pane" id="my-new-tab">
+    <div class="tab-header">
+        <h2>My Tab</h2>
+    </div>
+    <div id="my-tab-content"></div>
+</div>
+```
+
+3. **Add render function** in `fkp-dashboard.js`:
+```javascript
+function renderMyTab() {
+    const container = document.getElementById('my-tab-content');
+    // Render content
+}
+```
+
+4. **Add to refreshCurrentTab()**:
+```javascript
+case 'my-new-tab':
+    renderMyTab();
+    break;
+```
+
+5. **Add to tabTitles** for header:
+```javascript
+'my-new-tab': {
+    title: 'Section Name',
+    subtitle: 'Tab Name'
+}
+```
+
+### Adding New Data
+
+1. Place CSV in `assets/data/`
+2. Create async load function with caching
+3. Use `Promise.all()` for parallel loading
+4. Handle both success and fallback cases
+
+---
+
+## 🔍 Debugging Tips
+
+1. **Check browser console** (F12) for logged errors with emoji prefixes
+2. **Verify data loading** - look for "✅ Loaded X items" messages
+3. **Check network tab** - ensure CSV files are loading (200 status)
+4. **Verify tab switching** - check `fkpDashboard.state.currentTab`
+5. **Hard refresh** (`Cmd+Shift+R`) after JS changes
+6. **Check filter state** - verify `karpenterFilterState` or `fkpDashboard.filters` for filter issues
+7. **Verify data aggregation** - check console logs for filtered data counts
+
+## ⚙️ Important Implementation Notes
+
+### Data Loading Best Practices
+- Always use `Promise.all()` for parallel loading when fetching multiple files
+- Cache data globally to avoid redundant fetches
+- Check for `loaded` flags before re-fetching
+- Handle both success and error cases gracefully
+
+### Filter Implementation
+- Filters should be synced between Exec and Developer views where applicable
+- Always check if filter column exists in data before filtering (robust filtering)
+- Exclude invalid options (e.g., "other" environment) from dropdowns
+- Reset filters should clear all filter states
+
+### Chart Rendering
+- Use SVG for charts (no external libraries for GitHub Pages compatibility)
+- Charts should be responsive and use CSS for styling
+- Y-axis should have clear labels and grid lines
+- Fixed ranges (0-100%) for consistency where applicable
+
+### Table Rendering
+- Aggregate data properly when same entity appears multiple times
+- Show unique values in display columns (e.g., unique months)
+- Sort by meaningful criteria (efficiency indicator, then metric value)
+- Handle edge cases (empty data, single row, etc.)
+
+### Performance Considerations
+- Large datasets should be pre-aggregated (use processing scripts)
+- Avoid processing millions of rows in browser
+- Use efficient data structures (Maps for lookups)
+- Debounce filter inputs if implementing real-time filtering
+
+---
+
+## 📊 Autoscaling Tab Details
+
+### Data Source
+`assets/data/Autoscaling.csv` (tab-separated, UTF-8)
+
+### Columns
+| Column | Description |
+|--------|-------------|
+| Sr Exec | Senior Executive |
+| Eng Manager | Engineering Manager |
+| Service Name | Service identifier |
+| Service Tier | 0 = Critical, 1 = Standard |
+| # Replicas | Replica percentage |
+| AZ Distrib | AZ distribution percentage |
+| HPA | HPA adoption percentage |
+| Liveness Probe | Liveness probe percentage |
+
+### HPA Logic
+- **HPA Enabled**: `hpa > 0%`
+- **Enroll to HPA**: `hpa === 0%`
+- **HPA Adoption Rate**: `(services with hpa > 0) / total services * 100`
+
+### Autoscaling Exec View
+**Metric Cards** (4 cards, compact design):
+1. **Service Tier Breakdown** - Shows Tier 0 and Tier 1 counts with percentages
+2. **HPA Adoption Rate** - Overall HPA adoption percentage
+3. **Tier 0 HPA Adoption** - Tier 0 specific metrics (services with/without HPA)
+4. **Tier 1 HPA Adoption** - Tier 1 specific metrics (services with/without HPA)
+
+**Clickable Cards**: 
+- Clicking Tier 0/1 cards filters Developer View to that tier
+- Clicking "Services with HPA" for Tier 1 filters to Tier 1 + HPA Enabled
+- Developer View has reset button to clear filters
+
+### Autoscaling Developer View
+**Filters**: Tier (All/Tier 0/Tier 1), HPA Status (All/Enabled/Enroll)
+**Table Columns**: Service Name, Functional Domain (placeholder), Tier, HPA%, Action
+**Action Button**: Shows "HPA Enabled" if `hpa > 0%`, otherwise "Enroll to HPA"
+**Sorting**: Services with 0% HPA shown first, then sorted by HPA percentage
+
+---
+
+## 📊 Onboarding Overview Tab Details
+
+### Structure
+The Overview tab (`executive-overview`) has three main sections:
+
+1. **AI-Generated Calls to Action**
+   - Shows Commercial-GovCloud migration gaps
+   - Highlights services not yet started
+   - Based on analysis of all services
+
+2. **Overall Adoption Metrics** (Compact Cards)
+   - Three cards: Commercial, GIA2H, Blackjack-A (Stage)
+   - Shows adoption percentage and instance counts (FKP/Total)
+   - Compact design: 0.75rem padding, 1.25rem percentage font
+   - Cards are color-coded with gradients
+
+3. **Customer Roadmap Timeline**
+   - View By toggles: Leader, Parent Cloud, Cloud
+   - Shows migration progress with color-coded progress bars
+   - Progress bar length = adoption percentage (0-100%)
+   - Progress bar color = migration stage (gray/yellow/green/cyan)
+   - Displays: Services count, Instances (x/y), Adoption %, ETA
+
+### Roadmap Grouping Logic
+- **Leader View**: Groups by org leader, shows services/instances/adoption at leader level
+- **Parent Cloud View**: Groups by parent cloud, shows leaders with their clouds, sorted by adoption
+- **Cloud View**: Groups by cloud, shows leaders with their clouds, sorted by adoption
+
+### Data Aggregation
+- Instance-level data aggregated to service, cloud, parent cloud, and org leader levels
+- Adoption calculated based on FKP instances vs total instances
+- Migration stage calculated from instance-level stages
+
+---
+
+## 🛡️ Availability Tab Details
+
+### Data Sources (all in `assets/data/availability/`)
+| File | Purpose |
+|------|---------|
+| `executive_summary.csv` | Exec view metrics |
+| `monthly_incident_agg.csv` | Incident trend chart |
+| `investment_themes.csv` | Top investment themes |
+| `service_incident_metrics.csv` | MTTD/MTTR by service |
+
+### Loading Strategy
+All files loaded in parallel using `loadAllAvailabilityData()`:
+```javascript
+const [exec, monthly, themes, metrics] = await Promise.all([
+    fetch('executive_summary.csv'),
+    fetch('monthly_incident_agg.csv'),
+    fetch('investment_themes.csv'),
+    fetch('service_incident_metrics.csv')
+]);
+```
+
+### Caching
+Data is cached in `availabilityData` object with `allLoaded` flag.
+
+---
+
+## 🚢 Karpenter Tab Details
+
+### Data Processing
+**Source**: Large CSV files in `/Users/aravinthramesh/Documents/Karpenter/` (can be 50MB+ each)
+**Processing Script**: `scripts/process_karpenter_data.py`
+
+**To regenerate Karpenter data:**
+```bash
+python3 scripts/process_karpenter_data.py
+```
+
+**Output Files** (in `assets/data/karpenter/`):
+- `main_summary.csv` - Comprehensive data with ALL filter columns (falcon_instance, functional_domain, environment, cluster, month)
+- `monthly_summary.csv` - Overall monthly averages
+- `environment_summary.csv` - Aggregated by environment and month
+- `cluster_summary.csv` - Aggregated by cluster, month, FI, FD, environment (for Developer View table)
+- `fi_summary.csv` - Aggregated by Falcon Instance and month
+- `fd_summary.csv` - Aggregated by Functional Domain and month
+- `filter_options.json` - Unique values for all filter dropdowns
+- `cluster_trend.csv` - Trend data for clusters
+
+**Note**: Files must be <25MB total for GitHub Pages deployment.
+
+### Environment Detection Logic
+The script determines environment from `falcon_instance` column:
+- Contains "prod" or "esvc" → `prod`
+- Contains "staging" or "stage" → `staging`
+- Contains "test" → `test`
+- Contains "perf" → `perf`
+- Contains "dev" → `dev`
+- Otherwise → `other` (filtered out in UI - no data)
+
+### Efficiency Indicator Logic
+Calculated based on `avg_cpu` and `environment`:
+- **prod/esvc environments**:
+  - >80% = "Efficient" (green)
+  - 50-80% = "Moderately Efficient" (orange)
+  - <50% = "Inefficient" (red)
+- **Other environments** (test/perf/dev/staging):
+  - >90% = "Efficient" (green)
+  - 70-90% = "Moderately Efficient" (orange)
+  - <70% = "Inefficient" (red)
+
+### Karpenter Exec View
+**Filters**: FI, FD, Environment, Cluster, Month (all apply to metrics and charts)
+**Metrics Cards** (4 cards):
+- Avg. Bin-Packing Efficiency - FI
+- Avg. Bin-Packing Efficiency - FD
+- Avg. Bin-Packing Efficiency - Cluster
+- Avg. Bin-Packing Efficiency - Environment
+
+**Charts**:
+- Bin-Packing Efficiency Trends (line chart, 0-100% Y-axis)
+- Efficiency by Environment (bar chart)
+
+**Data Aggregation**: Uses `main_summary.csv` for cross-filtering. Metrics are calculated by:
+1. Filtering `main_summary` based on active filters
+2. Grouping by dimension (FI/FD/Cluster/Env)
+3. Calculating average of group averages
+4. Comparing latest month to previous month for trends
+
+### Karpenter Developer View
+**Filters**: Same as Exec View (synced between views)
+**Heatmaps** (3 sections, stacked vertically):
+1. **All Clusters** - Shows all filtered clusters with efficiency indicators
+2. **Top 5 Most Efficient** - First 5 from sorted list (or all if <5)
+3. **Top 5 Least Efficient** - Last 5 from sorted list, reversed (or all if <5)
+
+**Heatmap Tile Design**:
+- Rounded rectangles with color coding (green/orange/red)
+- Shows cluster name and efficiency percentage
+- Auto-fit grid layout (min 120px width)
+- Compact size (65px height, 0.5rem padding)
+
+**Table**:
+- One row per cluster (shows latest month data only)
+- Columns: Cluster, Month, Avg CPU (%), Bin Packing Improvement, Bin Packing Efficiency Indicator
+- **Month Column**: Shows all unique months with data, latest month in **bold**
+- **Data Aggregation**: For each cluster+month, aggregates all rows (across FI/FD combinations) and calculates mean `avg_cpu`
+- **Sorting**: By efficiency indicator (Efficient > Moderate > Inefficient), then by avg_cpu descending
+- **Improvement**: Compares aggregated latest month vs aggregated previous month
+- **Efficiency Indicator**: Calculated dynamically based on latest month's aggregated CPU % and environment
+
+### Key Functions
+```javascript
+loadKarpenterData()              // Load all Karpenter summary CSVs and filter options
+renderKarpenter()                // Main render function (routes to Exec/Dev view)
+renderKarpenterExecView()        // Exec view with metrics and charts
+renderKarpenterDeveloperView()   // Dev view with heatmaps and table
+filterKarpenterData(data)        // Filter data based on karpenterFilterState
+getEfficiencyIndicator(avgCpu, environment)  // Calculate efficiency badge
+populateKarpenterFilters()       // Populate filter dropdowns (excludes "other" environment)
+```
+
+### Global State
+```javascript
+karpenterData                    // Cached Karpenter data (mainSummary, monthlySummary, etc.)
+karpenterFilterState             // Current filter state (fi, fd, environment, cluster, month)
+```
+
+### Filter Notes
+- **Environment filter excludes "other"** - no data available, so removed from dropdown
+- All filters apply to both Exec and Developer views
+- Filters are synced between views when switching

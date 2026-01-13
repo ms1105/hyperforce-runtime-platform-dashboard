@@ -76,26 +76,6 @@ function renderExecView(data) {
         </div>
     `;
     
-    // Cumulative Forecast vs Actuals Chart
-    execHTML += `
-        <div class="exec-chart-container" style="margin-top: 2rem;">
-            <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 1.5rem;">Cumulative Forecast vs Actuals Comparison</h3>
-            <div style="margin-bottom: 2rem;">
-                <canvas id="cumulative-forecast-actuals-chart" style="max-height: 450px;"></canvas>
-            </div>
-        </div>
-    `;
-    
-    // Monthly Forecast vs Actuals Chart
-    execHTML += `
-        <div class="exec-chart-container" style="margin-top: 2rem;">
-            <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 1.5rem;">Monthly Forecast vs Actuals Comparison</h3>
-            <div style="margin-bottom: 2rem;">
-                <canvas id="monthly-forecast-actuals-chart" style="max-height: 450px;"></canvas>
-            </div>
-        </div>
-    `;
-    
     // Initiative Performance Charts - Small Multiples
     execHTML += `
         <div class="exec-chart-container" style="margin-top: 2rem;">
@@ -145,8 +125,6 @@ function renderExecView(data) {
     // Note: These functions need to be defined - they're in the bin-packing dashboard
     // For now, we'll add them below
     setTimeout(() => {
-        renderCumulativeForecastActualsChart(data, months, originalMonthly, revisedMonthly, actualsMonthly);
-        renderMonthlyForecastActualsChart(data, months, originalMonthly, revisedMonthly, actualsMonthly);
         renderCumulativeInitiativesChart(data, months);
         renderInitiativeSmallMultiples();
     }, 100);

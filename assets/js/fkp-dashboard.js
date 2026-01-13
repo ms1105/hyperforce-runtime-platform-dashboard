@@ -6438,8 +6438,9 @@ function renderKarpenterDeveloperView(container) {
         }
         
         const tiles = clusters.map(cluster => {
+            const environment = cluster.environment || 'prod';
             return `
-                <div class="karpenter-heatmap-tile ${cluster.efficiencyClass}">
+                <div class="karpenter-heatmap-tile ${cluster.efficiencyClass}" onclick="showClusterNodes('${cluster.cluster}', '${cluster.month}', '${cluster.avgCpu}', '${environment}')" style="cursor: pointer;">
                     <div class="heatmap-cluster-name">${cluster.cluster}</div>
                     <div class="heatmap-efficiency-pct">${cluster.avgCpu.toFixed(1)}%</div>
                 </div>

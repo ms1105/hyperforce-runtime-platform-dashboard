@@ -1,0 +1,7 @@
+id,name,mttd_min,mttr_min,incidents,alerts,tracer,dep_map,fit_test,safe_change_pct,deployments_30d,change_incidents
+fkp,FKP,3.8,19.5,17,Complete,Complete,Complete,Complete,96,24,1
+mesh,Mesh,6.1,47.4,18,Partial,Complete,Missing,Partial,82,18,3
+ingress,Ingress,3,18.4,11,Complete,Complete,Complete,Complete,98,12,0
+mq,MQ,7.6,36.2,31,Missing,Partial,Missing,Missing,75,31,2
+maps,Maps,10.5,68.1,19,Partial,Missing,Missing,Missing,71,22,2
+vega,Vega Cache,4.8,23.5,6,Complete,Complete,Partial,Complete,94,8,1

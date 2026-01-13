@@ -1,0 +1,6 @@
+metric,value,unit,trend,trend_direction,target
+sev0_incidents_12mo,10,count,3 vs prior 12mo,negative,
+sev1_incidents_12mo,92,count,vs prior period,negative,
+avg_mttd,6.6,minutes,Target: <10 min,positive,10
+avg_mttr,38.7,minutes,Target: <60 min,positive,60
+observability_coverage,67,percent,Alerts + Tracing,neutral,

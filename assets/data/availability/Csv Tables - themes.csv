@@ -1,0 +1,4 @@
+rank,title,percentage,description,action,severity
+1,Monitoring Gaps,37%,"38 Sev0/Sev1 incidents had no automated alert fire. Most impacted: MQ, Maps, Mesh.",Onboard MQ & Maps to default alert framework,critical
+2,Dependency Visibility,28%,13 incidents involved cascading failures. 3/6 HRP services lack dependency mapping.,"Complete Tracer onboarding for Mesh, MQ, Maps",warning
+3,Change-Induced Incidents,19%,9 incidents traced to deployments. 6/9 lacked canary or staged rollout.,Define safe change standards for HRP services,info

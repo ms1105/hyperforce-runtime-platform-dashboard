@@ -4742,8 +4742,10 @@ body.developer-view .sidebar-subtitle::after {
 
 /* Karpenter Trend Chart */
 .karpenter-trend-chart {
-    height: 250px;
-    padding: 0.5rem 0;
+    height: 300px;
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 8px;
 }
 
 .karpenter-trend-chart .chart-container {
@@ -4752,67 +4754,69 @@ body.developer-view .sidebar-subtitle::after {
     height: 100%;
     gap: 0;
     align-items: stretch;
+    position: relative;
 }
 
 .karpenter-trend-chart .chart-y-axis {
-    position: static !important;
+    position: relative !important;
     left: auto !important;
     display: flex !important;
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-end;
-    padding-right: 8px;
+    padding-right: 12px;
     font-size: 11px;
-    color: #374151;
+    color: #64748b;
     text-align: right;
-    min-width: 50px;
-    width: 50px;
-    flex-shrink: 0;
-    padding-bottom: 24px; /* Space for x-axis labels */
+    min-width: 45px;
+    width: 45px;
+    font-weight: 500;
 }
 
 .karpenter-trend-chart .chart-y-axis .y-label {
-    line-height: 1;
+    line-height: 1.2;
     white-space: nowrap;
     display: block;
 }
 
+.karpenter-trend-chart .chart-x-axis {
+    position: absolute;
+    bottom: 0;
+    left: 45px;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 0.5rem;
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+    height: 30px;
+}
+
 .karpenter-trend-chart .chart-x-axis .x-label {
     white-space: nowrap;
+    position: absolute;
+    text-align: center;
 }
 
 .karpenter-trend-chart .chart-main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border-left: 1px solid #cbd5e1;
-    border-bottom: 1px solid #cbd5e1;
+    border-left: 2px solid #cbd5e1;
+    border-bottom: 2px solid #cbd5e1;
     position: relative;
-    background: linear-gradient(to bottom, 
-        transparent 0%, 
-        transparent 20%, 
-        rgba(0,0,0,0.02) 20%, 
-        rgba(0,0,0,0.02) 40%,
-        transparent 40%,
-        transparent 60%,
-        rgba(0,0,0,0.02) 60%,
-        rgba(0,0,0,0.02) 80%,
-        transparent 80%
-    );
+    background: #fafbfc;
+    border-radius: 0 4px 0 0;
+    padding-bottom: 30px;
 }
 
 .karpenter-trend-chart .trend-svg {
     flex: 1;
     width: 100%;
+    height: 100%;
     border-radius: 0 4px 0 0;
-}
-
-.karpenter-trend-chart .chart-x-axis {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 0.5rem;
-    font-size: 0.7rem;
-    color: #475569;
+    overflow: visible;
 }
 
 /* Karpenter Bar Chart */
@@ -5102,6 +5106,399 @@ body.developer-view .sidebar-subtitle::after {
     }
     
     .karpenter-charts-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ======================
+   AVAILABILITY EXEC VIEW (SCROLLABLE)
+   ====================== */
+
+.availability-exec-scrollable {
+    padding: 1.5rem;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+/* KPI Cards Grid */
+.availability-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.availability-kpi-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #cbd5e1;
+}
+
+.availability-kpi-card.warning {
+    border-left-color: #f59e0b;
+}
+
+.availability-kpi-card.success {
+    border-left-color: #22c55e;
+}
+
+.kpi-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.kpi-icon {
+    font-size: 1.25rem;
+}
+
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.5rem;
+}
+
+.kpi-trend {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.kpi-trend.trend-up {
+    color: #ef4444;
+}
+
+.kpi-trend.trend-down {
+    color: #22c55e;
+}
+
+.kpi-target {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+/* Section Cards */
+.availability-section-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.section-subtitle {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chart-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.chart-btn.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.availability-chart-container {
+    height: 250px;
+    width: 100%;
+}
+
+/* Metrics Row */
+.availability-metrics-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.sla-baseline {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Service Metrics Charts */
+.service-metrics-chart {
+    margin-top: 1rem;
+}
+
+.service-metric-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.service-metric-label {
+    min-width: 100px;
+    font-weight: 500;
+    color: #1e293b;
+    font-size: 0.875rem;
+}
+
+.service-metric-bar-container {
+    flex: 1;
+    height: 32px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.service-metric-bar {
+    height: 100%;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+    transition: width 0.3s ease;
+}
+
+.service-metric-value {
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.service-metric-icon {
+    font-size: 1.25rem;
+    min-width: 24px;
+    text-align: center;
+}
+
+/* Coverage Matrix */
+.coverage-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.action-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.coverage-matrix {
+    margin-top: 1rem;
+}
+
+.coverage-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+}
+
+.coverage-table thead {
+    background: #f8fafc;
+}
+
+.coverage-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.coverage-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.875rem;
+}
+
+.coverage-legend {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+}
+
+/* Investment Themes */
+.investment-themes-list {
+    margin-top: 1rem;
+}
+
+.investment-theme-item {
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #cbd5e1;
+}
+
+.theme-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.theme-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.theme-impact {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.theme-impact.red {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.theme-impact.orange {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.theme-impact.blue {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.theme-description {
+    font-size: 0.875rem;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
+.theme-action {
+    font-size: 0.875rem;
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+/* SLA Table */
+.sla-table-container {
+    margin-top: 1rem;
+    overflow-x: auto;
+}
+
+.sla-goals-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.sla-goals-table thead {
+    background: #f8fafc;
+}
+
+.sla-goals-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #475569;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.sla-goals-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.sla-goals-table .total-row {
+    background: #f8fafc;
+    font-weight: 600;
+}
+
+.sla-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.btn-secondary {
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .availability-metrics-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .availability-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .availability-kpi-grid {
         grid-template-columns: 1fr;
     }
 }

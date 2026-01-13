@@ -105,7 +105,7 @@ Tabs have `data-view` attribute: `"exec"`, `"developer"`, or `"both"`
 |--------|------|-----------|
 | `runtime-overview` | Autoscaling | exec |
 | `runtime-hpa` | Autoscaling | developer |
-| `runtime-availability` | Availability | both |
+| `runtime-availability` | Availability | exec |
 | `runtime-karpenter` | Karpenter | both |
 
 ---
@@ -162,7 +162,7 @@ renderRoadmapTimeline()             // Leader/Cloud roadmap timeline
 renderAICTA()                       // AI-generated calls to action
 renderAutoscalingExecView()         // Autoscaling metrics cards
 renderAutoscalingDeveloperView()    // Autoscaling services table
-renderRuntimeAvailability()         // Availability (both views)
+renderRuntimeAvailability()         // Availability (Exec View only - scrollable)
 renderKarpenter()                   // Karpenter (routes to Exec/Dev view)
 ```
 
@@ -521,27 +521,146 @@ The Overview tab (`executive-overview`) has three main sections:
 
 ## 🛡️ Availability Tab Details
 
+### View Mode
+- **Exec View Only** - No Developer View
+- Tab has `data-view="exec"` attribute
+- Single scrollable Exec View with all sections
+
 ### Data Sources (all in `assets/data/availability/`)
-| File | Purpose |
-|------|---------|
-| `executive_summary.csv` | Exec view metrics |
-| `monthly_incident_agg.csv` | Incident trend chart |
-| `investment_themes.csv` | Top investment themes |
-| `service_incident_metrics.csv` | MTTD/MTTR by service |
+**⚠️ IMPORTANT: Uses 5 specific CSV files with spaces in filenames**
+
+| File | Purpose | Columns |
+|------|---------|---------|
+| `Csv Tables - summary_metrics.csv` | KPI cards (SEV0/SEV1, MTTD, MTTR, Coverage) | metric, value, unit, trend, trend_direction, target |
+| `Csv Tables - monthly_trend.csv` | Incident trend chart (Sev0/Sev1 over time) | month, month_abbr, sev0_count, sev1_count |
+| `Csv Tables - services.csv` | MTTD/MTTR by service + Coverage matrix | id, name, mttd_min, mttr_min, incidents, alerts, tracer, dep_map, fit_test, safe_change_pct, deployments_30d, change_incidents |
+| `Csv Tables - themes.csv` | Investment themes with actions | rank, title, percentage, description, action, severity |
+| `Csv Tables - sla_data.csv` | SLA Goals table (Met vs Missed) | service, total_incidents, ttd_met, ttd_missed, ttr_met, ttr_missed, sla_pct |
 
 ### Loading Strategy
-All files loaded in parallel using `loadAllAvailabilityData()`:
+All 5 files loaded in parallel using `loadAllAvailabilityData()`:
 ```javascript
-const [exec, monthly, themes, metrics] = await Promise.all([
-    fetch('executive_summary.csv'),
-    fetch('monthly_incident_agg.csv'),
-    fetch('investment_themes.csv'),
-    fetch('service_incident_metrics.csv')
-]);
+// Files are URL-encoded to handle spaces in filenames
+const files = [
+    'Csv Tables - summary_metrics.csv',
+    'Csv Tables - monthly_trend.csv',
+    'Csv Tables - services.csv',
+    'Csv Tables - themes.csv',
+    'Csv Tables - sla_data.csv'
+];
+const encodedPaths = files.map(file => {
+    const fullPath = basePath + file;
+    return fullPath.split('/').map(part => encodeURIComponent(part)).join('/');
+});
 ```
 
-### Caching
-Data is cached in `availabilityData` object with `allLoaded` flag.
+### Data Structure
+```javascript
+availabilityData = {
+    summaryMetrics: [],    // From summary_metrics.csv
+    monthlyTrend: [],      // From monthly_trend.csv
+    services: [],          // From services.csv
+    themes: [],            // From themes.csv
+    slaData: [],           // From sla_data.csv
+    loaded: false
+};
+```
+
+### Availability Exec View Structure (Scrollable)
+The Exec View is a single scrollable page with the following sections:
+
+1. **Header**
+   - Title: "HRP Availability Dashboard"
+   - Last updated timestamp
+
+2. **KPI Cards Grid** (5 cards)
+   - SEV0 INCIDENTS (12MO) - from `summary_metrics.csv` (sev0_incidents_12mo)
+   - SEV1 INCIDENTS (12MO) - from `summary_metrics.csv` (sev1_incidents_12mo)
+   - AVG MTTD - from `summary_metrics.csv` (avg_mttd)
+   - AVG MTTR - from `summary_metrics.csv` (avg_mttr)
+   - OBSERVABILITY COVERAGE - from `summary_metrics.csv` (observability_coverage)
+
+3. **Incident Trend Chart**
+   - Title: "Sev0/Sev1 Incident Trend"
+   - Data: `monthly_trend.csv` (sev0_count, sev1_count by month)
+   - Chart controls: Monthly, Weekly, Cumulative, Interactive (buttons)
+   - SVG line chart with area fills
+
+4. **MTTD and MTTR by Service** (Side by side)
+   - **MTTD by Service**: Horizontal bar chart from `services.csv` (mttd_min)
+   - **MTTR by Service**: Horizontal bar chart from `services.csv` (mttr_min)
+   - Shows SLA targets and status indicators (✓/⚠/✗)
+
+5. **Observability Coverage Matrix**
+   - Table from `services.csv` (alerts, tracer, dep_map columns)
+   - Shows coverage status: Complete (✓), Partial (⚠), Missing (✗)
+   - Badge shows: "X/Y Services" (complete coverage count)
+
+6. **Top Investment Themes**
+   - List from `themes.csv` (rank, title, percentage, description, action, severity)
+   - Color-coded by severity: critical (red), warning (orange), info (blue)
+   - Shows percentage impact and action items
+
+7. **SLA Goals Table**
+   - Table from `sla_data.csv`
+   - Columns: SERVICE, TOTAL, TTD MET, TTD MISSED, TTR MET, TTR MISSED, OVERALL SLA %
+   - Color-coded SLA percentages (green ≥95%, orange ≥80%, red <80%)
+   - Includes TOTAL row with aggregated values
+
+### Data Mapping
+
+**KPI Cards:**
+- Find metrics by `metric` field in `summary_metrics.csv`
+- `sev0_incidents_12mo` → SEV0 card
+- `sev1_incidents_12mo` → SEV1 card
+- `avg_mttd` → MTTD card (with target from CSV)
+- `avg_mttr` → MTTR card (with target from CSV)
+- `observability_coverage` → Coverage card
+
+**Trend Chart:**
+- Sort `monthly_trend.csv` by `month` field
+- Use `month_abbr` for X-axis labels
+- Use `sev0_count` and `sev1_count` for data points
+
+**Service Metrics:**
+- `services.csv` → `name` or `id` for service name
+- `mttd_min` → MTTD chart values
+- `mttr_min` → MTTR chart values
+- `alerts`, `tracer`, `dep_map` → Coverage matrix (case-insensitive: Complete/Partial/Missing)
+
+**Investment Themes:**
+- `themes.csv` → Sorted by `rank`
+- `title`, `description`, `action`, `percentage` → Theme display
+- `severity` → Color coding (critical/warning/info)
+
+**SLA Table:**
+- `sla_data.csv` → Direct mapping to table columns
+- Calculate totals row by summing all services
+- Calculate overall SLA %: `(ttd_met + ttr_met) / (total_incidents * 2) * 100`
+
+### Key Functions
+```javascript
+loadAllAvailabilityData()              // Load all 5 CSV files in parallel
+renderRuntimeAvailability()           // Main render function (Exec View only)
+renderAvailabilityExecView(container) // Render comprehensive scrollable Exec View
+renderAvailabilityIncidentTrend()    // Render trend chart from monthly_trend.csv
+renderAvailabilityServiceMetrics()    // Render MTTD/MTTR bar charts from services.csv
+renderAvailabilityCoverageMatrix()   // Render coverage table from services.csv
+renderAvailabilityInvestmentThemes() // Render themes list from themes.csv
+renderAvailabilitySLATable()         // Render SLA table from sla_data.csv
+```
+
+### Status Indicators
+- **Complete**: Green (✓) - `#22c55e`
+- **Partial**: Orange (⚠) - `#f59e0b`
+- **Missing**: Red (✗) - `#ef4444`
+
+### Important Notes
+- **No Developer View** - Only Exec View exists
+- **Scrollable Design** - All sections in single scrollable container
+- **URL Encoding** - Filenames with spaces must be URL-encoded when fetching
+- **Case-Insensitive Matching** - Status values (Complete/Partial/Missing) matched case-insensitively
+- **No Filters** - Availability tab does not show filters (filters hidden for Exec View tabs)
 
 ---
 

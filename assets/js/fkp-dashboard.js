@@ -1611,24 +1611,36 @@ function refreshCurrentTab() {
             renderKarpenter();
             break;
         case 'availability-exec':
-            renderAvailabilityExecView();
+            // Legacy tab - redirect to runtime-availability
+            console.warn('⚠️ availability-exec is deprecated, using runtime-availability');
+            switchTab('runtime-availability');
             break;
         case 'availability-baseline':
-            renderAvailabilityBaseline();
+            // Legacy tab - redirect to runtime-availability
+            console.warn('⚠️ availability-baseline is deprecated, using runtime-availability');
+            switchTab('runtime-availability');
             break;
     }
 }
 
 /**
- * Render Runtime Availability tab - shows Exec or Baseline based on view mode
+ * Render Runtime Availability tab - scrollable Exec View only
  */
 async function renderRuntimeAvailability() {
     console.log('🛡️ Rendering Runtime Availability tab...');
     
     const container = document.getElementById('runtime-availability-content');
-    if (!container) return;
+    if (!container) {
+        console.error('❌ Container runtime-availability-content not found');
+        return;
+    }
     
-    const viewMode = fkpDashboard.state.currentViewMode || 'exec';
+    // Check if tab pane is visible
+    const tabPane = container.closest('.tab-pane');
+    console.log('🛡️ Tab pane:', tabPane);
+    console.log('🛡️ Tab pane has active class:', tabPane?.classList.contains('active'));
+    console.log('🛡️ Tab pane display style:', tabPane?.style.display);
+    console.log('🛡️ Tab pane computed display:', tabPane ? window.getComputedStyle(tabPane).display : 'N/A');
     
     // Show loading state first
     container.innerHTML = `
@@ -1638,118 +1650,637 @@ async function renderRuntimeAvailability() {
         </div>
     `;
     
-    // Load all data in parallel first
-    await loadAllAvailabilityData();
+    console.log('🛡️ Loading state set, container.innerHTML length:', container.innerHTML.length);
     
-    if (viewMode === 'exec') {
-        // Render Exec View directly into the container
-        await renderAvailabilityExecViewInContainer(container);
-    } else {
-        // Render Baseline directly into the container
-        await renderAvailabilityBaselineInContainer(container);
+    try {
+        // Load data
+        await loadAllAvailabilityData();
+        
+        // Check if data loaded successfully - check summaryMetrics as primary source
+        if (!availabilityData.loaded || !availabilityData.summaryMetrics || availabilityData.summaryMetrics.length === 0) {
+            console.warn('⚠️ No summary metrics available');
+            container.innerHTML = `
+                <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                    <div class="placeholder-icon">⚠️</div>
+                    <h3>No Data Available</h3>
+                    <p>Could not load availability data. Please check the console for errors.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        console.log('🛡️ Data loaded, calling renderAvailabilityExecView...');
+        console.log('🛡️ Summary metrics:', availabilityData.summaryMetrics.length);
+        console.log('🛡️ Container element:', container);
+        
+        // Render comprehensive scrollable Exec View
+        renderAvailabilityExecView(container);
+        
+        console.log('✅ Runtime Availability rendered');
+        console.log('🛡️ Container innerHTML length after render:', container.innerHTML.length);
+    } catch (error) {
+        console.error('❌ Error rendering Availability:', error);
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">❌</div>
+                <h3>Error Loading Availability</h3>
+                <p>${error.message || 'An error occurred while loading availability data'}</p>
+            </div>
+        `;
     }
-    
-    console.log('✅ Runtime Availability rendered for view mode:', viewMode);
 }
 
 /**
- * Render Availability Exec View directly into a container
+ * Render comprehensive Availability Exec View (scrollable)
  */
-async function renderAvailabilityExecViewInContainer(container) {
-    const metrics = availabilityData.executiveSummary;
+function renderAvailabilityExecView(container) {
+    console.log('🛡️ renderAvailabilityExecView called, container:', container);
     
-    if (!metrics || metrics.length === 0) {
+    if (!container) {
+        console.error('❌ Container is null or undefined');
+        return;
+    }
+    
+    // Check if data is loaded
+    if (!availabilityData.loaded || !availabilityData.summaryMetrics || availabilityData.summaryMetrics.length === 0) {
+        console.warn('⚠️ No availability data available');
         container.innerHTML = `
             <div class="placeholder-message" style="text-align: center; padding: 40px;">
                 <div class="placeholder-icon">⚠️</div>
                 <h3>No Data Available</h3>
-                <p>Could not load availability metrics</p>
+                <p>Could not load availability data</p>
             </div>
         `;
         return;
     }
     
-    // Build the complete exec view HTML
-    let metricsHtml = '';
-    metrics.forEach(metric => {
-        const icon = getAvailabilityMetricIcon(metric.metric_name);
-        const cardClass = getAvailabilityCardClass(metric);
-        const trendClass = getAvailabilityTrendClass(metric);
-        const formattedValue = formatAvailabilityMetricValue(metric);
-        
-        let trendHtml = '';
-        if (metric.trend_value) {
-            const arrow = metric.trend_direction === 'up' ? '↑' : metric.trend_direction === 'down' ? '↓' : '';
-            trendHtml = `<div class="metric-card-trend ${trendClass}">${arrow} ${metric.trend_value}</div>`;
-        } else if (metric.target) {
-            trendHtml = `<div class="metric-card-target">Target: <strong>${metric.target}</strong></div>`;
-        }
-        
-        metricsHtml += `
-            <div class="availability-metric-card ${cardClass}">
-                <div class="metric-card-header">
-                    <span class="metric-card-icon">${icon}</span>
-                    <span class="metric-card-label">${metric.metric_name}</span>
-                </div>
-                <div class="metric-card-value">${formattedValue}</div>
-                ${trendHtml}
-            </div>
-        `;
-    });
+    try {
+    // Get data from loaded CSVs
+    const summaryMetrics = availabilityData.summaryMetrics;
+    const monthlyTrend = availabilityData.monthlyTrend || [];
+    const services = availabilityData.services || [];
+    const themes = availabilityData.themes || [];
+    const slaData = availabilityData.slaData || [];
     
-    // Get current timestamp
+    // Find metrics from summary_metrics.csv
+    const findMetric = (metricName) => summaryMetrics.find(m => m.metric === metricName);
+    
+    const sev0Metric = findMetric('sev0_incidents_12mo');
+    const sev1Metric = findMetric('sev1_incidents_12mo');
+    const mttdMetric = findMetric('avg_mttd');
+    const mttrMetric = findMetric('avg_mttr');
+    const coverageMetric = findMetric('observability_coverage');
+    
+    const sev0Incidents = sev0Metric ? parseInt(sev0Metric.value || 0) : 0;
+    const sev1Incidents = sev1Metric ? parseInt(sev1Metric.value || 0) : 0;
+    const avgMttd = mttdMetric ? parseFloat(mttdMetric.value || 0) : 0;
+    const avgMttr = mttrMetric ? parseFloat(mttrMetric.value || 0) : 0;
+    const observabilityCoverage = coverageMetric ? parseInt(coverageMetric.value || 0) : 0;
+    
+    const sev0Trend = sev0Metric ? sev0Metric.trend : '';
+    const sev1Trend = sev1Metric ? sev1Metric.trend : '';
+    
+    // Map services data for MTTD/MTTR charts
+    const serviceMetrics = services.map(row => ({
+        service: row.name || row.id,
+        mttd: parseFloat(row.mttd_min || 0),
+        mttr: parseFloat(row.mttr_min || 0),
+        alerts: row.alerts || 'Missing',
+        tracer: row.tracer || 'Missing',
+        dep_map: row.dep_map || 'Missing',
+        ...row
+    }));
+    
+    // Count services with complete coverage
+    const completeCount = services.filter(s => 
+        s.alerts === 'Complete' && s.tracer === 'Complete' && s.dep_map === 'Complete'
+    ).length;
+    
+    // Build HTML
     const now = new Date();
     const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
+    const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     
+    console.log('🛡️ About to set innerHTML, variables:', {
+        sev0Incidents,
+        sev1Incidents,
+        avgMttd,
+        avgMttr,
+        observabilityCoverage,
+        completeCount,
+        servicesLength: services.length
+    });
+    
+    try {
     container.innerHTML = `
-        <div class="tab-header">
-            <div class="availability-header">
-                <div class="availability-title-section">
-                    <div class="availability-icon">🛡️</div>
-                    <div>
-                        <h2>Executive View — HRP Availability at a Glance</h2>
-                        <p>Sev0/Sev1 Focus • E360 Post-Processed Data</p>
-                    </div>
-                </div>
-                <div class="availability-header-badges">
-                    <span class="badge badge-success">
-                        <span class="badge-dot"></span>
-                        Powered by E360 Post-Processed Data
-                    </span>
-                    <span class="last-updated">Last Updated: ${formattedDate} @ ${formattedTime}</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="availability-content">
-            <div class="availability-metrics-grid">${metricsHtml}</div>
-            
-            <div class="availability-section-row">
-                <div class="incident-trend-container">
-                    <div class="chart-header">
-                        <h3>Sev0/Sev1 Incident Trend</h3>
-                        <div class="chart-legend">
-                            <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Sev0</span>
-                            <span class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> Sev1</span>
+        <div class="availability-exec-scrollable">
+            <!-- Header -->
+            <div class="tab-header">
+                <div class="availability-header">
+                    <div class="availability-title-section">
+                        <div class="availability-icon">🛡️</div>
+                        <div>
+                            <h2>HRP Availability Dashboard</h2>
+                            <p>Comprehensive platform availability metrics and SLA performance</p>
                         </div>
                     </div>
-                    <div id="runtime-incident-trend-chart"></div>
+                    <div class="availability-header-badges">
+                        <span class="last-updated">Last Updated: ${formattedDate} @ ${formattedTime}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- KPI Cards -->
+            <div class="availability-kpi-grid">
+                <div class="availability-kpi-card warning">
+                    <div class="kpi-header">
+                        <span class="kpi-icon">⚠️</span>
+                        <span class="kpi-label">SEV0 INCIDENTS (12MO)</span>
+                    </div>
+                    <div class="kpi-value">${sev0Incidents}</div>
+                    <div class="kpi-trend trend-up">↑ ${sev0Trend || 'vs prior 12mo'}</div>
                 </div>
                 
-                <div class="investment-themes-container">
-                    <div class="themes-header">
-                        <h3>Top 3 Investment Themes</h3>
+                <div class="availability-kpi-card warning">
+                    <div class="kpi-header">
+                        <span class="kpi-icon">⚠️</span>
+                        <span class="kpi-label">SEV1 INCIDENTS (12MO)</span>
                     </div>
-                    <div id="runtime-investment-themes-list"></div>
+                    <div class="kpi-value">${sev1Incidents}</div>
+                    <div class="kpi-trend trend-up">↑ ${sev1Trend || 'vs prior period'}</div>
                 </div>
+                
+                <div class="availability-kpi-card success">
+                    <div class="kpi-header">
+                        <span class="kpi-icon">⏱️</span>
+                        <span class="kpi-label">AVG MTTD</span>
+                    </div>
+                    <div class="kpi-value">${avgMttd} min</div>
+                    <div class="kpi-target">${mttdMetric && mttdMetric.target ? `Target: <strong>&lt;${mttdMetric.target} min</strong>` : 'Target: <strong>&lt;10 min</strong>'}</div>
+                </div>
+                
+                <div class="availability-kpi-card success">
+                    <div class="kpi-header">
+                        <span class="kpi-icon">🔧</span>
+                        <span class="kpi-label">AVG MTTR</span>
+                    </div>
+                    <div class="kpi-value">${avgMttr} min</div>
+                    <div class="kpi-target">${mttrMetric && mttrMetric.target ? `Target: <strong>&lt;${mttrMetric.target} min</strong>` : 'Target: <strong>&lt;60 min</strong>'}</div>
+                </div>
+                
+                <div class="availability-kpi-card success">
+                    <div class="kpi-header">
+                        <span class="kpi-icon">📊</span>
+                        <span class="kpi-label">OBSERVABILITY COVERAGE</span>
+                    </div>
+                    <div class="kpi-value">${observabilityCoverage}%</div>
+                    <div class="kpi-target">Alerts + Tracing</div>
+                </div>
+            </div>
+            
+            <!-- Incident Trend Chart -->
+            <div class="availability-section-card">
+                <div class="section-header">
+                    <h3>Sev0/Sev1 Incident Trend</h3>
+                    <div class="chart-controls">
+                        <button class="chart-btn active">Monthly</button>
+                        <button class="chart-btn">Weekly</button>
+                        <button class="chart-btn">Cumulative</button>
+                        <button class="chart-btn">Interactive</button>
+                    </div>
+                </div>
+                <div id="availability-incident-trend-chart" class="availability-chart-container"></div>
+            </div>
+            
+            <!-- MTTD and MTTR by Service -->
+            <div class="availability-metrics-row">
+                <div class="availability-section-card">
+                    <div class="section-header">
+                        <h3>⏱️ MTTD by Service</h3>
+                        <p class="section-subtitle">Mean Time to Detect</p>
+                    </div>
+                    <div class="sla-baseline">SLA Target: &lt;10 min (Sev1) • &lt;5 min (Sev0)</div>
+                    <div id="availability-mttd-chart" class="service-metrics-chart"></div>
+                </div>
+                
+                <div class="availability-section-card">
+                    <div class="section-header">
+                        <h3>🔧 MTTR by Service</h3>
+                        <p class="section-subtitle">Mean Time to Recover</p>
+                    </div>
+                    <div class="sla-baseline">SLA Target: &lt;60 min (Sev1) • &lt;30 min (Sev0)</div>
+                    <div id="availability-mttr-chart" class="service-metrics-chart"></div>
+                </div>
+            </div>
+            
+            <!-- Observability Coverage and Investment Themes -->
+            <div class="availability-metrics-row">
+                <div class="availability-section-card">
+                    <div class="section-header">
+                        <h3>🛡️ Observability Coverage Matrix</h3>
+                        <span class="coverage-badge">${completeCount}/${services.length} Services</span>
+                    </div>
+                    <div id="availability-coverage-matrix" class="coverage-matrix"></div>
+                </div>
+                
+                <div class="availability-section-card">
+                    <div class="section-header">
+                        <h3>💡 Top Investment Themes</h3>
+                        <span class="action-badge">Action Required</span>
+                    </div>
+                    <div id="availability-investment-themes" class="investment-themes-list"></div>
+                </div>
+            </div>
+            
+            <!-- SLA Goals Table -->
+            <div class="availability-section-card">
+                <div class="section-header">
+                    <h3>📊 SLA Goals - Met vs Missed</h3>
+                    <button class="btn-secondary">By Service</button>
+                </div>
+                <div id="availability-sla-table" class="sla-table-container"></div>
             </div>
         </div>
     `;
     
-    // Render charts into the new containers
-    renderIncidentTrendChartInContainer(document.getElementById('runtime-incident-trend-chart'));
-    renderInvestmentThemesInContainer(document.getElementById('runtime-investment-themes-list'));
+    console.log('🛡️ HTML set to container, length:', container.innerHTML.length);
+    } catch (templateError) {
+        console.error('❌ Error in template string:', templateError);
+        console.error('❌ Template error details:', templateError.message, templateError.stack);
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">❌</div>
+                <h3>Error Rendering Template</h3>
+                <p>${templateError.message || 'Template rendering error'}</p>
+            </div>
+        `;
+        return;
+    }
+    console.log('🛡️ Container element:', container);
+    console.log('🛡️ Container parent:', container.parentElement);
+    console.log('🛡️ Container parent display:', container.parentElement?.style.display);
+    console.log('🛡️ Container parent classList:', container.parentElement?.classList);
+    
+    // Verify HTML was actually set
+    if (container.innerHTML.length < 100) {
+        console.error('❌ HTML not set properly! Length:', container.innerHTML.length);
+        console.error('❌ Container innerHTML:', container.innerHTML);
+    }
+    
+    // Render charts and tables
+    console.log('🛡️ Rendering charts and tables...');
+    try {
+        renderAvailabilityIncidentTrend();
+        console.log('✅ Incident trend rendered');
+    } catch (e) {
+        console.error('❌ Error rendering incident trend:', e);
+    }
+    
+    try {
+        renderAvailabilityServiceMetrics(serviceMetrics);
+        console.log('✅ Service metrics rendered');
+    } catch (e) {
+        console.error('❌ Error rendering service metrics:', e);
+    }
+    
+    try {
+        renderAvailabilityCoverageMatrix();
+        console.log('✅ Coverage matrix rendered');
+    } catch (e) {
+        console.error('❌ Error rendering coverage matrix:', e);
+    }
+    
+    try {
+        renderAvailabilityInvestmentThemes();
+        console.log('✅ Investment themes rendered');
+    } catch (e) {
+        console.error('❌ Error rendering investment themes:', e);
+    }
+    
+    try {
+        renderAvailabilitySLATable(slaData);
+        console.log('✅ SLA table rendered');
+    } catch (e) {
+        console.error('❌ Error rendering SLA table:', e);
+    }
+    
+    console.log('✅ Availability Exec View rendered');
+    } catch (error) {
+        console.error('❌ Error in renderAvailabilityExecView:', error);
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">❌</div>
+                <h3>Error Rendering Availability</h3>
+                <p>${error.message || 'An error occurred while rendering'}</p>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Render Incident Trend Chart
+ */
+function renderAvailabilityIncidentTrend() {
+    const container = document.getElementById('availability-incident-trend-chart');
+    if (!container) return;
+    
+    // Use real data from monthly_trend.csv
+    const monthlyTrend = availabilityData.monthlyTrend || [];
+    
+    if (monthlyTrend.length === 0) {
+        container.innerHTML = '<div class="placeholder-message"><p>No trend data available</p></div>';
+        return;
+    }
+    
+    // Sort by month and extract data
+    const sortedTrend = [...monthlyTrend].sort((a, b) => a.month.localeCompare(b.month));
+    const months = sortedTrend.map(m => m.month_abbr || m.month);
+    const sev0Data = sortedTrend.map(m => parseInt(m.sev0_count || 0));
+    const sev1Data = sortedTrend.map(m => parseInt(m.sev1_count || 0));
+    
+    const maxValue = Math.max(...sev0Data, ...sev1Data, 12);
+    const chartHeight = 200;
+    const chartWidth = 600;
+    const padding = 40;
+    const plotWidth = chartWidth - padding * 2;
+    const plotHeight = chartHeight - padding * 2;
+    
+    const points0 = sev0Data.map((val, i) => ({
+        x: padding + (i / (months.length - 1)) * plotWidth,
+        y: padding + plotHeight - (val / maxValue) * plotHeight
+    }));
+    
+    const points1 = sev1Data.map((val, i) => ({
+        x: padding + (i / (months.length - 1)) * plotWidth,
+        y: padding + plotHeight - (val / maxValue) * plotHeight
+    }));
+    
+    const path0 = 'M ' + points0.map(p => `${p.x},${p.y}`).join(' L ');
+    const path1 = 'M ' + points1.map(p => `${p.x},${p.y}`).join(' L ');
+    
+    container.innerHTML = `
+        <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%;">
+            <defs>
+                <linearGradient id="sev0Gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0.05" />
+                </linearGradient>
+                <linearGradient id="sev1Gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0.05" />
+                </linearGradient>
+            </defs>
+            <!-- Grid lines -->
+            ${[0, 4, 8, 12].map(val => {
+                const y = padding + plotHeight - (val / maxValue) * plotHeight;
+                return `<line x1="${padding}" y1="${y}" x2="${padding + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`;
+            }).join('')}
+            <!-- Area fills -->
+            <path d="${path0} L ${padding + plotWidth},${padding + plotHeight} L ${padding},${padding + plotHeight} Z" fill="url(#sev0Gradient)" />
+            <path d="${path1} L ${padding + plotWidth},${padding + plotHeight} L ${padding},${padding + plotHeight} Z" fill="url(#sev1Gradient)" />
+            <!-- Lines -->
+            <path d="${path1}" fill="none" stroke="#f59e0b" stroke-width="2.5" />
+            <path d="${path0}" fill="none" stroke="#ef4444" stroke-width="2.5" />
+            <!-- Data points -->
+            ${points0.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#ef4444" />`).join('')}
+            ${points1.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#f59e0b" />`).join('')}
+            <!-- X-axis labels -->
+            ${months.map((m, i) => {
+                const x = padding + (i / (months.length - 1)) * plotWidth;
+                return `<text x="${x}" y="${chartHeight - 10}" text-anchor="middle" font-size="10" fill="#64748b">${m}</text>`;
+            }).join('')}
+            <!-- Y-axis labels -->
+            ${[0, 4, 8, 12].map(val => {
+                const y = padding + plotHeight - (val / maxValue) * plotHeight;
+                return `<text x="5" y="${y + 4}" font-size="10" fill="#64748b">${val}</text>`;
+            }).join('')}
+        </svg>
+    `;
+}
+
+/**
+ * Render MTTD and MTTR by Service charts
+ */
+function renderAvailabilityServiceMetrics(serviceMetrics) {
+    const mttdContainer = document.getElementById('availability-mttd-chart');
+    const mttrContainer = document.getElementById('availability-mttr-chart');
+    
+    if (mttdContainer) {
+        renderServiceMetricChart(mttdContainer, serviceMetrics, 'mttd', 10, 5);
+    }
+    
+    if (mttrContainer) {
+        renderServiceMetricChart(mttrContainer, serviceMetrics, 'mttr', 60, 30);
+    }
+}
+
+function renderServiceMetricChart(container, serviceMetrics, metricType, sev1Target, sev0Target) {
+    const maxValue = Math.max(...serviceMetrics.map(s => s[metricType]), sev1Target) * 1.2;
+    const target = sev1Target;
+    
+    const bars = serviceMetrics.map((service, i) => {
+        const value = service[metricType];
+        const percentage = (value / maxValue) * 100;
+        const isGood = value <= target;
+        const isWarning = value > target && value <= target * 1.2;
+        const color = isGood ? '#22c55e' : isWarning ? '#f59e0b' : '#ef4444';
+        const icon = isGood ? '✓' : isWarning ? '⚠' : '✗';
+        const iconColor = isGood ? '#16a34a' : isWarning ? '#d97706' : '#dc2626';
+        
+        return `
+            <div class="service-metric-bar-row">
+                <div class="service-metric-label">${service.service}</div>
+                <div class="service-metric-bar-container">
+                    <div class="service-metric-bar" style="width: ${percentage}%; background: ${color};">
+                        <span class="service-metric-value">${value.toFixed(1)} min</span>
+                    </div>
+                </div>
+                <div class="service-metric-icon" style="color: ${iconColor};">${icon}</div>
+            </div>
+        `;
+    }).join('');
+    
+    container.innerHTML = bars;
+}
+
+/**
+ * Render Observability Coverage Matrix
+ */
+function renderAvailabilityCoverageMatrix() {
+    const container = document.getElementById('availability-coverage-matrix');
+    if (!container) return;
+    
+    // Use real data from services.csv
+    const services = availabilityData.services || [];
+    
+    if (services.length === 0) {
+        container.innerHTML = '<div class="placeholder-message"><p>No coverage data available</p></div>';
+        return;
+    }
+    
+    // Map services data to coverage matrix format
+    const coverageData = services.map(row => ({
+        service: row.name || row.id,
+        alerts: (row.alerts || 'Missing'),
+        tracer: (row.tracer || 'Missing'),
+        dependency: (row.dep_map || 'Missing')
+    }));
+    
+    const getIcon = (status) => {
+        const statusLower = (status || '').toLowerCase();
+        if (statusLower === 'complete') return '✓';
+        if (statusLower === 'partial') return '⚠';
+        return '✗';
+    };
+    
+    const getColor = (status) => {
+        const statusLower = (status || '').toLowerCase();
+        if (statusLower === 'complete') return '#22c55e';
+        if (statusLower === 'partial') return '#f59e0b';
+        return '#ef4444';
+    };
+    
+    const rows = coverageData.map(row => `
+        <tr>
+            <td><strong>${row.service}</strong></td>
+            <td style="text-align: center; color: ${getColor(row.alerts)}; font-size: 1.2rem;">${getIcon(row.alerts)}</td>
+            <td style="text-align: center; color: ${getColor(row.tracer)}; font-size: 1.2rem;">${getIcon(row.tracer)}</td>
+            <td style="text-align: center; color: ${getColor(row.dependency)}; font-size: 1.2rem;">${getIcon(row.dependency)}</td>
+        </tr>
+    `).join('');
+    
+    container.innerHTML = `
+        <table class="coverage-table">
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>DEFAULT ALERTS</th>
+                    <th>TRACER</th>
+                    <th>DEPENDENCY MAP</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows}
+            </tbody>
+        </table>
+        <div class="coverage-legend">
+            <span>✓ = Complete</span>
+            <span>⚠ = Partial</span>
+            <span>✗ = Missing</span>
+        </div>
+    `;
+}
+
+/**
+ * Render Investment Themes
+ */
+function renderAvailabilityInvestmentThemes() {
+    const container = document.getElementById('availability-investment-themes');
+    if (!container) return;
+    
+    // Use real data from themes.csv
+    const themes = availabilityData.themes || [];
+    
+    if (themes.length === 0) {
+        container.innerHTML = '<div class="placeholder-message"><p>No investment themes available</p></div>';
+        return;
+    }
+    
+    // Map themes data
+    const mappedThemes = themes.map(theme => {
+        const severity = (theme.severity || 'info').toLowerCase();
+        let impactColor = 'blue';
+        if (severity === 'critical') impactColor = 'red';
+        else if (severity === 'warning') impactColor = 'orange';
+        
+        return {
+            title: theme.title || '',
+            description: theme.description || '',
+            action: `→ ${theme.action || ''}`,
+            impact: theme.percentage || '',
+            impactColor: impactColor
+        };
+    });
+    
+    const themesHtml = mappedThemes.map(theme => `
+        <div class="investment-theme-item">
+            <div class="theme-header">
+                <h4>${theme.title}</h4>
+                <span class="theme-impact ${theme.impactColor}">${theme.impact}</span>
+            </div>
+            <p class="theme-description">${theme.description}</p>
+            <p class="theme-action">${theme.action}</p>
+        </div>
+    `).join('');
+    
+    container.innerHTML = themesHtml;
+}
+
+/**
+ * Render SLA Goals Table
+ */
+function renderAvailabilitySLATable(slaData) {
+    const container = document.getElementById('availability-sla-table');
+    if (!container) return;
+    
+    // Calculate totals
+    const totals = {
+        total: slaData.reduce((sum, r) => sum + parseInt(r.total_incidents || 0), 0),
+        ttd_met: slaData.reduce((sum, r) => sum + parseInt(r.ttd_met || 0), 0),
+        ttd_missed: slaData.reduce((sum, r) => sum + parseInt(r.ttd_missed || 0), 0),
+        ttr_met: slaData.reduce((sum, r) => sum + parseInt(r.ttr_met || 0), 0),
+        ttr_missed: slaData.reduce((sum, r) => sum + parseInt(r.ttr_missed || 0), 0)
+    };
+    totals.sla_pct = totals.total > 0 ? Math.round(((totals.ttd_met + totals.ttr_met) / (totals.total * 2)) * 100) : 0;
+    
+    const getSLAColor = (pct) => {
+        if (pct >= 95) return '#22c55e';
+        if (pct >= 80) return '#f59e0b';
+        return '#ef4444';
+    };
+    
+    const rows = slaData.map(row => {
+        const slaPct = parseInt(row.sla_pct || 0);
+        return `
+            <tr>
+                <td><strong>${row.service}</strong></td>
+                <td>${row.total_incidents}</td>
+                <td style="color: #22c55e;">${row.ttd_met}</td>
+                <td style="color: #ef4444;">${row.ttd_missed}</td>
+                <td style="color: #22c55e;">${row.ttr_met}</td>
+                <td style="color: #ef4444;">${row.ttr_missed}</td>
+                <td><span class="sla-badge" style="background: ${getSLAColor(slaPct)};">${slaPct}%</span></td>
+            </tr>
+        `;
+    }).join('');
+    
+    container.innerHTML = `
+        <table class="sla-goals-table">
+            <thead>
+                <tr>
+                    <th>SERVICE</th>
+                    <th>TOTAL</th>
+                    <th>TTD MET</th>
+                    <th>TTD MISSED</th>
+                    <th>TTR MET</th>
+                    <th>TTR MISSED</th>
+                    <th>OVERALL SLA %</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows}
+                <tr class="total-row">
+                    <td><strong>TOTAL</strong></td>
+                    <td><strong>${totals.total}</strong></td>
+                    <td style="color: #22c55e;"><strong>${totals.ttd_met}</strong></td>
+                    <td style="color: #ef4444;"><strong>${totals.ttd_missed}</strong></td>
+                    <td style="color: #22c55e;"><strong>${totals.ttr_met}</strong></td>
+                    <td style="color: #ef4444;"><strong>${totals.ttr_missed}</strong></td>
+                    <td><span class="sla-badge" style="background: ${getSLAColor(totals.sla_pct)};">${totals.sla_pct}%</span></td>
+                </tr>
+            </tbody>
+        </table>
+    `;
 }
 
 /**
@@ -6415,7 +6946,8 @@ function renderKarpenterDeveloperView(container) {
             improvementLabel: improvementLabel,
             improvementClass: improvementClass,
             efficiencyIndicator: efficiencyIndicator,
-            efficiencyClass: efficiencyClass
+            efficiencyClass: efficiencyClass,
+            environment: environment
         });
     });
     
@@ -6439,8 +6971,9 @@ function renderKarpenterDeveloperView(container) {
         
         const tiles = clusters.map(cluster => {
             const environment = cluster.environment || 'prod';
+            const monthName = cluster.monthName || cluster.month || 'Unknown';
             return `
-                <div class="karpenter-heatmap-tile ${cluster.efficiencyClass}" onclick="showClusterNodes('${cluster.cluster}', '${cluster.month}', '${cluster.avgCpu}', '${environment}')" style="cursor: pointer;">
+                <div class="karpenter-heatmap-tile ${cluster.efficiencyClass}" onclick="showClusterNodes('${cluster.cluster}', '${cluster.month}', '${cluster.avgCpu}', '${environment}', '${monthName}')" style="cursor: pointer;">
                     <div class="heatmap-cluster-name">${cluster.cluster}</div>
                     <div class="heatmap-efficiency-pct">${cluster.avgCpu.toFixed(1)}%</div>
                 </div>
@@ -6524,45 +7057,73 @@ function renderKarpenterDeveloperView(container) {
 /**
  * Show cluster nodes in a modal window
  */
-async function showClusterNodes(clusterName, month, clusterAvgCpu, environment) {
-    console.log(`📊 Showing nodes for cluster: ${clusterName}, month: ${month}, avgCpu: ${clusterAvgCpu}`);
+async function showClusterNodes(clusterName, monthCode, clusterAvgCpu, environment, monthName = null) {
+    // Convert clusterAvgCpu to number (it may be passed as string from onclick)
+    const avgCpu = parseFloat(clusterAvgCpu) || 0;
+    console.log(`📊 Showing nodes for cluster: ${clusterName}, month: ${monthCode}, avgCpu: ${avgCpu}`);
     
-    // Filter to October only
-    const targetMonth = 'October'; // October
-    const monthName = 'October';
+    // Get latest month from data if month not provided or use provided month name
+    let displayMonthName = monthName;
+    if (!displayMonthName) {
+        // Convert month code (e.g., "2025-10") to month name
+        if (monthCode && monthCode.includes('-')) {
+            const [year, monthNum] = monthCode.split('-');
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                              "July", "August", "September", "October", "November", "December"];
+            const monthIndex = parseInt(monthNum) - 1;
+            if (monthIndex >= 0 && monthIndex < 12) {
+                displayMonthName = `${monthNames[monthIndex]} ${year}`;
+            } else {
+                displayMonthName = monthCode;
+            }
+        } else {
+            // If no month code, get latest month from data
+            if (karpenterData && karpenterData.mainSummary && karpenterData.mainSummary.length > 0) {
+                const allMonths = [...new Set(karpenterData.mainSummary.map(r => r.month))].sort();
+                const latestMonthCode = allMonths[allMonths.length - 1];
+                if (latestMonthCode && latestMonthCode.includes('-')) {
+                    const [year, monthNum] = latestMonthCode.split('-');
+                    const monthNames = ["January", "February", "March", "April", "May", "June",
+                                      "July", "August", "September", "October", "November", "December"];
+                    const monthIndex = parseInt(monthNum) - 1;
+                    if (monthIndex >= 0 && monthIndex < 12) {
+                        displayMonthName = `${monthNames[monthIndex]} ${year}`;
+                    }
+                }
+            }
+            if (!displayMonthName) {
+                displayMonthName = 'Latest Month';
+            }
+        }
+    }
     
-    // Fetch node data from API
+    // Fetch node data from API (optional - will fallback to simulated nodes)
     const apiUrl = window.BINPACKING_API_URL || 'http://localhost:3001';
     let nodes = [];
     
     try {
-        // Fetch cluster data filtered by cluster and month
-        const response = await fetch(`${apiUrl}/api/binpacking/data?cluster=${encodeURIComponent(clusterName)}&month=${targetMonth}`, {
+        // Try to fetch from API if available
+        const response = await fetch(`${apiUrl}/api/binpacking/data?cluster=${encodeURIComponent(clusterName)}&month=${encodeURIComponent(displayMonthName)}`, {
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' }
         });
         
         if (response.ok) {
             const data = await response.json();
-            // Extract node-level data from records
-            // Since CSV data is aggregated, we'll create simulated nodes based on cluster avg CPU
             if (data.clusters && data.clusters.length > 0) {
                 const clusterData = data.clusters[0];
-                // Create simulated nodes (in real scenario, this would come from device-level data)
-                const nodeCount = clusterData.nodeCount || 10; // Default to 10 nodes if not available
-                nodes = generateSimulatedNodes(clusterName, clusterAvgCpu, nodeCount, environment);
+                const nodeCount = clusterData.nodeCount || 10;
+                nodes = generateSimulatedNodes(clusterName, avgCpu, nodeCount, environment);
             } else {
-                // Fallback: create simulated nodes based on cluster avg CPU
-                nodes = generateSimulatedNodes(clusterName, clusterAvgCpu, 10, environment);
+                nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
             }
         } else {
-            // Fallback: create simulated nodes
-            nodes = generateSimulatedNodes(clusterName, clusterAvgCpu, 10, environment);
+            nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
         }
     } catch (error) {
-        console.error('Error fetching node data:', error);
-        // Fallback: create simulated nodes
-        nodes = generateSimulatedNodes(clusterName, clusterAvgCpu, 10, environment);
+        console.log('📊 API not available, using simulated nodes:', error.message);
+        // Fallback: create simulated nodes (this is expected behavior)
+        nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
     }
     
     // Sort nodes by avg CPU descending
@@ -6579,7 +7140,7 @@ async function showClusterNodes(clusterName, month, clusterAvgCpu, environment) 
                     <button onclick="closeClusterNodesModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; padding: 0.5rem;">&times;</button>
                 </div>
                 <div style="margin-bottom: 1rem; color: #64748b; font-size: 0.875rem;">
-                    Month: <strong>${monthName}</strong> | Cluster Avg CPU: <strong>${clusterAvgCpu.toFixed(1)}%</strong>
+                    Month: <strong>${displayMonthName}</strong> | Cluster Avg CPU: <strong>${avgCpu.toFixed(1)}%</strong>
                 </div>
                 <div style="margin-bottom: 1rem;">
                     <span style="display: inline-block; padding: 0.25rem 0.75rem; background: #dcfce7; color: #166534; border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem;">
@@ -6732,28 +7293,41 @@ function renderKarpenterTrendChart(data) {
     const chartMax = 100;
     const chartRange = 100;
     
-    const width = 100;
-    const height = 60;
-    const pointSpacing = width / (data.length - 1 || 1);
+    // Use larger viewBox for better rendering quality
+    const width = 800;
+    const height = 400;
+    const paddingLeft = 40;
+    const paddingRight = 40;
+    const paddingTop = 30;
+    const paddingBottom = 50;
+    const plotWidth = width - paddingLeft - paddingRight;
+    const plotHeight = height - paddingTop - paddingBottom;
+    
+    const pointSpacing = data.length > 1 ? plotWidth / (data.length - 1) : plotWidth;
     
     // Generate SVG path for line
     const points = data.map((d, i) => {
-        const x = i * pointSpacing;
-        const y = height - ((d.value - chartMin) / chartRange * height);
-        return `${x},${y}`;
+        const x = paddingLeft + (i * pointSpacing);
+        const y = paddingTop + (plotHeight - ((d.value - chartMin) / chartRange * plotHeight));
+        return { x, y, value: d.value, month: d.month };
     });
     
-    const linePath = `M ${points.join(' L ')}`;
-    const areaPath = `M 0,${height} L ${points.join(' L ')} L ${width},${height} Z`;
+    const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
+    const areaPath = `M ${paddingLeft},${paddingTop + plotHeight} L ${points.map(p => `${p.x},${p.y}`).join(' L ')} L ${paddingLeft + plotWidth},${paddingTop + plotHeight} Z`;
     
     // Generate Y-axis labels (0% to 100% in 20% steps)
     const yLabels = ['100%', '80%', '60%', '40%', '20%', '0%'];
+    const yPositions = [];
+    for (let i = 0; i < 6; i++) {
+        const y = paddingTop + (plotHeight / 5) * (5 - i);
+        yPositions.push(y);
+    }
     
     // Generate horizontal grid lines (at 20%, 40%, 60%, 80%)
     const gridLines = [];
     for (let i = 1; i < 5; i++) {
-        const y = (height / 5) * i;
-        gridLines.push(`<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="#e2e8f0" stroke-width="0.2" />`);
+        const y = paddingTop + (plotHeight / 5) * i;
+        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`);
     }
     
     return `
@@ -6762,10 +7336,10 @@ function renderKarpenterTrendChart(data) {
                 ${yLabels.map(label => `<span class="y-label">${label}</span>`).join('')}
             </div>
             <div class="chart-main">
-                <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" class="trend-svg">
+                <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
                     <defs>
                         <linearGradient id="karpenterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3" />
+                            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.25" />
                             <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.05" />
                         </linearGradient>
                     </defs>
@@ -6774,22 +7348,17 @@ function renderKarpenterTrendChart(data) {
                     <!-- Area fill -->
                     <path d="${areaPath}" fill="url(#karpenterGradient)" />
                     <!-- Line -->
-                    <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="0.5" />
+                    <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
                     <!-- Data points -->
-                    ${data.map((d, i) => {
-                        const x = i * pointSpacing;
-                        const y = height - ((d.value - chartMin) / chartRange * height);
-                        return `<circle cx="${x}" cy="${y}" r="1.2" fill="#22c55e" />`;
-                    }).join('')}
+                    ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#22c55e" stroke="#ffffff" stroke-width="2" />`).join('')}
                     <!-- Value labels above points -->
-                    ${data.map((d, i) => {
-                        const x = i * pointSpacing;
-                        const y = height - ((d.value - chartMin) / chartRange * height);
-                        return `<text x="${x}" y="${Math.max(y - 3, 3)}" text-anchor="middle" font-size="2.5" fill="#374151" font-weight="600">${d.value.toFixed(1)}%</text>`;
-                    }).join('')}
+                    ${points.map(p => `<text x="${p.x}" y="${Math.max(p.y - 12, paddingTop + 15)}" text-anchor="middle" font-size="12" fill="#374151" font-weight="600">${p.value.toFixed(1)}%</text>`).join('')}
                 </svg>
                 <div class="chart-x-axis">
-                    ${data.map(d => `<span class="x-label">${d.month}</span>`).join('')}
+                    ${data.map((d, i) => {
+                        const xPercent = data.length > 1 ? (i / (data.length - 1)) * 100 : 50;
+                        return `<span class="x-label" style="left: ${xPercent}%; transform: translateX(-50%);">${d.month}</span>`;
+                    }).join('')}
                 </div>
             </div>
         </div>
@@ -6839,12 +7408,12 @@ function renderKarpenterBarChart(data) {
 
 // Store availability data globally - cache all data types
 let availabilityData = {
-    executiveSummary: [],
-    monthlyIncidents: [],
-    investmentThemes: [],
-    serviceMetrics: [],
-    loaded: false,
-    allLoaded: false
+    summaryMetrics: [],    // summary_metrics.csv - KPI cards
+    monthlyTrend: [],      // monthly_trend.csv - Incident trend chart
+    services: [],          // services.csv - MTTD/MTTR by service, coverage matrix
+    themes: [],            // themes.csv - Investment themes
+    slaData: [],           // sla_data.csv - SLA goals table
+    loaded: false
 };
 
 /**
@@ -6873,54 +7442,67 @@ async function loadAllAvailabilityData() {
         return;
     }
     
-    console.log('🛡️ Loading all availability data in parallel...');
+    console.log('🛡️ Loading all availability data files...');
     const startTime = performance.now();
     
     try {
-        // Fetch all CSV files in parallel
-        const [execRes, monthlyRes, themesRes, metricsRes] = await Promise.all([
-            fetch('assets/data/availability/executive_summary.csv').catch(() => null),
-            fetch('assets/data/availability/monthly_incident_agg.csv').catch(() => null),
-            fetch('assets/data/availability/investment_themes.csv').catch(() => null),
-            fetch('assets/data/availability/service_incident_metrics.csv').catch(() => null)
-        ]);
+        // Load all 5 CSV files in parallel - URL encode filenames to handle spaces
+        const basePath = 'assets/data/availability/';
+        const files = [
+            'Csv Tables - summary_metrics.csv',
+            'Csv Tables - monthly_trend.csv',
+            'Csv Tables - services.csv',
+            'Csv Tables - themes.csv',
+            'Csv Tables - sla_data.csv'
+        ];
         
-        // Parse all responses in parallel
-        const [execText, monthlyText, themesText, metricsText] = await Promise.all([
-            execRes?.ok ? execRes.text() : '',
-            monthlyRes?.ok ? monthlyRes.text() : '',
-            themesRes?.ok ? themesRes.text() : '',
-            metricsRes?.ok ? metricsRes.text() : ''
-        ]);
+        const encodedPaths = files.map(file => {
+            const fullPath = basePath + file;
+            return fullPath.split('/').map(part => encodeURIComponent(part)).join('/');
+        });
         
-        // Parse CSV data
-        availabilityData.executiveSummary = execText ? parseCSVData(execText) : [];
-        availabilityData.monthlyIncidents = monthlyText ? parseCSVData(monthlyText) : [];
-        availabilityData.investmentThemes = themesText ? parseCSVData(themesText) : [];
-        availabilityData.serviceMetrics = metricsText ? parseCSVData(metricsText) : [];
+        const responses = await Promise.all(
+            encodedPaths.map(path => fetch(path))
+        );
+        
+        // Check all responses
+        responses.forEach((response, index) => {
+            if (!response.ok) {
+                throw new Error(`Failed to fetch ${files[index]}: ${response.status} ${response.statusText}`);
+            }
+        });
+        
+        // Parse all CSV files
+        const csvTexts = await Promise.all(
+            responses.map(response => response.text())
+        );
+        
+        // Parse each CSV
+        availabilityData.summaryMetrics = parseCSV(csvTexts[0], true);
+        availabilityData.monthlyTrend = parseCSV(csvTexts[1], true);
+        availabilityData.services = parseCSV(csvTexts[2], true);
+        availabilityData.themes = parseCSV(csvTexts[3], true);
+        availabilityData.slaData = parseCSV(csvTexts[4], true);
         
         availabilityData.loaded = true;
-        availabilityData.allLoaded = true;
         
         const elapsed = (performance.now() - startTime).toFixed(0);
         console.log(`✅ All availability data loaded in ${elapsed}ms`);
-        console.log(`   - Executive Summary: ${availabilityData.executiveSummary.length} metrics`);
-        console.log(`   - Monthly Incidents: ${availabilityData.monthlyIncidents.length} rows`);
-        console.log(`   - Investment Themes: ${availabilityData.investmentThemes.length} themes`);
-        console.log(`   - Service Metrics: ${availabilityData.serviceMetrics.length} services`);
+        console.log(`   - Summary Metrics: ${availabilityData.summaryMetrics.length} metrics`);
+        console.log(`   - Monthly Trend: ${availabilityData.monthlyTrend.length} months`);
+        console.log(`   - Services: ${availabilityData.services.length} services`);
+        console.log(`   - Themes: ${availabilityData.themes.length} themes`);
+        console.log(`   - SLA Data: ${availabilityData.slaData.length} services`);
         
     } catch (error) {
         console.error('❌ Error loading availability data:', error);
-        // Set fallback data
-        availabilityData.executiveSummary = [
-            { metric_name: 'Sev0/Sev1 Trend (12mo)', metric_value: '47', metric_unit: 'incidents', trend_direction: 'up', trend_value: '12% vs prior period', target: '', status: 'WARNING' },
-            { metric_name: 'Avg MTTD (Platform)', metric_value: '7.2', metric_unit: 'min', trend_direction: 'down', trend_value: '18% improved', target: '', status: 'OK' },
-            { metric_name: 'Avg MTTR (Platform)', metric_value: '38', metric_unit: 'min', trend_direction: 'down', trend_value: '8% improved', target: '', status: 'OK' },
-            { metric_name: 'Monitoring Detection %', metric_value: '78', metric_unit: '%', trend_direction: 'neutral', trend_value: '', target: '>90%', status: 'WARNING' },
-            { metric_name: 'Prevention Coverage', metric_value: '4/6', metric_unit: 'services', trend_direction: 'neutral', trend_value: '', target: '6/6', status: 'OK' },
-        ];
+        console.error('❌ Error details:', error.message, error.stack);
+        availabilityData.summaryMetrics = [];
+        availabilityData.monthlyTrend = [];
+        availabilityData.services = [];
+        availabilityData.themes = [];
+        availabilityData.slaData = [];
         availabilityData.loaded = true;
-        availabilityData.allLoaded = true;
     }
 }
 
@@ -7020,111 +7602,10 @@ function formatAvailabilityMetricValue(metric) {
 }
 
 /**
- * Render Availability Exec View
+ * Legacy renderAvailabilityExecView - REMOVED
+ * This function has been replaced by the new renderAvailabilityExecView(container) function
+ * that uses all 5 CSV files and renders the comprehensive scrollable Exec View.
  */
-async function renderAvailabilityExecView() {
-    console.log('🛡️ Rendering Availability Exec View...');
-    
-    const container = document.getElementById('availability-metrics-grid');
-    if (!container) {
-        console.error('❌ Availability metrics container not found');
-        return;
-    }
-    
-    // Show loading state
-    container.innerHTML = `
-        <div class="placeholder-message" style="grid-column: 1 / -1;">
-            <div class="placeholder-icon">🛡️</div>
-            <h3>Loading Availability Metrics...</h3>
-            <p>Fetching executive summary data from E360</p>
-        </div>
-    `;
-    
-    // Load ALL data in parallel if not already loaded
-    await loadAllAvailabilityData();
-    
-    const metrics = availabilityData.executiveSummary;
-    
-    if (!metrics || metrics.length === 0) {
-        container.innerHTML = `
-            <div class="placeholder-message" style="grid-column: 1 / -1;">
-                <div class="placeholder-icon">⚠️</div>
-                <h3>No Data Available</h3>
-                <p>Could not load availability metrics</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Build metrics cards HTML
-    let html = '';
-    
-    metrics.forEach(metric => {
-        const icon = getAvailabilityMetricIcon(metric.metric_name);
-        const cardClass = getAvailabilityCardClass(metric);
-        const trendClass = getAvailabilityTrendClass(metric);
-        const formattedValue = formatAvailabilityMetricValue(metric);
-        
-        // Build trend/target display
-        let trendHtml = '';
-        if (metric.trend_value) {
-            const arrow = metric.trend_direction === 'up' ? '↑' : metric.trend_direction === 'down' ? '↓' : '';
-            trendHtml = `
-                <div class="metric-card-trend ${trendClass}">
-                    ${arrow} ${metric.trend_value}
-                </div>
-            `;
-        } else if (metric.target) {
-            trendHtml = `
-                <div class="metric-card-target">
-                    Target: <strong>${metric.target}</strong>
-                </div>
-            `;
-        } else if (metric.metric_unit === 'services') {
-            trendHtml = `
-                <div class="metric-card-target">
-                    Alerts + Tracing
-                </div>
-            `;
-        }
-        
-        html += `
-            <div class="availability-metric-card ${cardClass}">
-                <div class="metric-card-header">
-                    <span class="metric-card-icon">${icon}</span>
-                    <span class="metric-card-label">${metric.metric_name}</span>
-                </div>
-                <div class="metric-card-value">${formattedValue}</div>
-                ${trendHtml}
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-    
-    // Update last updated timestamp
-    const lastUpdatedEl = document.getElementById('availability-last-updated');
-    if (lastUpdatedEl) {
-        const now = new Date();
-        const formattedDate = now.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        const formattedTime = now.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            timeZoneName: 'short'
-        });
-        lastUpdatedEl.textContent = `Last Updated: ${formattedDate} @ ${formattedTime}`;
-    }
-    
-    console.log('✅ Availability Exec View rendered with', metrics.length, 'metrics');
-    
-    // Also render the incident trend chart and investment themes
-    renderIncidentTrendChart();
-    renderInvestmentThemes();
-}
 
 /**
  * Export availability summary (placeholder for future)
@@ -7138,21 +7619,24 @@ function exportAvailabilitySummary() {
  * Get monthly incident data from cache (no fetch needed)
  */
 function getMonthlyIncidentData() {
-    return availabilityData.monthlyIncidents || [];
+    // Legacy function - returns empty array as we now use single CSV
+    return [];
 }
 
 /**
  * Get investment themes from cache (no fetch needed)
  */
 function getInvestmentThemes() {
-    return availabilityData.investmentThemes || [];
+    // Legacy function - returns empty array as we now use single CSV
+    return [];
 }
 
 /**
  * Get service incident metrics from cache (no fetch needed)
  */
 function getServiceIncidentMetrics() {
-    return availabilityData.serviceMetrics || [];
+    // Legacy function - returns empty array as we now use single CSV
+    return [];
 }
 
 /**

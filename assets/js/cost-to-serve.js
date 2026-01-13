@@ -160,9 +160,16 @@ function renderCumulativeInitiativesChart(data, months) {
         borderWidth: 1
     }));
     
+    // Calculate progressive predicted savings line (linear progression from 0 to 6.26M over 12 months)
+    const totalPredictedSavings = 6.26;
+    const predictedSavingsData = monthLabels.map((_, index) => {
+        // Linear progression: start at 0, end at 6.26M
+        return (totalPredictedSavings / (monthLabels.length - 1)) * index;
+    });
+    
     datasets.push({
         label: 'Predicted Savings',
-        data: monthLabels.map(() => 6.26),
+        data: predictedSavingsData,
         type: 'line',
         borderColor: '#9ca3af',
         borderWidth: 2,

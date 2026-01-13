@@ -4202,6 +4202,8 @@ body.developer-view .sidebar-subtitle::after {
     font-weight: 700;
     color: #2563eb;
     line-height: 1;
+    white-space: nowrap;
+    min-width: fit-content;
 }
 
 .tier-hpa-percentage.clickable-number {
@@ -4252,6 +4254,8 @@ body.developer-view .sidebar-subtitle::after {
     font-size: 0.75rem;
     font-weight: 600;
     color: #1e293b;
+    white-space: nowrap;
+    min-width: fit-content;
 }
 
 .tier-hpa-progress-bar {

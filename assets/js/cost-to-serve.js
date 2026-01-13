@@ -734,13 +734,13 @@ function renderInitiativeTrendsChart() {
         return monthNames[m] || m;
     });
     
-    // Color palette for initiatives
+    // Color palette for initiatives - each initiative gets different colors, but Original and Actuals use similar shades
     const colors = [
-        { original: '#9ca3af', actuals: '#059669' }, // Grey for original, green for actuals
-        { original: '#6b7280', actuals: '#10b981' },
-        { original: '#4b5563', actuals: '#34d399' },
-        { original: '#374151', actuals: '#6ee7b7' },
-        { original: '#1f2937', actuals: '#a7f3d0' }
+        { original: '#93c5fd', actuals: '#2563eb' }, // Blue shades - Improve Bin Packing
+        { original: '#86efac', actuals: '#16a34a' }, // Green shades - Rightsizing HCP AddOns
+        { original: '#fbbf24', actuals: '#d97706' }, // Orange shades - OVP EBS Prune
+        { original: '#c084fc', actuals: '#9333ea' }, // Purple shades - Mesh / IG Platform
+        { original: '#f472b6', actuals: '#db2777' }  // Pink shades - Decom of Redundant Compute
     ];
     
     // Build datasets - one line for Original Estimate and one for Actuals per initiative
@@ -806,11 +806,7 @@ function renderInitiativeTrendsChart() {
                         padding: 12,
                         usePointStyle: true,
                         pointStyle: 'circle',
-                        boxWidth: 10,
-                        filter: function(legendItem) {
-                            // Only show Actuals in legend to reduce clutter
-                            return legendItem.text.includes('Actuals');
-                        }
+                        boxWidth: 10
                     }
                 },
                 tooltip: {

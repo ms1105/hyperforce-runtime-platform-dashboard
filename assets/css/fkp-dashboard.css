@@ -4204,6 +4204,15 @@ body.developer-view .sidebar-subtitle::after {
     line-height: 1;
 }
 
+.tier-hpa-percentage.clickable-number {
+    transition: color 0.2s ease;
+}
+
+.tier-hpa-percentage.clickable-number:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
 .tier-hpa-link-icon {
     color: #2563eb;
     font-size: 1rem;

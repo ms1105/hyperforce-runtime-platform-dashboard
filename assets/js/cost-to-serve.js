@@ -35,7 +35,7 @@ function renderExecView(data) {
     
     // Executive Summary Cards
     let execHTML = `
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
             <div class="exec-metric-card" style="border-left-color: #3182ce;">
                 <div class="exec-metric-label">Total Predicted Savings</div>
                 <div class="exec-metric-value" style="color: #3182ce;">${formatCurrency(totalForecast)}</div>

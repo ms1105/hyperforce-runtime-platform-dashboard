@@ -7769,9 +7769,6 @@ function renderKarpenterTrendChart(data) {
                 ${yLabels.map(label => `<span class="y-label">${label}</span>`).join('')}
             </div>
             <div class="chart-main">
-                <div class="chart-x-axis">
-                    ${points.map(p => `<span class="x-label" style="left: ${((p.x / width) * 100).toFixed(2)}%;">${p.month}</span>`).join('')}
-                </div>
                 <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
                     <defs>
                         <linearGradient id="karpenterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -7814,6 +7811,9 @@ function renderKarpenterTrendChart(data) {
                         </g>
                     `).join('')}
                 </svg>
+                <div class="chart-x-axis">
+                    ${points.map(p => `<span class="x-label" style="left: ${((p.x / width) * 100).toFixed(2)}%;">${p.month}</span>`).join('')}
+                </div>
             </div>
         </div>
     `;

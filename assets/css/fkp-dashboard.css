@@ -4874,9 +4874,9 @@ body.developer-view .sidebar-subtitle::after {
     align-items: center;
     position: relative;
     width: 100%;
-    padding-top: 0.5rem;
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
     border-top: 3px solid #94a3b8;
-    margin-top: auto;
 }
 
 .karpenter-trend-chart .chart-x-axis .x-label {
@@ -4996,7 +4996,8 @@ body.developer-view .sidebar-subtitle::after {
     border-bottom: 3px solid #94a3b8;
     position: relative;
     margin-left: 0;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
+    min-height: 350px;
 }
 
 .bar-chart-x-axis {
@@ -5031,7 +5032,7 @@ body.developer-view .sidebar-subtitle::after {
 
 .bar-wrapper {
     width: 80px;
-    height: 100%;
+    height: 350px;
     display: flex;
     align-items: flex-end;
     position: relative;

@@ -13,9 +13,10 @@ const PORT = process.env.PORT || 8080;
 // Enable CORS
 app.use(cors());
 
-// Proxy API requests to bin-packing server (port 3001)
+// Proxy API requests to bin-packing server (port 8080)
 // IMPORTANT: API routes must be BEFORE static file serving
-const binPackingServerUrl = process.env.BINPACKING_SERVER_URL || 'http://localhost:3001';
+// Note: Bin-packing server should run on port 8080, so API calls go to http://localhost:8080/api/*
+const binPackingServerUrl = process.env.BINPACKING_SERVER_URL || 'http://localhost:8080';
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

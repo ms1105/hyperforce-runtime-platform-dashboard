@@ -4959,10 +4959,10 @@ body.developer-view .sidebar-subtitle::after {
     height: 450px;
     min-height: 450px;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-radius: 12px;
-    border: 2px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
 }
 
 .bar-chart-container {
@@ -4990,12 +4990,33 @@ body.developer-view .sidebar-subtitle::after {
     display: flex;
     justify-content: space-around;
     align-items: flex-end;
-    background: #ffffff;
+    background: transparent;
     border-radius: 0;
     padding: 0;
     border-bottom: 3px solid #94a3b8;
     position: relative;
     margin-left: 0;
+    margin-bottom: 0.5rem;
+}
+
+.bar-chart-x-axis {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    padding-top: 0.5rem;
+    border-top: 3px solid #94a3b8;
+    margin-top: 0;
+    position: relative;
+}
+
+.bar-chart-x-axis .bar-x-label {
+    flex: 1;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 700;
+    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 .bar-item {
@@ -5005,6 +5026,7 @@ body.developer-view .sidebar-subtitle::after {
     flex: 1;
     max-width: 120px;
     padding: 0 0.5rem;
+    justify-content: flex-end;
 }
 
 .bar-wrapper {
@@ -5042,11 +5064,7 @@ body.developer-view .sidebar-subtitle::after {
 }
 
 .bar-label {
-    font-size: 0.95rem;
-    color: #64748b;
-    margin-top: 0.75rem;
-    text-transform: capitalize;
-    font-weight: 600;
+    display: none; /* Labels moved to X-axis below */
 }
 
 /* Karpenter Developer View */

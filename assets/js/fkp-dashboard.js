@@ -7137,10 +7137,23 @@ function renderKarpenterExecView(container) {
         envAgg[key].sum += parseFloat(r.avg_cpu || 0);
         envAgg[key].count += 1;
     });
-    const envBarData = Object.values(envAgg).map(e => ({
-        name: e.name,
-        value: e.count > 0 ? (e.sum / e.count) : 0
-    }));
+    // Define environment order: Dev, Test, Perf, Stage, Esvc, Prod
+    const envOrder = ['Dev', 'Test', 'Perf', 'Stage', 'Esvc', 'Prod'];
+    const envOrderMap = {};
+    envOrder.forEach((env, idx) => {
+        envOrderMap[env.toLowerCase()] = idx;
+    });
+    
+    const envBarData = Object.values(envAgg)
+        .map(e => ({
+            name: e.name,
+            value: e.count > 0 ? (e.sum / e.count) : 0
+        }))
+        .sort((a, b) => {
+            const aOrder = envOrderMap[a.name.toLowerCase()] !== undefined ? envOrderMap[a.name.toLowerCase()] : 999;
+            const bOrder = envOrderMap[b.name.toLowerCase()] !== undefined ? envOrderMap[b.name.toLowerCase()] : 999;
+            return aOrder - bOrder;
+        });
     
     container.innerHTML = `
         <div class="karpenter-exec-content">
@@ -7876,6 +7889,16 @@ function renderKarpenterBarChart(data) {
     ];
     const solidColors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'];
     
+    // Map environment names to colors
+    const envColorMap = {
+        'Dev': { gradient: 'linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%)', solid: '#8b5cf6' },
+        'Test': { gradient: 'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)', solid: '#ef4444' },
+        'Perf': { gradient: 'linear-gradient(180deg, #06b6d4 0%, #0891b2 100%)', solid: '#06b6d4' },
+        'Stage': { gradient: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)', solid: '#f59e0b' },
+        'Esvc': { gradient: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)', solid: '#22c55e' },
+        'Prod': { gradient: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)', solid: '#22c55e' }
+    };
+    
     return `
         <div class="bar-chart-container">
             <div class="bar-chart-y-axis">
@@ -7887,16 +7910,21 @@ function renderKarpenterBarChart(data) {
                 <span>0%</span>
             </div>
             <div class="bar-chart-main">
-                ${data.map((d, i) => `
-                    <div class="bar-item">
-                        <div class="bar-wrapper">
-                            <div class="bar" style="height: ${d.value}%; background: ${colors[i % colors.length]}; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.1);">
-                                <span class="bar-value-label" style="color: ${solidColors[i % solidColors.length]};">${d.value.toFixed(1)}%</span>
+                ${data.map((d, i) => {
+                    const envColor = envColorMap[d.name] || { gradient: colors[i % colors.length], solid: solidColors[i % solidColors.length] };
+                    return `
+                        <div class="bar-item">
+                            <div class="bar-wrapper">
+                                <div class="bar" style="height: ${d.value}%; background: ${envColor.gradient}; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.1);">
+                                    <span class="bar-value-label" style="color: ${envColor.solid};">${d.value.toFixed(1)}%</span>
+                                </div>
                             </div>
                         </div>
-                        <span class="bar-label">${d.name}</span>
-                    </div>
-                `).join('')}
+                    `;
+                }).join('')}
+            </div>
+            <div class="bar-chart-x-axis">
+                ${data.map(d => `<span class="bar-x-label">${d.name}</span>`).join('')}
             </div>
         </div>
     `;

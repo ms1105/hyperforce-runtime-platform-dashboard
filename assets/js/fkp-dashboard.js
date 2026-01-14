@@ -7861,7 +7861,9 @@ function renderKarpenterTrendChart(data) {
                     circle.setAttribute('fill', '#10b981');
                 }
                 if (valueLabel) {
-                    valueLabel.setAttribute('opacity', '1');
+                    valueLabel.setAttribute('font-size', '14');
+                    valueLabel.setAttribute('fill', '#10b981');
+                    valueLabel.setAttribute('font-weight', '700');
                 }
             });
             
@@ -7871,7 +7873,9 @@ function renderKarpenterTrendChart(data) {
                     circle.setAttribute('fill', '#22c55e');
                 }
                 if (valueLabel) {
-                    valueLabel.setAttribute('opacity', '0');
+                    valueLabel.setAttribute('font-size', '12');
+                    valueLabel.setAttribute('fill', '#1e293b');
+                    valueLabel.setAttribute('font-weight', '700');
                 }
             });
         });

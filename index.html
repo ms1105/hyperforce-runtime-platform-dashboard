@@ -58,12 +58,14 @@
         </div>
     </div>
     <script>
-        // Show warning banner if accessed via GitLab Pages (not localhost)
+        // Show warning banner ONLY if accessed via GitLab Pages (NOT on localhost:8080)
         (function() {
-            const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
-            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const hostname = window.location.hostname;
+            const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+            const isGitLabPages = (hostname.includes('git.soma.salesforce.com') || hostname.includes('pages')) && !isLocalhost;
             
-            if (isGitLabPages && !isLocalhost) {
+            // Only show banner on GitLab Pages, never on localhost
+            if (isGitLabPages) {
                 const warningBanner = document.getElementById('gitlab-pages-warning');
                 if (warningBanner) {
                     warningBanner.style.display = 'block';

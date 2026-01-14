@@ -7628,7 +7628,7 @@ async function showClusterNodes(clusterName, monthCode, clusterAvgCpu, environme
                         ${nodes.map(node => {
                             const statusClass = node.efficiencyClass;
                             const statusLabel = node.efficiencyIndicator;
-                            // Use device name if available, otherwise fall back to node.name
+                            // Always use device ID from device column (e.g., ip-10-13-24-144.us-east-2.compute.internal)
                             const displayName = node.device || node.name || 'Unknown';
                             return `
                                 <tr style="border-bottom: 1px solid #e2e8f0;">

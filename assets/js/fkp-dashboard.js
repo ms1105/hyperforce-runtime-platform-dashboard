@@ -6884,15 +6884,20 @@ async function renderKarpenter() {
     
     await loadKarpenterData();
     
-    if (!karpenterData.loaded) {
-        console.log('⚠️ Karpenter data not loaded');
+    const container = document.getElementById('karpenter-content');
+    if (!container) {
+        console.error('❌ Karpenter content container not found');
         return;
     }
     
-    const container = document.getElementById('karpenter-content');
-    if (!container) return;
+    if (!karpenterData.loaded) {
+        console.log('⚠️ Karpenter data not loaded, showing loading message');
+        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #64748b;">Loading Karpenter data...</div>';
+        return;
+    }
     
     const viewMode = fkpDashboard.state.currentViewMode || 'exec';
+    console.log('📦 Rendering Karpenter in', viewMode, 'view mode');
     
     if (viewMode === 'exec') {
         renderKarpenterExecView(container);

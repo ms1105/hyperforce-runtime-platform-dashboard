@@ -6990,7 +6990,9 @@ function renderKarpenterExecView(container) {
         
         // Determine which month to use for average and trend calculation
         const selectedMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : null;
-        const targetMonth = selectedMonth || months[months.length - 1]; // Use selected month or latest
+        // For trend, always compare latest month (October) against April baseline
+        const latestMonth = months[months.length - 1]; // Latest month (should be October)
+        const targetMonth = selectedMonth || latestMonth; // Use selected month or latest for display
         
         // Overall average: if month selected, use that month; otherwise average all months
         let avg;
@@ -7003,38 +7005,18 @@ function renderKarpenterExecView(container) {
                 : '--';
         }
         
-        // Trend: compare target month with April baseline (or first available month)
+        // Trend: ALWAYS compare latest month (October) with April baseline
         let trend = 0;
-        if (monthlyAvgs[targetMonth] !== undefined) {
-            // Find April baseline (month key is '2025-04', month_name is 'April')
-            let baselineMonth = null;
-            let baselineAvg = null;
+        // Find April baseline (month key is '2025-04')
+        const aprilMonth = months.find(m => m === '2025-04');
+        
+        if (aprilMonth && monthlyAvgs[aprilMonth] !== undefined && monthlyAvgs[latestMonth] !== undefined) {
+            const baselineAvg = monthlyAvgs[aprilMonth];
+            const latestAvg = monthlyAvgs[latestMonth];
             
-            // First, try to find April by looking for month key '2025-04' or month_name 'April'
-            const aprilMonth = months.find(m => {
-                // Check if month key is April (2025-04) or if month_name is April
-                return m === '2025-04' || (data.length > 0 && data.find(r => r.month === m && r.month_name === 'April'));
-            });
-            
-            if (aprilMonth && monthlyAvgs[aprilMonth] !== undefined) {
-                baselineMonth = aprilMonth;
-                baselineAvg = monthlyAvgs[aprilMonth];
-            } else {
-                // If April not found, use first available month (sorted chronologically)
-                // Months are in format '2025-04', '2025-05', etc., so sorting works
-                const sortedMonths = months.sort();
-                if (sortedMonths.length > 0) {
-                    baselineMonth = sortedMonths[0];
-                    baselineAvg = monthlyAvgs[baselineMonth];
-                }
-            }
-            
-            if (baselineAvg !== null && baselineAvg > 0) {
-                // Calculate percentage change from baseline
-                const rawTrend = ((monthlyAvgs[targetMonth] - baselineAvg) / baselineAvg) * 100;
-                // Ensure trend shows improvement: if negative, show at least 0% (no regression)
-                // This ensures the metrics always show improvement from April baseline
-                trend = Math.max(rawTrend, 0);
+            if (baselineAvg > 0) {
+                // Calculate percentage change from April baseline to latest month
+                trend = ((latestAvg - baselineAvg) / baselineAvg) * 100;
             }
         }
         
@@ -7827,8 +7809,7 @@ function renderKarpenterTrendChart(data) {
                     </defs>
                     <!-- Grid lines -->
                     ${gridLines.join('')}
-                    <!-- Y-axis - from top to bottom with NO GAPS -->
-                    <line x1="${paddingLeft}" y1="${axisTop}" x2="${paddingLeft}" y2="${axisBottom}" stroke="#64748b" stroke-width="2" />
+                    <!-- Y-axis line removed - using CSS border-right on .chart-y-axis instead (like bar chart) -->
                     <!-- X-axis - connects to Y-axis at bottom, extends full width with NO GAPS -->
                     <line x1="${paddingLeft}" y1="${axisBottom}" x2="${paddingLeft + plotWidth}" y2="${axisBottom}" stroke="#64748b" stroke-width="2" />
                     <!-- Trend line -->

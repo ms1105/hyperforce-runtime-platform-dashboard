@@ -1220,9 +1220,24 @@
         // Render HCP CTS Data
         function renderHCPCTSData(data) {
             console.log('Rendering HCP CTS data:', data);
+            
+            // Hide all loading elements immediately
             const loadingDiv = document.getElementById('hcp-cts-loading');
+            const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
+            const loadingText = document.getElementById('hcp-cts-loading-text');
+            const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
+            
             if (loadingDiv) {
                 loadingDiv.style.display = 'none';
+            }
+            if (loadingSpinner) {
+                loadingSpinner.style.display = 'none';
+            }
+            if (loadingText) {
+                loadingText.style.display = 'none';
+            }
+            if (gitlabMessage) {
+                gitlabMessage.style.display = 'none';
             }
             
             if (!data || !data.initiatives) {
@@ -1234,8 +1249,16 @@
                 return;
             }
             
-            renderExecView(data);
-            renderCostToServeDevelopersView(data);
+            try {
+                renderExecView(data);
+                renderCostToServeDevelopersView(data);
+            } catch (error) {
+                console.error('Error rendering CTS views:', error);
+                if (loadingDiv) {
+                    loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${error.message}</p>`;
+                    loadingDiv.style.display = 'block';
+                }
+            }
         }
         
         // Global variable to track if data is loaded

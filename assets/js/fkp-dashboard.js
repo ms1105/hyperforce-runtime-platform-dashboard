@@ -7005,18 +7005,20 @@ function renderKarpenterExecView(container) {
                 : '--';
         }
         
-        // Trend: ALWAYS compare latest month (October) with April baseline
+        // Trend: Compare target month (selected month OR latest month) with April baseline from FILTERED data
         let trend = 0;
-        // Find April baseline (month key is '2025-04')
+        // Find April baseline (month key is '2025-04') in the filtered data
         const aprilMonth = months.find(m => m === '2025-04');
         
-        if (aprilMonth && monthlyAvgs[aprilMonth] !== undefined && monthlyAvgs[latestMonth] !== undefined) {
+        // Compare target month (selected or latest) vs April baseline
+        if (aprilMonth && monthlyAvgs[aprilMonth] !== undefined && monthlyAvgs[targetMonth] !== undefined) {
             const baselineAvg = monthlyAvgs[aprilMonth];
-            const latestAvg = monthlyAvgs[latestMonth];
+            const targetAvg = monthlyAvgs[targetMonth];
             
             if (baselineAvg > 0) {
-                // Calculate percentage change from April baseline to latest month
-                trend = ((latestAvg - baselineAvg) / baselineAvg) * 100;
+                // Calculate percentage change from April baseline to target month
+                // This uses filtered data, so trends update when filters change
+                trend = ((targetAvg - baselineAvg) / baselineAvg) * 100;
             }
         }
         

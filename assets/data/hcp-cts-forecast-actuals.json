@@ -1,0 +1,246 @@
+{
+  "initiatives": [
+    {
+      "name": "Rightsizing of HCP AddOns- Platform, Original Estimate ,On Track, $ -   , $ -   , $ -   , $ -   , $ 340",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Reduce Storage Waste-non-sam(gp2-gp3)- Tenant, Original Estimate ,Completed, $ -   , $ -   , $ -   , $ -   , $ 30",
+      "estimates": {
+        "original": {
+          "monthlyData": {
+            "Feb": 0,
+            "Mar": 0,
+            "Apr": 0,
+            "May": 0,
+            "June": 0,
+            "July": 0.09,
+            "Aug": 0.09,
+            "Sep": 0.09,
+            "Oct": 0.09,
+            "Nov": 0.09,
+            "Dec": 0.09,
+            "Jan": 0.09
+          },
+          "total": 0.1,
+          "type": "Original Estimate"
+        },
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Decom of Redundant Compute- Tenant, Original Estimate ,Completed, $ -   , $ -   , $ -   , $ -   , $ 30",
+      "estimates": {
+        "original": {
+          "monthlyData": {
+            "Feb": 0,
+            "Mar": 0,
+            "Apr": 0,
+            "May": 0,
+            "June": 0,
+            "July": 0.01,
+            "Aug": 0.081,
+            "Sep": 0.252,
+            "Oct": 0.215,
+            "Nov": 0.22,
+            "Dec": 0.306,
+            "Jan": 0.306
+          },
+          "total": 0.306,
+          "type": "Original Estimate"
+        },
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Targeted Overall Savings",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Cost Baseline = March 2025 Runrate",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Actual Cost",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Core Prod TTX (Millions) Baseline = March 2025 TTX",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "% Cost Reduction Achieved",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Unit Cost ($)",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Unit Cost Change Achieved",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Initiative",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Improve Bin Packing with Karpenter/M5 upgrades",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Rightsizing of HCP AddOns",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Reduce Storage Waste-non-sam(gp2-gp3)",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Mesh / IG",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Decom of Redundant Compute",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Right-sizing on supercell",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Overall Savings",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Decomm",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Total",
+      "estimates": {
+        "original": null,
+        "revised": null,
+        "actuals": null
+      }
+    },
+    {
+      "name": "Overall Summary",
+      "estimates": {
+        "original": null,
+        "revised": {
+          "monthlyData": {
+            "Feb": 0,
+            "Mar": 0,
+            "Apr": 0,
+            "May": 0,
+            "June": 0,
+            "July": 0,
+            "Aug": 0.09510107000000001,
+            "Sep": 0.18128553,
+            "Oct": 0.17153492,
+            "Nov": 0.17290326,
+            "Dec": 0.20035055,
+            "Jan": 0.20216223
+          },
+          "total": 0.20216223,
+          "type": "Revised Estimate"
+        },
+        "actuals": {
+          "monthlyData": {
+            "Feb": 0,
+            "Mar": 0,
+            "Apr": 0,
+            "May": 0,
+            "June": 0,
+            "July": 0,
+            "Aug": 0.09510107000000001,
+            "Sep": 0.18128553,
+            "Oct": 0.17153492,
+            "Nov": 0.17290326,
+            "Dec": 0.20035055,
+            "Jan": 0.20216223
+          },
+          "total": 0.20216223,
+          "type": "Actuals"
+        }
+      }
+    }
+  ],
+  "summary": {
+    "totalInitiatives": 1,
+    "totalOriginalSavings": 8170000,
+    "totalRevisedSavings": 6260000,
+    "totalActualSavings": 6250000
+  }
+}

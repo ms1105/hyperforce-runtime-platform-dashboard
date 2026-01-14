@@ -22,10 +22,16 @@
     <!-- Chart.js for Cost to Serve charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Configure API URL - use relative URLs for proxy at localhost:8080
-        // For GitLab Pages, this will be empty string (relative URLs)
+        // Configure API URL - use localhost:8080 for local development
+        // For GitLab Pages, this will be empty string (relative URLs won't work for static hosting)
         // For local development, server.js at port 8080 will proxy to port 3001
-        window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.BINPACKING_API_URL = window.BINPACKING_API_URL || 'http://localhost:8080';
+        } else {
+            // For GitLab Pages or other deployments, use relative URLs
+            // Note: This requires a proxy server or CORS-enabled API
+            window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
+        }
     </script>
 </head>
 <body>

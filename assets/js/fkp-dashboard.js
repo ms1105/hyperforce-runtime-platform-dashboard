@@ -7833,7 +7833,7 @@ function renderKarpenterTrendChart(data) {
                         <g class="trend-point" data-index="${idx}">
                             <circle cx="${p.x}" cy="${p.y}" r="6" fill="#22c55e" stroke="#ffffff" stroke-width="2" class="point-circle" />
                             <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="point-hit" style="cursor: pointer;" />
-                            <text x="${p.x}" y="${p.y - 18}" text-anchor="middle" font-size="11" fill="#1e293b" font-weight="600" class="point-value" opacity="0">${p.value.toFixed(1)}%</text>
+                            <text x="${p.x}" y="${p.y - 20}" text-anchor="middle" font-size="12" fill="#1e293b" font-weight="700" class="point-value" opacity="1">${p.value.toFixed(1)}%</text>
                         </g>
                     `).join('')}
                     <!-- X-axis labels -->

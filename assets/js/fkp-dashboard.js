@@ -7746,13 +7746,11 @@ function renderKarpenterTrendChart(data) {
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
     
-    // Calculate data range for Y-axis - ALWAYS start at 0% with 8% increments (matching screenshot)
+    // Calculate data range for Y-axis - ALWAYS 0% to 100% with 8% increments
     const values = data.map(d => d.value);
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
-    // Y-axis always starts at 0% and goes to nearest multiple of 8 above max value
+    // Y-axis always goes from 0% to 100%
     const chartMin = 0;
-    const chartMax = Math.ceil(maxValue / 8) * 8; // Round up to nearest multiple of 8
+    const chartMax = 100;
     const chartRange = chartMax - chartMin;
     
     // Define axis boundaries - NO GAPS, axes connect at exact corners
@@ -7778,22 +7776,19 @@ function renderKarpenterTrendChart(data) {
         ? `M ${points[0].x},${axisBottom} L ${points.map(p => `${p.x},${p.y}`).join(' L ')} L ${points[points.length - 1].x},${axisBottom} Z`
         : '';
     
-    // Y-axis labels - match screenshot: 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%
+    // Y-axis labels - ALWAYS 0% to 100% with 8% increments: 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%, 96%, 100%
     // Position labels with small offset from edges to avoid clipping
     const labelOffsetTop = 8;
     const labelOffsetBottom = 8;
-    // Calculate max value and create ticks in 8% increments up to nearest multiple of 8 above max
-    const maxDataValue = Math.max(...values);
-    const yAxisMax = Math.ceil(maxDataValue / 8) * 8; // Round up to nearest multiple of 8
-    const yTickCount = Math.floor(yAxisMax / 8) + 1; // Number of ticks (0, 8, 16, ... up to yAxisMax)
+    // Always show 0% to 100% in 8% increments (13 ticks total: 0, 8, 16, ..., 96, 100)
+    const yTickCount = 13; // 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%, 96%, 100%
     const yLabels = [];
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
-        // Values: 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%, etc.
-        // Start from top (highest value) and go down (lowest value)
-        const value = (yTickCount - 1 - i) * 8;
+        // Values: Start from top (100%) and go down to bottom (0%)
+        // i=0 should be 100% (top), i=yTickCount-1 should be 0% (bottom)
+        const value = 100 - (i * 8);
         // Position labels with small offset from top/bottom edges
-        // i=0 should be at top (highest value), i=yTickCount-1 should be at bottom (0%)
         const y = labelOffsetTop + (axisHeight - labelOffsetTop - labelOffsetBottom) / (yTickCount - 1) * i;
         yLabels.push(`${value}%`);
         yPositions.push(y);

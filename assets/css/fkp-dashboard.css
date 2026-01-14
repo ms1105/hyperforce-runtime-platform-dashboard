@@ -4899,14 +4899,16 @@ body.developer-view .sidebar-subtitle::after {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border-left: 3px solid #94a3b8;
+    border-left: none;
     border-bottom: none;
     position: relative;
     background: #ffffff;
     border-radius: 0;
     overflow: visible;
-    padding-bottom: 3rem;
+    padding-bottom: 0;
 }
+
+/* Y-axis is now drawn in SVG and stops at X-axis intersection */
 
 .karpenter-trend-chart .trend-svg {
     flex: 1;

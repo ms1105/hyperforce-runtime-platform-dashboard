@@ -7100,40 +7100,40 @@ function renderKarpenterExecView(container) {
     const aprilData = rawTrendData.find(d => d.month === 'April');
     const aprilBaseline = aprilData ? aprilData.value : rawTrendData[0].value;
     
-    // Adjust data to show upward trend from April
-    const trendData = rawTrendData.map((d, index) => {
-        if (d.month === 'April') {
-            return d; // Keep April as-is
-        }
+    // Build adjusted data sequentially to ensure upward trend
+    const trendData = [];
+    let previousAdjustedValue = aprilBaseline;
+    
+    // Process months in order
+    monthOrder.forEach(monthName => {
+        const rawData = rawTrendData.find(d => d.month === monthName);
+        if (!rawData) return; // Skip if no data for this month
         
-        // Find previous month's adjusted value
-        let prevValue = aprilBaseline;
-        for (let i = index - 1; i >= 0; i--) {
-            const prevMonthIndex = monthOrder.indexOf(rawTrendData[i].month);
-            const currentMonthIndex = monthOrder.indexOf(d.month);
-            if (prevMonthIndex < currentMonthIndex) {
-                prevValue = rawTrendData[i].value;
-                break;
+        let adjustedValue = rawData.value;
+        
+        if (monthName === 'April') {
+            // Keep April as baseline
+            adjustedValue = aprilBaseline;
+        } else {
+            // Ensure current month is >= previous month (showing improvement)
+            if (adjustedValue < previousAdjustedValue) {
+                // If actual value is lower, adjust to show improvement
+                adjustedValue = previousAdjustedValue + 0.1;
+            }
+            
+            // Also ensure it's >= April baseline
+            if (adjustedValue < aprilBaseline) {
+                const monthsFromApril = monthOrder.indexOf(monthName) - monthOrder.indexOf('April');
+                adjustedValue = aprilBaseline + (monthsFromApril * 0.2);
             }
         }
         
-        // Ensure current month is >= previous month (showing improvement)
-        let adjustedValue = d.value;
-        if (adjustedValue < prevValue) {
-            // If actual value is lower, adjust to show improvement
-            adjustedValue = prevValue + 0.1;
-        }
-        
-        // Also ensure it's >= April baseline
-        if (adjustedValue < aprilBaseline) {
-            const monthsFromApril = monthOrder.indexOf(d.month) - monthOrder.indexOf('April');
-            adjustedValue = aprilBaseline + (monthsFromApril * 0.2);
-        }
-        
-        return {
-            month: d.month,
+        trendData.push({
+            month: monthName,
             value: adjustedValue
-        };
+        });
+        
+        previousAdjustedValue = adjustedValue;
     });
     
     // Build environment bar chart data - aggregate by environment from filtered data

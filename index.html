@@ -1311,9 +1311,9 @@
                                     hcpCtsDataLoaded = true;
                                     renderHCPCTSData(data);
                                 } catch (error) {
-                                console.error('Error loading HCP CTS data:', error);
-                                const loadingDiv = document.getElementById('hcp-cts-loading');
-                                if (loadingDiv) {
+                                    console.error('Error loading HCP CTS data from API:', error);
+                                    const loadingDiv = document.getElementById('hcp-cts-loading');
+                                    if (loadingDiv) {
                                     const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
                                     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                                     

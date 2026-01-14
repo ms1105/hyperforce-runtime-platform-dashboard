@@ -1221,23 +1221,28 @@
         function renderHCPCTSData(data) {
             console.log('Rendering HCP CTS data:', data);
             
-            // Hide all loading elements immediately
+            // Hide all loading elements immediately - do this FIRST
             const loadingDiv = document.getElementById('hcp-cts-loading');
             const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
             const loadingText = document.getElementById('hcp-cts-loading-text');
             const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
             
+            console.log('Hiding loading elements...');
             if (loadingDiv) {
                 loadingDiv.style.display = 'none';
+                console.log('✅ Loading div hidden');
             }
             if (loadingSpinner) {
                 loadingSpinner.style.display = 'none';
+                console.log('✅ Loading spinner hidden');
             }
             if (loadingText) {
                 loadingText.style.display = 'none';
+                console.log('✅ Loading text hidden');
             }
             if (gitlabMessage) {
                 gitlabMessage.style.display = 'none';
+                console.log('✅ GitLab message hidden');
             }
             
             if (!data || !data.initiatives) {
@@ -1249,13 +1254,34 @@
                 return;
             }
             
+            // Show exec view
+            const execViewDiv = document.getElementById('hcp-cts-exec-view');
+            if (execViewDiv) {
+                execViewDiv.style.display = 'block';
+                console.log('✅ Exec view shown');
+            }
+            
             try {
-                renderExecView(data);
-                renderCostToServeDevelopersView(data);
+                console.log('Calling renderExecView...');
+                if (typeof renderExecView === 'function') {
+                    renderExecView(data);
+                    console.log('✅ renderExecView completed');
+                } else {
+                    console.error('renderExecView is not a function');
+                }
+                
+                console.log('Calling renderCostToServeDevelopersView...');
+                if (typeof renderCostToServeDevelopersView === 'function') {
+                    renderCostToServeDevelopersView(data);
+                    console.log('✅ renderCostToServeDevelopersView completed');
+                } else {
+                    console.error('renderCostToServeDevelopersView is not a function');
+                }
             } catch (error) {
                 console.error('Error rendering CTS views:', error);
+                console.error('Error stack:', error.stack);
                 if (loadingDiv) {
-                    loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${error.message}</p>`;
+                    loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${error.message}</p><p style="color: #718096; font-size: 0.875rem;">Check console for details</p>`;
                     loadingDiv.style.display = 'block';
                 }
             }

@@ -7092,12 +7092,25 @@ function renderKarpenterExecView(container) {
     
     // Build environment bar chart data - aggregate by environment from filtered data
     const envAgg = {};
-    const latestMonth = trendData.length > 0 
-        ? Object.values(monthlyAgg).sort((a, b) => b.month.localeCompare(a.month))[0]?.month 
-        : null;
+    // Get the latest month from filtered data (or use trendData if available)
+    let latestMonth = null;
+    if (karpenterFilterState.month !== 'all') {
+        latestMonth = karpenterFilterState.month;
+    } else if (trendData.length > 0) {
+        // Get the latest month code from trendData (which has month names)
+        // Find the month code for the last month in trendData
+        const lastMonthName = trendData[trendData.length - 1].month;
+        latestMonth = monthCodeMap[lastMonthName] || null;
+    } else if (monthsInData.length > 0) {
+        // Fallback: use the latest month from filtered data
+        latestMonth = monthsInData[monthsInData.length - 1];
+    }
+    
     const envFiltered = karpenterFilterState.month !== 'all' 
         ? filteredData.filter(r => r.month === karpenterFilterState.month)
-        : filteredData.filter(r => r.month === latestMonth);
+        : latestMonth 
+            ? filteredData.filter(r => r.month === latestMonth)
+            : filteredData; // If no latest month, use all filtered data
     
     envFiltered.forEach(r => {
         const key = r.environment;

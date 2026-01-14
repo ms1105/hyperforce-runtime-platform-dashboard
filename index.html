@@ -22,28 +22,30 @@
     <!-- Chart.js for Cost to Serve charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Configure API URL based on environment
-        // IMPORTANT: The dashboard must be accessed via http://localhost:8080/index.html
-        // GitLab Pages is static hosting and cannot access localhost APIs
-        // All users should access the dashboard at: http://localhost:8080/index.html
+        // Configure API URL for Cost to Serve (CTS) section ONLY
+        // CTS API must be accessed via http://localhost:8080
+        // Other sections (binpacking, etc.) use their own endpoints
         
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            // Running on localhost - use localhost:8080 for API
-            window.BINPACKING_API_URL = window.BINPACKING_API_URL || 'http://localhost:8080';
+            // Running on localhost - use localhost:8080 for CTS API only
+            window.CTS_API_URL = window.CTS_API_URL || 'http://localhost:8080';
         } else if (window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages')) {
-            // GitLab Pages detected - show redirect message
-            // The API requires localhost:8080, so GitLab Pages cannot access it
-            window.BINPACKING_API_URL = window.BINPACKING_API_URL || 'http://localhost:8080';
+            // GitLab Pages detected - CTS API requires localhost:8080
+            window.CTS_API_URL = window.CTS_API_URL || 'http://localhost:8080';
             
             // Show warning if accessed remotely (not from localhost)
             if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
                 // This will be handled by error messages in the dashboard
-                console.warn('⚠️ GitLab Pages detected. Dashboard should be accessed at http://localhost:8080/index.html');
+                console.warn('⚠️ GitLab Pages detected. CTS section requires http://localhost:8080');
             }
         } else {
-            // Other deployments - use relative URLs or configure via environment variable
-            window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
+            // Other deployments - use localhost:8080 for CTS
+            window.CTS_API_URL = window.CTS_API_URL || 'http://localhost:8080';
         }
+        
+        // Keep BINPACKING_API_URL for other sections (binpacking, nodes, etc.)
+        // These can use relative URLs or different endpoints
+        window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
     </script>
 </head>
 <body>
@@ -1242,8 +1244,8 @@
                             
                             try {
                                 console.log('Fetching HCP CTS data...');
-                                // Use relative URL - proxy at localhost:8080 will handle it
-                                const apiUrl = window.BINPACKING_API_URL || '';
+                                // CTS API must use http://localhost:8080
+                                const apiUrl = window.CTS_API_URL || 'http://localhost:8080';
                                 const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
                                     mode: 'cors',
                                     headers: {

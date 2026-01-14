@@ -7762,15 +7762,13 @@ function renderKarpenterTrendChart(data) {
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
     
-    // Calculate data range for Y-axis - ALWAYS start at 0%
+    // Calculate data range for Y-axis - ALWAYS start at 0% with nice increments like bar chart
     const values = data.map(d => d.value);
     const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
-    const valueRange = maxValue - minValue || 1;
-    // Y-axis always starts at 0%
+    // Y-axis always starts at 0% and goes to 100% with 20% increments (like bar chart)
     const chartMin = 0;
-    // Round max to nice number, add some padding at top
-    const chartMax = Math.min(100, Math.ceil((maxValue + valueRange * 0.1) / 5) * 5);
+    const chartMax = 100;
     const chartRange = chartMax - chartMin;
     
     // Define axis boundaries - no gaps, axes connect at corners
@@ -7789,13 +7787,13 @@ function renderKarpenterTrendChart(data) {
     
     const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
     
-    // Y-axis labels - 5 ticks, ALWAYS starting at 0%
-    const yTickCount = 5;
+    // Y-axis labels - 6 ticks (0%, 20%, 40%, 60%, 80%, 100%) like bar chart
+    const yTickCount = 6;
     const yLabels = [];
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
-        // Calculate value from chartMin (0%) to chartMax
-        const value = chartMin + (chartRange / (yTickCount - 1)) * (yTickCount - 1 - i);
+        // Values: 0%, 20%, 40%, 60%, 80%, 100%
+        const value = (chartRange / (yTickCount - 1)) * (yTickCount - 1 - i);
         const y = axisTop + (axisHeight / (yTickCount - 1)) * i;
         yLabels.push(`${Math.round(value)}%`);
         yPositions.push(y);

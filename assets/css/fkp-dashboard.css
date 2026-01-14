@@ -4774,11 +4774,11 @@ body.developer-view .sidebar-subtitle::after {
     color: #ef4444;
 }
 
-/* Karpenter Charts Row */
+/* Karpenter Charts Row - Stacked vertically */
 .karpenter-charts-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .karpenter-chart-card {
@@ -5213,7 +5213,7 @@ body.developer-view .sidebar-subtitle::after {
     }
     
     .karpenter-charts-row {
-        grid-template-columns: 1fr;
+        flex-direction: column;
     }
 }
 

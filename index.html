@@ -1358,6 +1358,13 @@
                                     }
                                     const data = await response.json();
                                     console.log('HCP CTS data loaded from API:', data);
+                                    
+                                    // Hide loading elements before rendering
+                                    const loadingSpinnerApi = document.getElementById('hcp-cts-loading-spinner');
+                                    const loadingTextApi = document.getElementById('hcp-cts-loading-text');
+                                    if (loadingSpinnerApi) loadingSpinnerApi.style.display = 'none';
+                                    if (loadingTextApi) loadingTextApi.style.display = 'none';
+                                    
                                     hcpCtsDataLoaded = true;
                                     renderHCPCTSData(data);
                                 } catch (error) {

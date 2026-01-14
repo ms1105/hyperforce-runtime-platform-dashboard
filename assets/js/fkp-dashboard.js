@@ -7700,13 +7700,13 @@ function renderKarpenterTrendChart(data) {
     const chartMax = 100;
     const chartRange = 100;
     
-    // Clean, simple chart dimensions
-    const width = 800;
-    const height = 300;
-    const paddingLeft = 60;
-    const paddingRight = 40;
-    const paddingTop = 40;
-    const paddingBottom = 50;
+    // Clean, simple chart dimensions - increased for better visibility
+    const width = 1200;
+    const height = 450;
+    const paddingLeft = 80;
+    const paddingRight = 50;
+    const paddingTop = 50;
+    const paddingBottom = 70;
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
     
@@ -7739,7 +7739,7 @@ function renderKarpenterTrendChart(data) {
     
     // Render X-axis labels inside SVG for perfect alignment with data points
     const xAxisLabels = points.map(p => 
-        `<text x="${p.x}" y="${height - 15}" text-anchor="middle" font-size="12" fill="#64748b" font-weight="500">${p.month}</text>`
+        `<text x="${p.x}" y="${height - 20}" text-anchor="middle" font-size="16" fill="#64748b" font-weight="600">${p.month}</text>`
     ).join('');
     
     return `
@@ -7760,11 +7760,11 @@ function renderKarpenterTrendChart(data) {
                     <!-- Area fill -->
                     <path d="${areaPath}" fill="url(#karpenterGradient)" />
                     <!-- Line -->
-                    <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
                     <!-- Data points -->
-                    ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#22c55e" stroke="#ffffff" stroke-width="2" />`).join('')}
+                    ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="7" fill="#22c55e" stroke="#ffffff" stroke-width="2.5" />`).join('')}
                     <!-- Value labels above points -->
-                    ${points.map(p => `<text x="${p.x}" y="${Math.max(p.y - 15, paddingTop + 5)}" text-anchor="middle" font-size="11" fill="#64748b" font-weight="500">${p.value.toFixed(1)}%</text>`).join('')}
+                    ${points.map(p => `<text x="${p.x}" y="${Math.max(p.y - 20, paddingTop + 10)}" text-anchor="middle" font-size="15" fill="#1e293b" font-weight="600">${p.value.toFixed(1)}%</text>`).join('')}
                     <!-- X-axis labels inside SVG for perfect alignment -->
                     ${xAxisLabels}
                 </svg>

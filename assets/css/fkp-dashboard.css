@@ -4794,10 +4794,10 @@ body.developer-view .sidebar-subtitle::after {
 }
 
 .karpenter-chart-header h3 {
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: 1.125rem;
+    font-weight: 700;
     color: #1e293b;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 0.75rem 0;
 }
 
 .karpenter-chart-legend {
@@ -4851,13 +4851,13 @@ body.developer-view .sidebar-subtitle::after {
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-end;
-    padding-right: 12px;
-    font-size: 11px;
+    padding-right: 15px;
+    font-size: 15px;
     color: #64748b;
     text-align: right;
-    min-width: 45px;
-    width: 45px;
-    font-weight: 500;
+    min-width: 60px;
+    width: 60px;
+    font-weight: 600;
 }
 
 .karpenter-trend-chart .chart-y-axis .y-label {
@@ -4891,7 +4891,8 @@ body.developer-view .sidebar-subtitle::after {
     flex: 1;
     width: 100%;
     height: auto;
-    max-height: 350px;
+    max-height: 500px;
+    min-height: 450px;
     border-radius: 0 4px 0 0;
     overflow: visible;
     display: block;
@@ -4899,7 +4900,8 @@ body.developer-view .sidebar-subtitle::after {
 
 /* Karpenter Bar Chart */
 .karpenter-bar-chart {
-    height: 200px;
+    height: 350px;
+    min-height: 350px;
 }
 
 .bar-chart-container {
@@ -4911,11 +4913,12 @@ body.developer-view .sidebar-subtitle::after {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding-right: 0.5rem;
-    font-size: 0.65rem;
-    color: #94a3b8;
+    padding-right: 0.75rem;
+    font-size: 0.95rem;
+    color: #64748b;
     text-align: right;
-    width: 40px;
+    width: 50px;
+    font-weight: 600;
 }
 
 .bar-chart-main {
@@ -4940,12 +4943,12 @@ body.developer-view .sidebar-subtitle::after {
     flex-direction: column;
     align-items: center;
     flex: 1;
-    max-width: 60px;
+    max-width: 90px;
 }
 
 .bar-wrapper {
-    width: 40px;
-    height: 160px;
+    width: 60px;
+    height: 280px;
     display: flex;
     align-items: flex-end;
 }
@@ -4959,20 +4962,21 @@ body.developer-view .sidebar-subtitle::after {
 
 .bar-value-label {
     position: absolute;
-    top: -1.2rem;
+    top: -1.5rem;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: #374151;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
     white-space: nowrap;
 }
 
 .bar-label {
-    font-size: 0.65rem;
+    font-size: 0.95rem;
     color: #64748b;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
     text-transform: capitalize;
+    font-weight: 600;
 }
 
 /* Karpenter Developer View */

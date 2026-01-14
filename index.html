@@ -1049,8 +1049,19 @@
                         </div>
                         <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                             <div id="hcp-cts-loading" style="text-align: center; padding: 3rem;">
-                                <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3182ce; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                                <p style="color: #718096; margin-top: 1rem;">Loading HCP Cost Savings Forecast vs Actuals...</p>
+                                <div id="hcp-cts-gitlab-message" style="display: none;">
+                                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; max-width: 600px; margin: 0 auto;">
+                                        <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
+                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">The Cost to Serve section requires access to a local API server at <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">http://localhost:8080</code>.</p>
+                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem; margin-top: 1rem;"><strong>To view this section, please:</strong></p>
+                                        <ol style="color: #78350f; font-size: 0.875rem; text-align: left; max-width: 500px; margin: 0 auto;">
+                                            <li style="margin-bottom: 0.5rem;">Access the dashboard at: <a href="http://localhost:8080/index.html" style="color: #1e40af; text-decoration: underline;">http://localhost:8080/index.html</a></li>
+                                            <li style="margin-bottom: 0.5rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></li>
+                                        </ol>
+                                    </div>
+                                </div>
+                                <div id="hcp-cts-loading-spinner" style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3182ce; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <p id="hcp-cts-loading-text" style="color: #718096; margin-top: 1rem;">Loading HCP Cost Savings Forecast vs Actuals...</p>
                             </div>
                             <div id="hcp-cts-exec-view" style="display: none;">
                                 <!-- Exec View content will be populated by JavaScript -->

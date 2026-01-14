@@ -1315,6 +1315,10 @@
                                         throw new Error('Invalid JSON data structure - missing initiatives');
                                     }
                                     
+                                    // Hide loading elements before rendering
+                                    if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                    if (loadingText) loadingText.style.display = 'none';
+                                    
                                     hcpCtsDataLoaded = true;
                                     renderHCPCTSData(data);
                                 } catch (error) {

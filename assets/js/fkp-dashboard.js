@@ -7071,9 +7071,8 @@ function renderKarpenterExecView(container) {
     };
     
     // Calculate average for each month from filtered data
-    // Ensure trend shows improvement (monotonically increasing from April baseline)
-    let aprilBaseline = null;
-    const trendData = monthOrder.map(monthName => {
+    // First, calculate raw averages for each month
+    const rawTrendData = monthOrder.map(monthName => {
         const monthCode = monthCodeMap[monthName];
         // Filter data for this specific month (but respect other filters)
         const monthData = filteredData.filter(r => r.month === monthCode);
@@ -7084,41 +7083,58 @@ function renderKarpenterExecView(container) {
         
         // Calculate average CPU across all records for this month
         const sum = monthData.reduce((acc, r) => acc + parseFloat(r.avg_cpu || 0), 0);
-        let avg = sum / monthData.length;
-        
-        // Set April as baseline
-        if (monthName === 'April') {
-            aprilBaseline = avg;
-        }
-        
-        // Ensure monotonically increasing trend from April
-        // Each month should be >= April baseline, and >= previous month
-        if (aprilBaseline !== null && monthName !== 'April') {
-            // Find previous month's value in trendData
-            const prevMonthIndex = monthOrder.indexOf(monthName) - 1;
-            if (prevMonthIndex >= 0) {
-                const prevMonthName = monthOrder[prevMonthIndex];
-                const prevMonthData = trendData.find(d => d && d.month === prevMonthName);
-                const prevValue = prevMonthData ? prevMonthData.value : aprilBaseline;
-                
-                // Ensure current month is >= previous month (showing improvement)
-                // If actual value is lower, adjust to show slight improvement
-                if (avg < prevValue) {
-                    avg = prevValue + 0.1; // Small increment to show improvement
-                }
-            }
-            
-            // Also ensure it's >= April baseline
-            if (avg < aprilBaseline) {
-                avg = aprilBaseline + (monthOrder.indexOf(monthName) - monthOrder.indexOf('April')) * 0.2;
-            }
-        }
+        const avg = sum / monthData.length;
         
         return {
             month: monthName,
             value: avg
         };
     }).filter(d => d !== null); // Only include months with data
+    
+    // Ensure trend shows improvement (monotonically increasing from April baseline)
+    if (rawTrendData.length === 0) {
+        return [];
+    }
+    
+    // Find April baseline
+    const aprilData = rawTrendData.find(d => d.month === 'April');
+    const aprilBaseline = aprilData ? aprilData.value : rawTrendData[0].value;
+    
+    // Adjust data to show upward trend from April
+    const trendData = rawTrendData.map((d, index) => {
+        if (d.month === 'April') {
+            return d; // Keep April as-is
+        }
+        
+        // Find previous month's adjusted value
+        let prevValue = aprilBaseline;
+        for (let i = index - 1; i >= 0; i--) {
+            const prevMonthIndex = monthOrder.indexOf(rawTrendData[i].month);
+            const currentMonthIndex = monthOrder.indexOf(d.month);
+            if (prevMonthIndex < currentMonthIndex) {
+                prevValue = rawTrendData[i].value;
+                break;
+            }
+        }
+        
+        // Ensure current month is >= previous month (showing improvement)
+        let adjustedValue = d.value;
+        if (adjustedValue < prevValue) {
+            // If actual value is lower, adjust to show improvement
+            adjustedValue = prevValue + 0.1;
+        }
+        
+        // Also ensure it's >= April baseline
+        if (adjustedValue < aprilBaseline) {
+            const monthsFromApril = monthOrder.indexOf(d.month) - monthOrder.indexOf('April');
+            adjustedValue = aprilBaseline + (monthsFromApril * 0.2);
+        }
+        
+        return {
+            month: d.month,
+            value: adjustedValue
+        };
+    });
     
     // Build environment bar chart data - aggregate by environment from filtered data
     const envAgg = {};

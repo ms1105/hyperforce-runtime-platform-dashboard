@@ -21,6 +21,12 @@
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <!-- Chart.js for Cost to Serve charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Configure API URL - use relative URLs for proxy at localhost:8080
+        // For GitLab Pages, this will be empty string (relative URLs)
+        // For local development, server.js at port 8080 will proxy to port 3001
+        window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
+    </script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -1192,8 +1198,8 @@
                             
                             try {
                                 console.log('Fetching HCP CTS data...');
-                                // Try to use the bin-packing server API
-                                const apiUrl = window.BINPACKING_API_URL || 'http://localhost:3001';
+                                // Use relative URL - proxy at localhost:8080 will handle it
+                                const apiUrl = window.BINPACKING_API_URL || '';
                                 const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
                                     mode: 'cors',
                                     headers: {
@@ -1215,7 +1221,7 @@
                                         <div style="text-align: center; padding: 3rem;">
                                             <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
                                             <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the bin-packing server is running at ${window.BINPACKING_API_URL || 'http://localhost:3001'}</p>
+                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
                                         </div>
                                     `;
                                 }

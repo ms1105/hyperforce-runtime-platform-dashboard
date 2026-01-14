@@ -46,14 +46,21 @@
         // Show warning banner ONLY if accessed via GitLab Pages (NOT on localhost:8080)
         (function() {
             const hostname = window.location.hostname;
-            const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+            const port = window.location.port;
+            const isLocalhost = (hostname === 'localhost' || hostname === '127.0.0.1') && (port === '8080' || port === '');
             const isGitLabPages = (hostname.includes('git.soma.salesforce.com') || hostname.includes('pages')) && !isLocalhost;
             
-            // Only show banner on GitLab Pages, never on localhost
+            // Only show banner on GitLab Pages, never on localhost:8080
             if (isGitLabPages) {
                 const warningBanner = document.getElementById('gitlab-pages-warning');
                 if (warningBanner) {
                     warningBanner.style.display = 'block';
+                }
+            } else {
+                // Explicitly hide banner on localhost
+                const warningBanner = document.getElementById('gitlab-pages-warning');
+                if (warningBanner) {
+                    warningBanner.style.display = 'none';
                 }
             }
         })();

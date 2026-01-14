@@ -6968,9 +6968,28 @@ function renderKarpenterExecView(container) {
     const calcGroupedAvg = (data, groupBy) => {
         if (!data || data.length === 0) return { avg: '--', trend: 0 };
         
+        // For trend calculation, we need data for both April and target month
+        // If month filter is applied, we need to get data WITHOUT month filter to compare April vs selected month
+        let dataForTrend = data;
+        const selectedMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : null;
+        
+        if (selectedMonth) {
+            // When month filter is applied, get data for BOTH April and selected month (with all other filters)
+            dataForTrend = karpenterData.mainSummary.filter(row => {
+                // Apply all current filters EXCEPT month filter
+                if (karpenterFilterState.fi !== 'all' && 'falcon_instance' in row && row.falcon_instance !== karpenterFilterState.fi) return false;
+                if (karpenterFilterState.fd !== 'all' && 'functional_domain' in row && row.functional_domain !== karpenterFilterState.fd) return false;
+                if (karpenterFilterState.environment !== 'all' && 'environment' in row && row.environment !== karpenterFilterState.environment) return false;
+                if (karpenterFilterState.cluster !== 'all' && 'cluster' in row && row.cluster !== karpenterFilterState.cluster) return false;
+                // Include both April and selected month for comparison
+                if (row.month !== '2025-04' && row.month !== selectedMonth) return false;
+                return true;
+            });
+        }
+        
         // Group by month and the dimension
         const byMonth = {};
-        data.forEach(r => {
+        dataForTrend.forEach(r => {
             const month = r.month;
             const key = r[groupBy] || 'unknown';
             if (!byMonth[month]) byMonth[month] = {};
@@ -6989,8 +7008,6 @@ function renderKarpenterExecView(container) {
         });
         
         // Determine which month to use for average and trend calculation
-        const selectedMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : null;
-        // For trend, always compare latest month (October) against April baseline
         const latestMonth = months[months.length - 1]; // Latest month (should be October)
         const targetMonth = selectedMonth || latestMonth; // Use selected month or latest for display
         
@@ -7007,7 +7024,7 @@ function renderKarpenterExecView(container) {
         
         // Trend: Compare target month (selected month OR latest month) with April baseline from FILTERED data
         let trend = 0;
-        // Find April baseline (month key is '2025-04') in the filtered data
+        // Find April baseline (month key is '2025-04') in the trend data
         const aprilMonth = months.find(m => m === '2025-04');
         
         // Compare target month (selected or latest) vs April baseline

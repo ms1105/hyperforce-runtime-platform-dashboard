@@ -23,15 +23,23 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Configure API URL based on environment
-        // For localhost (local development), use localhost:8080
-        // For GitLab Pages, also use localhost:8080 if accessed from local browser
-        // This allows GitLab Pages to work when accessed locally
+        // IMPORTANT: The dashboard must be accessed via http://localhost:8080/index.html
+        // GitLab Pages is static hosting and cannot access localhost APIs
+        // All users should access the dashboard at: http://localhost:8080/index.html
+        
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            // Running on localhost - use localhost:8080 for API
             window.BINPACKING_API_URL = window.BINPACKING_API_URL || 'http://localhost:8080';
         } else if (window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages')) {
-            // GitLab Pages - use localhost:8080 (works if accessed from local browser)
-            // If you need to use a different API server for GitLab Pages, set it via environment variable
+            // GitLab Pages detected - show redirect message
+            // The API requires localhost:8080, so GitLab Pages cannot access it
             window.BINPACKING_API_URL = window.BINPACKING_API_URL || 'http://localhost:8080';
+            
+            // Show warning if accessed remotely (not from localhost)
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                // This will be handled by error messages in the dashboard
+                console.warn('⚠️ GitLab Pages detected. Dashboard should be accessed at http://localhost:8080/index.html');
+            }
         } else {
             // Other deployments - use relative URLs or configure via environment variable
             window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
@@ -39,6 +47,30 @@
     </script>
 </head>
 <body>
+    <!-- GitLab Pages Warning Banner -->
+    <div id="gitlab-pages-warning" style="display: none; background: #fef3c7; border-bottom: 2px solid #f59e0b; padding: 1rem; text-align: center; position: sticky; top: 0; z-index: 10000;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <p style="color: #92400e; font-weight: 600; margin: 0; font-size: 0.95rem;">
+                ⚠️ This dashboard requires a local API server. 
+                <strong>Please access it at: <a href="http://localhost:8080/index.html" style="color: #1e40af; text-decoration: underline;">http://localhost:8080/index.html</a></strong>
+                <span style="margin-left: 1rem; font-size: 0.875rem; font-weight: normal;">(Make sure the server is running: <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code>)</span>
+            </p>
+        </div>
+    </div>
+    <script>
+        // Show warning banner if accessed via GitLab Pages (not localhost)
+        (function() {
+            const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            
+            if (isGitLabPages && !isLocalhost) {
+                const warningBanner = document.getElementById('gitlab-pages-warning');
+                if (warningBanner) {
+                    warningBanner.style.display = 'block';
+                }
+            }
+        })();
+    </script>
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
@@ -1227,13 +1259,33 @@
                                 console.error('Error loading HCP CTS data:', error);
                                 const loadingDiv = document.getElementById('hcp-cts-loading');
                                 if (loadingDiv) {
-                                    loadingDiv.innerHTML = `
+                                    const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
+                                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                                    
+                                    let errorMessage = `
                                         <div style="text-align: center; padding: 3rem;">
                                             <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
                                             <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
-                                        </div>
                                     `;
+                                    
+                                    if (isGitLabPages && !isLocalhost) {
+                                        errorMessage += `
+                                            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                                                <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
+                                                <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">This dashboard requires access to a local API server.</p>
+                                                <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem;"><strong>Please access the dashboard at:</strong></p>
+                                                <p style="background: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; color: #1e293b; font-weight: 600; margin-bottom: 0.75rem;">http://localhost:8080/index.html</p>
+                                                <p style="color: #78350f; font-size: 0.875rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></p>
+                                            </div>
+                                        `;
+                                    } else {
+                                        errorMessage += `
+                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
+                                        `;
+                                    }
+                                    
+                                    errorMessage += `</div>`;
+                                    loadingDiv.innerHTML = errorMessage;
                                 }
                             }
                         } else {

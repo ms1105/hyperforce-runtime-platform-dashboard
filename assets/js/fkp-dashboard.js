@@ -7700,13 +7700,13 @@ function renderKarpenterTrendChart(data) {
     const chartMax = 100;
     const chartRange = 100;
     
-    // Clean, simple chart dimensions - increased for better visibility
-    const width = 1200;
-    const height = 450;
-    const paddingLeft = 80;
-    const paddingRight = 50;
-    const paddingTop = 50;
-    const paddingBottom = 70;
+    // Large, beautiful chart dimensions
+    const width = 1400;
+    const height = 600;
+    const paddingLeft = 100;
+    const paddingRight = 60;
+    const paddingTop = 70;
+    const paddingBottom = 90;
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
     
@@ -7730,17 +7730,30 @@ function renderKarpenterTrendChart(data) {
         yPositions.push(y);
     }
     
-    // Generate horizontal grid lines (at 20%, 40%, 60%, 80%)
+    // Generate horizontal grid lines (at 20%, 40%, 60%, 80%) - more beautiful styling
     const gridLines = [];
     for (let i = 1; i < 5; i++) {
         const y = paddingTop + (plotHeight / 5) * i;
-        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`);
+        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" />`);
     }
     
-    // Render X-axis labels inside SVG for perfect alignment with data points
+    // Add vertical grid lines for better readability
+    const verticalGridLines = [];
+    for (let i = 0; i < points.length; i++) {
+        const x = points[i].x;
+        verticalGridLines.push(`<line x1="${x}" y1="${paddingTop}" x2="${x}" y2="${paddingTop + plotHeight}" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="2,2" opacity="0.4" />`);
+    }
+    
+    // Render X-axis labels inside SVG - beautiful styling
     const xAxisLabels = points.map(p => 
-        `<text x="${p.x}" y="${height - 20}" text-anchor="middle" font-size="16" fill="#64748b" font-weight="600">${p.month}</text>`
+        `<text x="${p.x}" y="${height - 25}" text-anchor="middle" font-size="18" fill="#334155" font-weight="700" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.month}</text>`
     ).join('');
+    
+    // Add X-axis line
+    const xAxisLine = `<line x1="${paddingLeft}" y1="${paddingTop + plotHeight}" x2="${paddingLeft + plotWidth}" y2="${paddingTop + plotHeight}" stroke="#cbd5e1" stroke-width="3" />`;
+    
+    // Add Y-axis line
+    const yAxisLine = `<line x1="${paddingLeft}" y1="${paddingTop}" x2="${paddingLeft}" y2="${paddingTop + plotHeight}" stroke="#cbd5e1" stroke-width="3" />`;
     
     return `
         <div class="chart-container">
@@ -7751,20 +7764,46 @@ function renderKarpenterTrendChart(data) {
                 <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
                     <defs>
                         <linearGradient id="karpenterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.25" />
+                            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3" />
+                            <stop offset="50%" style="stop-color:#22c55e;stop-opacity:0.15" />
                             <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.05" />
                         </linearGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+                        </linearGradient>
                     </defs>
-                    <!-- Grid lines -->
+                    <!-- Background -->
+                    <rect x="${paddingLeft}" y="${paddingTop}" width="${plotWidth}" height="${plotHeight}" fill="#fafbfc" rx="4" />
+                    <!-- Vertical grid lines -->
+                    ${verticalGridLines.join('')}
+                    <!-- Horizontal grid lines -->
                     ${gridLines.join('')}
+                    <!-- Y-axis line -->
+                    ${yAxisLine}
+                    <!-- X-axis line -->
+                    ${xAxisLine}
                     <!-- Area fill -->
                     <path d="${areaPath}" fill="url(#karpenterGradient)" />
-                    <!-- Line -->
-                    <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
-                    <!-- Data points -->
-                    ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="7" fill="#22c55e" stroke="#ffffff" stroke-width="2.5" />`).join('')}
-                    <!-- Value labels above points -->
-                    ${points.map(p => `<text x="${p.x}" y="${Math.max(p.y - 20, paddingTop + 10)}" text-anchor="middle" font-size="15" fill="#1e293b" font-weight="600">${p.value.toFixed(1)}%</text>`).join('')}
+                    <!-- Line with gradient -->
+                    <path d="${linePath}" fill="none" stroke="url(#lineGradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)" />
+                    <!-- Data points with shadow effect -->
+                    ${points.map(p => `
+                        <circle cx="${p.x}" cy="${p.y}" r="9" fill="#ffffff" opacity="0.8" />
+                        <circle cx="${p.x}" cy="${p.y}" r="8" fill="#22c55e" stroke="#ffffff" stroke-width="3" />
+                    `).join('')}
+                    <!-- Value labels above points - beautiful styling -->
+                    ${points.map(p => `
+                        <rect x="${p.x - 25}" y="${Math.max(p.y - 40, paddingTop - 5)}" width="50" height="22" rx="4" fill="#ffffff" opacity="0.95" stroke="#e2e8f0" stroke-width="1" />
+                        <text x="${p.x}" y="${Math.max(p.y - 25, paddingTop + 10)}" text-anchor="middle" font-size="14" fill="#1e293b" font-weight="700" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.value.toFixed(1)}%</text>
+                    `).join('')}
                     <!-- X-axis labels inside SVG for perfect alignment -->
                     ${xAxisLabels}
                 </svg>
@@ -7782,7 +7821,15 @@ function renderKarpenterBarChart(data) {
     }
     
     const maxValue = 100; // Percentage max
-    const colors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'];
+    // Beautiful gradient colors for bars
+    const colors = [
+        'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)', // Green
+        'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)', // Orange
+        'linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%)', // Purple
+        'linear-gradient(180deg, #06b6d4 0%, #0891b2 100%)', // Cyan
+        'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)'  // Red
+    ];
+    const solidColors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'];
     
     return `
         <div class="bar-chart-container">
@@ -7798,8 +7845,8 @@ function renderKarpenterBarChart(data) {
                 ${data.map((d, i) => `
                     <div class="bar-item">
                         <div class="bar-wrapper">
-                            <div class="bar" style="height: ${d.value}%; background-color: ${colors[i % colors.length]};">
-                                <span class="bar-value-label">${d.value.toFixed(1)}%</span>
+                            <div class="bar" style="height: ${d.value}%; background: ${colors[i % colors.length]}; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.1);">
+                                <span class="bar-value-label" style="color: ${solidColors[i % solidColors.length]};">${d.value.toFixed(1)}%</span>
                             </div>
                         </div>
                         <span class="bar-label">${d.name}</span>

@@ -4829,10 +4829,11 @@ body.developer-view .sidebar-subtitle::after {
 
 /* Karpenter Trend Chart */
 .karpenter-trend-chart {
-    padding: 1.5rem;
-    background: #ffffff;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    padding: 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .karpenter-trend-chart .chart-container {
@@ -4851,13 +4852,14 @@ body.developer-view .sidebar-subtitle::after {
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-end;
-    padding-right: 15px;
-    font-size: 15px;
-    color: #64748b;
+    padding-right: 20px;
+    font-size: 16px;
+    color: #475569;
     text-align: right;
-    min-width: 60px;
-    width: 60px;
-    font-weight: 600;
+    min-width: 70px;
+    width: 70px;
+    font-weight: 700;
+    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 .karpenter-trend-chart .chart-y-axis .y-label {
@@ -4880,28 +4882,37 @@ body.developer-view .sidebar-subtitle::after {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border-left: 2px solid #cbd5e1;
-    border-bottom: 2px solid #cbd5e1;
+    border-left: 3px solid #94a3b8;
+    border-bottom: 3px solid #94a3b8;
     position: relative;
-    background: #fafbfc;
-    border-radius: 0 4px 0 0;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 0 8px 0 0;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .karpenter-trend-chart .trend-svg {
     flex: 1;
     width: 100%;
     height: auto;
-    max-height: 500px;
-    min-height: 450px;
-    border-radius: 0 4px 0 0;
+    max-height: 650px;
+    min-height: 600px;
+    border-radius: 0 6px 0 0;
     overflow: visible;
     display: block;
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 8px;
 }
 
 /* Karpenter Bar Chart */
 .karpenter-bar-chart {
-    height: 350px;
-    min-height: 350px;
+    height: 450px;
+    min-height: 450px;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .bar-chart-container {
@@ -4913,12 +4924,15 @@ body.developer-view .sidebar-subtitle::after {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding-right: 0.75rem;
-    font-size: 0.95rem;
-    color: #64748b;
+    padding-right: 1rem;
+    font-size: 1.1rem;
+    color: #475569;
     text-align: right;
-    width: 50px;
-    font-weight: 600;
+    width: 60px;
+    font-weight: 700;
+    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    border-right: 3px solid #94a3b8;
+    padding-right: 1.25rem;
 }
 
 .bar-chart-main {
@@ -4927,15 +4941,17 @@ body.developer-view .sidebar-subtitle::after {
     justify-content: space-around;
     align-items: flex-end;
     background: linear-gradient(to bottom, 
-        rgba(0, 0, 0, 0.02) 0%, 
-        rgba(0, 0, 0, 0.02) 20%,
-        rgba(0, 0, 0, 0.02) 40%,
-        rgba(0, 0, 0, 0.02) 60%,
-        rgba(0, 0, 0, 0.02) 80%,
+        rgba(148, 163, 184, 0.05) 0%, 
+        rgba(148, 163, 184, 0.05) 20%,
+        rgba(148, 163, 184, 0.05) 40%,
+        rgba(148, 163, 184, 0.05) 60%,
+        rgba(148, 163, 184, 0.05) 80%,
         transparent 100%
     );
-    border-radius: 4px;
-    padding: 0 1rem;
+    border-radius: 8px;
+    padding: 0 1.5rem;
+    border-bottom: 3px solid #94a3b8;
+    position: relative;
 }
 
 .bar-item {
@@ -4943,21 +4959,30 @@ body.developer-view .sidebar-subtitle::after {
     flex-direction: column;
     align-items: center;
     flex: 1;
-    max-width: 90px;
+    max-width: 120px;
+    padding: 0 0.5rem;
 }
 
 .bar-wrapper {
-    width: 60px;
-    height: 280px;
+    width: 80px;
+    height: 380px;
     display: flex;
     align-items: flex-end;
+    position: relative;
 }
 
 .bar {
     width: 100%;
-    border-radius: 4px 4px 0 0;
-    transition: height 0.3s ease;
+    border-radius: 8px 8px 0 0;
+    transition: all 0.3s ease;
     position: relative;
+    cursor: pointer;
+    border-top: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.bar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2), inset 0 -2px 0 rgba(0, 0, 0, 0.15) !important;
 }
 
 .bar-value-label {

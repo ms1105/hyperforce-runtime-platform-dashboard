@@ -7788,6 +7788,10 @@ function renderKarpenterTrendChart(data) {
                             <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
                         </linearGradient>
                     </defs>
+                    <!-- Y-axis line - stops at X-axis -->
+                    <line x1="${paddingLeft}" y1="0" x2="${paddingLeft}" y2="${paddingTop + plotHeight}" stroke="#94a3b8" stroke-width="3" />
+                    <!-- X-axis line -->
+                    <line x1="${paddingLeft}" y1="${paddingTop + plotHeight}" x2="${width}" y2="${paddingTop + plotHeight}" stroke="#94a3b8" stroke-width="3" />
                     <!-- Vertical grid lines -->
                     ${verticalGridLines.join('')}
                     <!-- Horizontal grid lines -->

@@ -1,0 +1,17 @@
+image: alpine:latest
+
+pages:
+  stage: deploy
+  script:
+    - echo "Deploying static files to GitLab Pages"
+    - mkdir -p public
+    - cp -r *.html assets public/ 2>/dev/null || true
+    - cp -r dist/* public/ 2>/dev/null || true
+    # Ensure index.html is in the root
+    - if [ -f index.html ]; then cp index.html public/; fi
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
+    - main

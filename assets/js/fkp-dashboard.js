@@ -7773,6 +7773,11 @@ function renderKarpenterTrendChart(data) {
     const chartMax = Math.min(100, Math.ceil((maxValue + valueRange * 0.1) / 5) * 5);
     const chartRange = chartMax - chartMin;
     
+    // Define axis boundaries - no gaps, axes connect at corners
+    const axisTop = 20; // Space for top label
+    const axisBottom = height - 20; // Space for bottom label (0%)
+    const axisHeight = axisBottom - axisTop;
+    
     // Generate points - use axis boundaries for positioning
     const pointSpacing = data.length > 1 ? plotWidth / (data.length - 1) : plotWidth;
     const points = data.map((d, i) => {
@@ -7784,13 +7789,13 @@ function renderKarpenterTrendChart(data) {
     
     const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
     
-    // Y-axis labels - 5 ticks
+    // Y-axis labels - 5 ticks, positioned correctly with no gaps
     const yTickCount = 5;
     const yLabels = [];
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
         const value = chartMax - (chartRange / (yTickCount - 1)) * i;
-        const y = paddingTop + (plotHeight / (yTickCount - 1)) * i;
+        const y = axisTop + (axisHeight / (yTickCount - 1)) * i;
         yLabels.push(`${Math.round(value)}%`);
         yPositions.push(y);
     }

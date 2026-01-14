@@ -7789,12 +7789,13 @@ function renderKarpenterTrendChart(data) {
     
     const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
     
-    // Y-axis labels - 5 ticks, positioned correctly with no gaps
+    // Y-axis labels - 5 ticks, ALWAYS starting at 0%
     const yTickCount = 5;
     const yLabels = [];
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
-        const value = chartMax - (chartRange / (yTickCount - 1)) * i;
+        // Calculate value from chartMin (0%) to chartMax
+        const value = chartMin + (chartRange / (yTickCount - 1)) * (yTickCount - 1 - i);
         const y = axisTop + (axisHeight / (yTickCount - 1)) * i;
         yLabels.push(`${Math.round(value)}%`);
         yPositions.push(y);
@@ -7816,8 +7817,8 @@ function renderKarpenterTrendChart(data) {
                 <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
                     <defs>
                         <linearGradient id="trendLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#10b981"/>
-                            <stop offset="100%" style="stop-color:#22c55e"/>
+                            <stop offset="0%" style="stop-color:#1B96FF"/>
+                            <stop offset="100%" style="stop-color:#0176D3"/>
                         </linearGradient>
                     </defs>
                     <!-- Grid lines -->
@@ -7831,7 +7832,7 @@ function renderKarpenterTrendChart(data) {
                     <!-- Data points -->
                     ${points.map((p, idx) => `
                         <g class="trend-point" data-index="${idx}">
-                            <circle cx="${p.x}" cy="${p.y}" r="6" fill="#22c55e" stroke="#ffffff" stroke-width="2" class="point-circle" />
+                            <circle cx="${p.x}" cy="${p.y}" r="6" fill="#0176D3" stroke="#ffffff" stroke-width="2" class="point-circle" />
                             <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="point-hit" style="cursor: pointer;" />
                             <text x="${p.x}" y="${p.y - 20}" text-anchor="middle" font-size="12" fill="#1e293b" font-weight="700" class="point-value" opacity="1">${p.value.toFixed(1)}%</text>
                         </g>

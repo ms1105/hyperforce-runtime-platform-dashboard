@@ -1273,17 +1273,58 @@
                                 
                                 try {
                                     console.log('Fetching HCP CTS data from static JSON file...');
-                                    const response = await fetch('assets/data/hcp-cts-forecast-actuals.json');
-                                    if (!response.ok) {
-                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    // Try multiple possible paths for GitLab Pages
+                                    const jsonPaths = [
+                                        'assets/data/hcp-cts-forecast-actuals.json',
+                                        '/assets/data/hcp-cts-forecast-actuals.json',
+                                        './assets/data/hcp-cts-forecast-actuals.json'
+                                    ];
+                                    
+                                    let response = null;
+                                    let lastError = null;
+                                    
+                                    for (const jsonPath of jsonPaths) {
+                                        try {
+                                            console.log('Trying path:', jsonPath);
+                                            response = await fetch(jsonPath);
+                                            if (response.ok) {
+                                                console.log('✅ Found JSON file at:', jsonPath);
+                                                break;
+                                            } else {
+                                                console.log('⚠️ Path returned status:', response.status);
+                                            }
+                                        } catch (err) {
+                                            lastError = err;
+                                            console.log('⚠️ Failed to load from:', jsonPath, err.message);
+                                        }
                                     }
+                                    
+                                    if (!response || !response.ok) {
+                                        throw new Error(`Failed to load JSON file. Status: ${response?.status || 'no response'}. ${lastError?.message || ''}`);
+                                    }
+                                    
                                     const data = await response.json();
                                     console.log('HCP CTS data loaded from JSON:', data);
+                                    
+                                    if (!data || !data.initiatives) {
+                                        throw new Error('Invalid JSON data structure - missing initiatives');
+                                    }
+                                    
                                     hcpCtsDataLoaded = true;
                                     renderHCPCTSData(data);
                                 } catch (error) {
                                     console.error('Error loading HCP CTS data from JSON:', error);
-                                    if (gitlabMessage) gitlabMessage.style.display = 'block';
+                                    // Hide loading spinner and show error
+                                    if (loadingDiv) {
+                                        loadingDiv.innerHTML = `
+                                            <div style="text-align: center; padding: 3rem;">
+                                                <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
+                                                <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
+                                                <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please check browser console (F12) for details.</p>
+                                            </div>
+                                        `;
+                                    }
+                                    if (gitlabMessage) gitlabMessage.style.display = 'none';
                                     if (loadingSpinner) loadingSpinner.style.display = 'none';
                                     if (loadingText) loadingText.style.display = 'none';
                                 }

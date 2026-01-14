@@ -1313,6 +1313,15 @@
                                 loadingDiv.style.display = 'block';
                             }
                             
+                            // Set a timeout to hide loading if data doesn't load within 30 seconds
+                            const loadingTimeout = setTimeout(() => {
+                                console.error('⚠️ CTS data loading timeout - hiding loading elements');
+                                if (loadingDiv) loadingDiv.style.display = 'none';
+                                if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                if (loadingText) loadingText.style.display = 'none';
+                                if (gitlabMessage) gitlabMessage.style.display = 'none';
+                            }, 30000);
+                            
                             // On GitLab Pages, load from static JSON file; on localhost, use API
                             if (isGitLabPages && !isLocalhost) {
                                 // GitLab Pages - load from static JSON file
@@ -1405,10 +1414,12 @@
                                     const data = await response.json();
                                     console.log('HCP CTS data loaded from API:', data);
                                     
+                                    clearTimeout(loadingTimeout);
                                     hcpCtsDataLoaded = true;
                                     // renderHCPCTSData will hide loading elements
                                     renderHCPCTSData(data);
                                 } catch (error) {
+                                    clearTimeout(loadingTimeout);
                                     console.error('Error loading HCP CTS data from API:', error);
                                     const loadingDiv = document.getElementById('hcp-cts-loading');
                                     if (loadingDiv) {

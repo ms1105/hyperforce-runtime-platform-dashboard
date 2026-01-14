@@ -7747,16 +7747,8 @@ function renderKarpenterTrendChart(data) {
         verticalGridLines.push(`<line x1="${x}" y1="0" x2="${x}" y2="${paddingTop + plotHeight}" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="2,2" opacity="0.4" />`);
     }
     
-    // Render X-axis labels inside SVG - beautiful styling
-    const xAxisLabels = points.map(p => 
-        `<text x="${p.x}" y="${height - 25}" text-anchor="middle" font-size="18" fill="#334155" font-weight="700" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.month}</text>`
-    ).join('');
-    
-    // Add X-axis line
-    const xAxisLine = `<line x1="${paddingLeft}" y1="${paddingTop + plotHeight}" x2="${paddingLeft + plotWidth}" y2="${paddingTop + plotHeight}" stroke="#cbd5e1" stroke-width="3" />`;
-    
-    // Add Y-axis line
-    const yAxisLine = `<line x1="${paddingLeft}" y1="${paddingTop}" x2="${paddingLeft}" y2="${paddingTop + plotHeight}" stroke="#cbd5e1" stroke-width="3" />`;
+    // X-axis labels will be rendered outside SVG using CSS positioning
+    // No inner axis lines - using only exterior axis from CSS borders
     
     return `
         <div class="chart-container">
@@ -7764,6 +7756,9 @@ function renderKarpenterTrendChart(data) {
                 ${yLabels.map(label => `<span class="y-label">${label}</span>`).join('')}
             </div>
             <div class="chart-main">
+                <div class="chart-x-axis">
+                    ${points.map(p => `<span class="x-label" style="left: ${((p.x / width) * 100).toFixed(2)}%;">${p.month}</span>`).join('')}
+                </div>
                 <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
                     <defs>
                         <linearGradient id="karpenterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -7787,24 +7782,24 @@ function renderKarpenterTrendChart(data) {
                     ${verticalGridLines.join('')}
                     <!-- Horizontal grid lines -->
                     ${gridLines.join('')}
-                    <!-- Y-axis line -->
-                    ${yAxisLine}
-                    <!-- X-axis line -->
-                    ${xAxisLine}
                     <!-- Line with gradient - no area fill -->
-                    <path d="${linePath}" fill="none" stroke="url(#lineGradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)" />
-                    <!-- Data points with shadow effect -->
-                    ${points.map(p => `
-                        <circle cx="${p.x}" cy="${p.y}" r="9" fill="#ffffff" opacity="0.8" />
-                        <circle cx="${p.x}" cy="${p.y}" r="8" fill="#22c55e" stroke="#ffffff" stroke-width="3" />
+                    <path d="${linePath}" fill="none" stroke="url(#lineGradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)" class="trend-line" />
+                    <!-- Interactive data points with hover effects -->
+                    ${points.map((p, idx) => `
+                        <g class="data-point-group" data-index="${idx}" data-month="${p.month}" data-value="${p.value.toFixed(1)}">
+                            <circle cx="${p.x}" cy="${p.y}" r="10" fill="#ffffff" opacity="0.9" class="point-shadow" />
+                            <circle cx="${p.x}" cy="${p.y}" r="9" fill="#22c55e" stroke="#ffffff" stroke-width="3" class="data-point" />
+                            <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="point-hit-area" style="cursor: pointer;" />
+                        </g>
                     `).join('')}
-                    <!-- Value labels above points -->
-                    ${points.map(p => `
-                        <rect x="${p.x - 25}" y="${Math.max(p.y - 40, 5)}" width="50" height="22" rx="4" fill="#ffffff" opacity="0.95" stroke="#e2e8f0" stroke-width="1" />
-                        <text x="${p.x}" y="${Math.max(p.y - 25, 18)}" text-anchor="middle" font-size="14" fill="#1e293b" font-weight="700" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.value.toFixed(1)}%</text>
+                    <!-- Value labels above points - shown on hover -->
+                    ${points.map((p, idx) => `
+                        <g class="value-label-group" data-index="${idx}" style="opacity: 0; transition: opacity 0.2s;">
+                            <rect x="${p.x - 30}" y="${Math.max(p.y - 45, 5)}" width="60" height="26" rx="6" fill="#1e293b" opacity="0.95" />
+                            <text x="${p.x}" y="${Math.max(p.y - 28, 20)}" text-anchor="middle" font-size="13" fill="#ffffff" font-weight="700" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.value.toFixed(1)}%</text>
+                            <text x="${p.x}" y="${Math.max(p.y - 12, 35)}" text-anchor="middle" font-size="11" fill="#94a3b8" font-weight="600" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.month}</text>
+                        </g>
                     `).join('')}
-                    <!-- X-axis labels inside SVG for perfect alignment -->
-                    ${xAxisLabels}
                 </svg>
             </div>
         </div>

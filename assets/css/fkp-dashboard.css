@@ -4745,8 +4745,9 @@ body.developer-view .sidebar-subtitle::after {
 .karpenter-metric-label {
     font-size: 0.7rem;
     font-weight: 600;
-    color: #64748b;
+    color: #475569;
     line-height: 1.3;
+    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 .karpenter-metric-icon {

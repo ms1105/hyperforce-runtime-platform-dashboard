@@ -7891,25 +7891,30 @@ function renderKarpenterBarChart(data) {
     }
     
     const maxValue = 100; // Percentage max
-    // Beautiful gradient colors for bars
-    const colors = [
-        'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)', // Green
-        'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)', // Orange
-        'linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%)', // Purple
-        'linear-gradient(180deg, #06b6d4 0%, #0891b2 100%)', // Cyan
-        'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)'  // Red
+    // Salesforce blue color shades
+    const salesforceBlues = [
+        { light: '#1B96FF', dark: '#0176D3' }, // Light blue
+        { light: '#4A90E2', dark: '#0176D3' },  // Medium blue
+        { light: '#0176D3', dark: '#014486' }, // Salesforce primary blue
+        { light: '#014486', dark: '#003D82' }, // Dark blue
+        { light: '#003D82', dark: '#002D5C' }, // Darker blue
+        { light: '#5A9FD4', dark: '#0176D3' }  // Sky blue
     ];
-    const solidColors = ['#22c55e', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444'];
     
-    // Map environment names to colors
+    // Map environment names to Salesforce blue shades
     const envColorMap = {
-        'Dev': { gradient: 'linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%)', solid: '#8b5cf6' },
-        'Test': { gradient: 'linear-gradient(180deg, #ef4444 0%, #dc2626 100%)', solid: '#ef4444' },
-        'Perf': { gradient: 'linear-gradient(180deg, #06b6d4 0%, #0891b2 100%)', solid: '#06b6d4' },
-        'Stage': { gradient: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)', solid: '#f59e0b' },
-        'Esvc': { gradient: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)', solid: '#22c55e' },
-        'Prod': { gradient: 'linear-gradient(180deg, #22c55e 0%, #16a34a 100%)', solid: '#22c55e' }
+        'Dev': { gradient: `linear-gradient(180deg, ${salesforceBlues[0].light} 0%, ${salesforceBlues[0].dark} 100%)`, solid: salesforceBlues[0].dark },
+        'Test': { gradient: `linear-gradient(180deg, ${salesforceBlues[1].light} 0%, ${salesforceBlues[1].dark} 100%)`, solid: salesforceBlues[1].dark },
+        'Perf': { gradient: `linear-gradient(180deg, ${salesforceBlues[2].light} 0%, ${salesforceBlues[2].dark} 100%)`, solid: salesforceBlues[2].dark },
+        'Stage': { gradient: `linear-gradient(180deg, ${salesforceBlues[3].light} 0%, ${salesforceBlues[3].dark} 100%)`, solid: salesforceBlues[3].dark },
+        'Esvc': { gradient: `linear-gradient(180deg, ${salesforceBlues[4].light} 0%, ${salesforceBlues[4].dark} 100%)`, solid: salesforceBlues[4].dark },
+        'Prod': { gradient: `linear-gradient(180deg, ${salesforceBlues[2].light} 0%, ${salesforceBlues[2].dark} 100%)`, solid: salesforceBlues[2].dark },
+        'Staging': { gradient: `linear-gradient(180deg, ${salesforceBlues[3].light} 0%, ${salesforceBlues[3].dark} 100%)`, solid: salesforceBlues[3].dark }
     };
+    
+    // Fallback colors using Salesforce blues
+    const colors = salesforceBlues.map(b => `linear-gradient(180deg, ${b.light} 0%, ${b.dark} 100%)`);
+    const solidColors = salesforceBlues.map(b => b.dark);
     
     return `
         <div class="bar-chart-container">

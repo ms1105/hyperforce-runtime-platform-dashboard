@@ -7790,8 +7790,10 @@ function renderKarpenterTrendChart(data) {
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
         // Values: 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%, etc.
-        const value = i * 8;
+        // Start from top (highest value) and go down (lowest value)
+        const value = (yTickCount - 1 - i) * 8;
         // Position labels with small offset from top/bottom edges
+        // i=0 should be at top (highest value), i=yTickCount-1 should be at bottom (0%)
         const y = labelOffsetTop + (axisHeight - labelOffsetTop - labelOffsetBottom) / (yTickCount - 1) * i;
         yLabels.push(`${value}%`);
         yPositions.push(y);

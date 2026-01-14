@@ -7677,28 +7677,34 @@ function calculateKarpenterTrend(data, field) {
 /**
  * Render Karpenter trend line chart - Clean, Professional Implementation
  */
+/**
+ * Render Karpenter trend line chart - Shows average % across all FIs, FDs, Clusters
+ * Updates dynamically based on filters (FI, FD, Cluster, Environment)
+ * Only shows April to October
+ */
 function renderKarpenterTrendChart(data) {
     if (!data || data.length === 0) {
-        return '<div class="no-data">No trend data available</div>';
+        return '<div class="no-data" style="padding: 2rem; text-align: center; color: #64748b;">No trend data available for selected filters</div>';
     }
     
     // Chart dimensions
-    const width = 1200;
-    const height = 500;
-    const paddingLeft = 80;
-    const paddingRight = 40;
-    const paddingTop = 40;
-    const paddingBottom = 60;
+    const width = 1000;
+    const height = 400;
+    const paddingLeft = 70;
+    const paddingRight = 30;
+    const paddingTop = 30;
+    const paddingBottom = 50;
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
     
-    // Calculate data range
+    // Calculate data range for Y-axis
     const values = data.map(d => d.value);
     const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
     const valueRange = maxValue - minValue || 1;
-    const chartMin = Math.max(0, Math.floor((minValue - valueRange * 0.1) / 10) * 10);
-    const chartMax = Math.min(100, Math.ceil((maxValue + valueRange * 0.1) / 10) * 10);
+    // Round to nice numbers for Y-axis
+    const chartMin = Math.max(0, Math.floor((minValue - valueRange * 0.15) / 5) * 5);
+    const chartMax = Math.min(100, Math.ceil((maxValue + valueRange * 0.15) / 5) * 5);
     const chartRange = chartMax - chartMin;
     
     // Generate points
@@ -7711,8 +7717,8 @@ function renderKarpenterTrendChart(data) {
     
     const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
     
-    // Y-axis labels - dynamic based on data range
-    const yTickCount = 6;
+    // Y-axis labels - 5 ticks
+    const yTickCount = 5;
     const yLabels = [];
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
@@ -7726,7 +7732,7 @@ function renderKarpenterTrendChart(data) {
     const gridLines = [];
     for (let i = 1; i < yTickCount - 1; i++) {
         const y = yPositions[i];
-        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />`);
+        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,4" />`);
     }
     
     return `
@@ -7737,7 +7743,7 @@ function renderKarpenterTrendChart(data) {
             <div class="chart-main">
                 <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
                     <defs>
-                        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <linearGradient id="trendLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" style="stop-color:#10b981"/>
                             <stop offset="100%" style="stop-color:#22c55e"/>
                         </linearGradient>
@@ -7749,18 +7755,18 @@ function renderKarpenterTrendChart(data) {
                     <!-- X-axis -->
                     <line x1="${paddingLeft}" y1="${paddingTop + plotHeight}" x2="${paddingLeft + plotWidth}" y2="${paddingTop + plotHeight}" stroke="#64748b" stroke-width="2" />
                     <!-- Trend line -->
-                    <path d="${linePath}" fill="none" stroke="url(#lineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="trend-line-path" />
+                    <path d="${linePath}" fill="none" stroke="url(#trendLineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="trend-line-path" />
                     <!-- Data points -->
                     ${points.map((p, idx) => `
                         <g class="trend-point" data-index="${idx}">
                             <circle cx="${p.x}" cy="${p.y}" r="6" fill="#22c55e" stroke="#ffffff" stroke-width="2" class="point-circle" />
-                            <circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" class="point-hit" />
-                            <text x="${p.x}" y="${p.y - 20}" text-anchor="middle" font-size="12" fill="#1e293b" font-weight="600" class="point-value" opacity="0">${p.value.toFixed(1)}%</text>
+                            <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="point-hit" style="cursor: pointer;" />
+                            <text x="${p.x}" y="${p.y - 18}" text-anchor="middle" font-size="11" fill="#1e293b" font-weight="600" class="point-value" opacity="0">${p.value.toFixed(1)}%</text>
                         </g>
                     `).join('')}
                     <!-- X-axis labels -->
                     ${points.map(p => `
-                        <text x="${p.x}" y="${height - 15}" text-anchor="middle" font-size="14" fill="#475569" font-weight="600">${p.month}</text>
+                        <text x="${p.x}" y="${height - 12}" text-anchor="middle" font-size="13" fill="#475569" font-weight="600">${p.month}</text>
                     `).join('')}
                 </svg>
             </div>

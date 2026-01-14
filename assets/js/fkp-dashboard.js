@@ -7919,12 +7919,10 @@ function renderKarpenterBarChart(data) {
                                     <span class="bar-value-label" style="color: ${envColor.solid};">${d.value.toFixed(1)}%</span>
                                 </div>
                             </div>
+                            <span class="bar-label">${d.name}</span>
                         </div>
                     `;
                 }).join('')}
-            </div>
-            <div class="bar-chart-x-axis">
-                ${data.map(d => `<span class="bar-x-label">${d.name}</span>`).join('')}
             </div>
         </div>
     `;

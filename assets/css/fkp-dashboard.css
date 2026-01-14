@@ -4998,26 +4998,7 @@ body.developer-view .sidebar-subtitle::after {
     margin-left: 0;
     margin-bottom: 0;
     min-height: 350px;
-}
-
-.bar-chart-x-axis {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-    padding-top: 0.5rem;
-    border-top: 3px solid #94a3b8;
-    margin-top: 0;
-    position: relative;
-}
-
-.bar-chart-x-axis .bar-x-label {
-    flex: 1;
-    text-align: center;
-    font-size: 0.95rem;
-    color: #334155;
-    font-weight: 700;
-    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    padding-bottom: 0;
 }
 
 .bar-item {
@@ -5028,6 +5009,7 @@ body.developer-view .sidebar-subtitle::after {
     max-width: 120px;
     padding: 0 0.5rem;
     justify-content: flex-end;
+    position: relative;
 }
 
 .bar-wrapper {
@@ -5065,7 +5047,22 @@ body.developer-view .sidebar-subtitle::after {
 }
 
 .bar-label {
-    display: none; /* Labels moved to X-axis below */
+    font-size: 0.95rem;
+    color: #334155;
+    margin-top: 0.75rem;
+    text-transform: capitalize;
+    font-weight: 700;
+    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    position: absolute;
+    bottom: -2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    width: 100%;
+    text-align: center;
+    padding-top: 0.5rem;
+    border-top: 3px solid #94a3b8;
+    width: calc(100% + 1rem);
 }
 
 /* Karpenter Developer View */

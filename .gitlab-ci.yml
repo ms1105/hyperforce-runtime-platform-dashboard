@@ -5,10 +5,17 @@ pages:
   script:
     - echo "Deploying static files to GitLab Pages"
     - mkdir -p public
-    - cp -r *.html assets public/ 2>/dev/null || true
+    # Copy all HTML files
+    - cp *.html public/ 2>/dev/null || true
+    # Copy assets directory
+    - cp -r assets public/ 2>/dev/null || true
+    # Copy dist directory contents if it exists
     - cp -r dist/* public/ 2>/dev/null || true
-    # Ensure index.html is in the root
-    - if [ -f index.html ]; then cp index.html public/; fi
+    # List what was copied for debugging
+    - echo "Files in public directory:"
+    - ls -la public/ || true
+    - echo "Assets directory:"
+    - ls -la public/assets/ || true
   artifacts:
     paths:
       - public

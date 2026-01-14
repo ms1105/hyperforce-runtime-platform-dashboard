@@ -1273,8 +1273,13 @@
                                 
                                 try {
                                     console.log('Fetching HCP CTS data from static JSON file...');
+                                    // Detect base path for GitLab Pages
+                                    const basePath = window.location.pathname.split('/').slice(0, -1).join('/') || '';
+                                    console.log('Detected base path:', basePath);
+                                    
                                     // Try multiple possible paths for GitLab Pages
                                     const jsonPaths = [
+                                        basePath + '/assets/data/hcp-cts-forecast-actuals.json',
                                         'assets/data/hcp-cts-forecast-actuals.json',
                                         '/assets/data/hcp-cts-forecast-actuals.json',
                                         './assets/data/hcp-cts-forecast-actuals.json'

@@ -1373,10 +1373,12 @@
                                         throw new Error('Invalid JSON data structure - missing initiatives');
                                     }
                                     
+                                    clearTimeout(loadingTimeout);
                                     hcpCtsDataLoaded = true;
                                     // renderHCPCTSData will hide loading elements
                                     renderHCPCTSData(data);
                                 } catch (error) {
+                                    clearTimeout(loadingTimeout);
                                     console.error('Error loading HCP CTS data from JSON:', error);
                                     // Hide loading spinner and show error
                                     if (loadingDiv) {

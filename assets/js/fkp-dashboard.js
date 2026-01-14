@@ -7504,27 +7504,28 @@ async function showClusterNodes(clusterName, monthCode, clusterAvgCpu, environme
         }
     }
     
-    // Fetch node data from API (optional - will fallback to simulated nodes)
-    const apiUrl = window.BINPACKING_API_URL || 'http://localhost:3001';
+    // Fetch node data from API - use the nodes endpoint that returns device names
+    const apiUrl = window.BINPACKING_API_URL || '';
     let nodes = [];
     
     try {
-        // Try to fetch from API if available
-        const response = await fetch(`${apiUrl}/api/binpacking/data?cluster=${encodeURIComponent(clusterName)}&month=${encodeURIComponent(displayMonthName)}`, {
+        // Fetch actual node data from the nodes endpoint
+        const response = await fetch(`${apiUrl}/api/binpacking/nodes?cluster=${encodeURIComponent(clusterName)}&month=${encodeURIComponent(displayMonthName)}`, {
             mode: 'cors',
             headers: { 'Content-Type': 'application/json' }
         });
         
         if (response.ok) {
-            const data = await response.json();
-            if (data.clusters && data.clusters.length > 0) {
-                const clusterData = data.clusters[0];
-                const nodeCount = clusterData.nodeCount || 10;
-                nodes = generateSimulatedNodes(clusterName, avgCpu, nodeCount, environment);
+            const nodeData = await response.json();
+            if (nodeData && nodeData.length > 0) {
+                nodes = nodeData;
+                console.log(`✅ Fetched ${nodes.length} nodes for cluster ${clusterName}:`, nodes);
             } else {
+                console.log('⚠️ No node data returned, using simulated nodes');
                 nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
             }
         } else {
+            console.log(`⚠️ API returned ${response.status}, using simulated nodes`);
             nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
         }
     } catch (error) {
@@ -7566,7 +7567,7 @@ async function showClusterNodes(clusterName, monthCode, clusterAvgCpu, environme
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569; font-size: 0.875rem;">Node Name</th>
+                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569; font-size: 0.875rem;">Device Name</th>
                             <th style="padding: 0.75rem; text-align: right; font-weight: 600; color: #475569; font-size: 0.875rem;">Avg CPU (%)</th>
                             <th style="padding: 0.75rem; text-align: center; font-weight: 600; color: #475569; font-size: 0.875rem;">Status</th>
                         </tr>
@@ -7575,9 +7576,11 @@ async function showClusterNodes(clusterName, monthCode, clusterAvgCpu, environme
                         ${nodes.map(node => {
                             const statusClass = node.efficiencyClass;
                             const statusLabel = node.efficiencyIndicator;
+                            // Use device name if available, otherwise fall back to node.name
+                            const displayName = node.device || node.name || 'Unknown';
                             return `
                                 <tr style="border-bottom: 1px solid #e2e8f0;">
-                                    <td style="padding: 0.75rem; color: #1e293b; font-size: 0.875rem;">${node.name}</td>
+                                    <td style="padding: 0.75rem; color: #1e293b; font-size: 0.875rem;">${displayName}</td>
                                     <td style="padding: 0.75rem; text-align: right; color: #1e293b; font-size: 0.875rem; font-weight: 600;">${node.avgCpu.toFixed(1)}%</td>
                                     <td style="padding: 0.75rem; text-align: center;">
                                         <span class="efficiency-badge ${statusClass}" style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500;">

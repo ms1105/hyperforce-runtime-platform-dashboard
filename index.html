@@ -115,13 +115,13 @@
                     <h1>Hyperforce Runtime Platform 360</h1>
                     <p class="page-subtitle">Comprehensive platform performance, availability, and cost optimization</p>
                 </div>
-                <div class="header-controls">
+                <div class="header-controls" style="display: flex !important; visibility: visible !important; opacity: 1 !important;">
                     <!-- View Toggle -->
-                    <div class="view-toggle-container">
-                        <button class="view-mode-btn active" data-view="exec" onclick="switchViewMode('exec')">
+                    <div class="view-toggle-container" style="display: flex !important; visibility: visible !important; opacity: 1 !important;">
+                        <button class="view-mode-btn active" data-view="exec" onclick="switchViewMode('exec')" style="display: flex !important; visibility: visible !important; opacity: 1 !important;">
                             📊 Exec View
                         </button>
-                        <button class="view-mode-btn" data-view="developer" onclick="switchViewMode('developer')">
+                        <button class="view-mode-btn" data-view="developer" onclick="switchViewMode('developer')" style="display: flex !important; visibility: visible !important; opacity: 1 !important;">
                             🔧 Developer View
                         </button>
                     </div>
@@ -409,17 +409,6 @@
             <div class="content-layout">
                 <!-- Main Content Area -->
                 <main class="content-area">
-                <!-- View Controls -->
-                <div class="view-controls">
-                    <div class="view-toggles" id="view-toggles">
-                        <!-- Dynamic content based on active tab -->
-                    </div>
-                    <div class="loading-indicator" id="loading-indicator" style="display: none;">
-                        <span class="spinner"></span>
-                        Processing data...
-                    </div>
-                </div>
-
                 <!-- Tab Content -->
                 <div class="tab-content">
                     <!-- React Tabs Container (hidden by default, shown when React tab is active) -->

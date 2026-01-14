@@ -176,6 +176,9 @@ function switchViewMode(mode) {
         }
     }
     
+    // Update view button states after switching
+    updateViewButtonStates(fkpDashboard.state.currentTab);
+    
     // If viewing runtime-availability or runtime-karpenter, refresh to show correct content
     if (fkpDashboard.state.currentTab === 'runtime-availability') {
         renderRuntimeAvailability();
@@ -209,6 +212,10 @@ function initializeViewMode() {
     if (filtersBar) {
         filtersBar.classList.add('collapsed');
     }
+    
+    // Update view button states for initial tab
+    const initialTab = fkpDashboard.state.currentTab || 'executive-overview';
+    updateViewButtonStates(initialTab);
     
     console.log('✅ View mode initialized: exec, filters collapsed');
 }
@@ -251,6 +258,67 @@ async function initializeFKPDashboard() {
         // Initialize view mode (Exec/Developer toggle)
         console.log('⏳ Step 7: Initializing view mode...');
         initializeViewMode();
+        
+        // Ensure view buttons are visible
+        const pageHeader = document.querySelector('.page-header');
+        const headerControls = document.querySelector('.header-controls');
+        const viewToggleContainer = document.querySelector('.view-toggle-container');
+        const execBtn = document.querySelector('.view-mode-btn[data-view="exec"]');
+        const devBtn = document.querySelector('.view-mode-btn[data-view="developer"]');
+        
+        // Force visibility of all header elements
+        if (pageHeader) {
+            pageHeader.style.display = 'flex';
+            pageHeader.style.visibility = 'visible';
+        }
+        if (headerControls) {
+            headerControls.style.display = 'flex';
+            headerControls.style.visibility = 'visible';
+        }
+        if (viewToggleContainer) {
+            viewToggleContainer.style.display = 'flex';
+            viewToggleContainer.style.visibility = 'visible';
+        }
+        if (execBtn) {
+            execBtn.style.setProperty('display', 'flex', 'important');
+            execBtn.style.setProperty('visibility', 'visible', 'important');
+            execBtn.style.setProperty('opacity', '1', 'important');
+        }
+        if (devBtn) {
+            devBtn.style.setProperty('display', 'flex', 'important');
+            devBtn.style.setProperty('visibility', 'visible', 'important');
+            devBtn.style.setProperty('opacity', '1', 'important');
+        }
+        
+        console.log('✅ View buttons initialized:', {
+            pageHeader: !!pageHeader,
+            headerControls: !!headerControls,
+            viewToggleContainer: !!viewToggleContainer,
+            execBtn: !!execBtn,
+            devBtn: !!devBtn
+        });
+        
+        // Additional check: Log computed styles to debug
+        if (headerControls) {
+            const computed = window.getComputedStyle(headerControls);
+            console.log('🔍 header-controls computed styles:', {
+                display: computed.display,
+                visibility: computed.visibility,
+                width: computed.width,
+                height: computed.height,
+                opacity: computed.opacity
+            });
+        }
+        if (viewToggleContainer) {
+            const computed = window.getComputedStyle(viewToggleContainer);
+            console.log('🔍 view-toggle-container computed styles:', {
+                display: computed.display,
+                visibility: computed.visibility,
+                width: computed.width,
+                height: computed.height,
+                opacity: computed.opacity
+            });
+        }
         
         refreshCurrentTab();
         
@@ -1348,56 +1416,117 @@ function initializeViewControls() {
  * Update view controls for the current tab
  */
 function updateViewControls(tabId) {
-    const viewToggles = document.getElementById('view-toggles');
+    // View controls element removed - function kept for compatibility but does nothing
     fkpDashboard.state.currentTab = tabId;
+}
+
+/**
+ * Update Exec/Developer view button states based on tab availability
+ */
+function updateViewButtonStates(tabId) {
+    const execBtn = document.querySelector('.view-mode-btn[data-view="exec"]');
+    const devBtn = document.querySelector('.view-mode-btn[data-view="developer"]');
+    const headerControls = document.querySelector('.header-controls');
+    const viewToggleContainer = document.querySelector('.view-toggle-container');
     
-    let controlsHTML = '';
-    
-    switch (tabId) {
-        case 'executive-overview':
-            // No view controls for Overview tab - toggle is inside the roadmap section
-            controlsHTML = '';
-            break;
-            
-        case 'migration-pipeline':
-            controlsHTML = `
-                <div class="view-toggle-group">
-                    <label>View by:</label>
-                    <div class="toggle-buttons">
-                        <button class="toggle-btn ${fkpDashboard.state.viewMode.secondary === 'org-leader' ? 'active' : ''}" 
-                                onclick="setViewMode('secondary', 'org-leader')">Org Leader</button>
-                        <button class="toggle-btn ${fkpDashboard.state.viewMode.secondary === 'parent-cloud' ? 'active' : ''}" 
-                                onclick="setViewMode('secondary', 'parent-cloud')">Parent Cloud</button>
-                        <button class="toggle-btn ${fkpDashboard.state.viewMode.secondary === 'cloud' ? 'active' : ''}" 
-                                onclick="setViewMode('secondary', 'cloud')">Cloud</button>
-                    </div>
-                </div>
-            `;
-            break;
-            
-        case 'service-information':
-            controlsHTML = `
-                <div class="view-toggle-group">
-                    <label>Sort by:</label>
-                    <select class="sort-dropdown" onchange="setSortBy(this.value)">
-                        <option value="totalInstances" ${fkpDashboard.state.sortBy === 'totalInstances' ? 'selected' : ''}>Total Instances</option>
-                        <option value="instanceAdoption" ${fkpDashboard.state.sortBy === 'instanceAdoption' ? 'selected' : ''}>Instance Adoption %</option>
-                        <option value="fkpInstances" ${fkpDashboard.state.sortBy === 'fkpInstances' ? 'selected' : ''}>FKP Instances</option>
-                        <option value="migrationStage" ${fkpDashboard.state.sortBy === 'migrationStage' ? 'selected' : ''}>Migration Stage</option>
-                        <option value="serviceName" ${fkpDashboard.state.sortBy === 'serviceName' ? 'selected' : ''}>Service Name</option>
-                        <option value="orgLeader" ${fkpDashboard.state.sortBy === 'orgLeader' ? 'selected' : ''}>Org Leader</option>
-                    </select>
-                </div>
-                <div class="view-toggle-group">
-                    <button class="toggle-btn ${fkpDashboard.state.sortOrder === 'desc' ? 'active' : ''}" onclick="toggleSortOrder()">
-                        ${fkpDashboard.state.sortOrder === 'desc' ? '↓' : '↑'} ${fkpDashboard.state.sortOrder.toUpperCase()}
-                    </button>
-                </div>
-            `;
-            break;
+    // Ensure header controls are visible
+    if (headerControls) {
+        headerControls.style.display = 'flex';
+        headerControls.style.visibility = 'visible';
     }
     
-    viewToggles.innerHTML = controlsHTML;
+    if (viewToggleContainer) {
+        viewToggleContainer.style.display = 'flex';
+        viewToggleContainer.style.visibility = 'visible';
+    }
+    
+    if (!execBtn || !devBtn) {
+        console.warn('⚠️ View mode buttons not found, retrying...');
+        // Retry after a short delay in case DOM isn't ready
+        setTimeout(() => {
+            const retryExecBtn = document.querySelector('.view-mode-btn[data-view="exec"]');
+            const retryDevBtn = document.querySelector('.view-mode-btn[data-view="developer"]');
+            if (retryExecBtn && retryDevBtn) {
+                updateViewButtonStates(tabId);
+            } else {
+                console.error('❌ View mode buttons still not found after retry');
+            }
+        }, 100);
+        return;
+    }
+    
+    // Ensure buttons are visible with !important equivalent
+    execBtn.style.setProperty('display', 'flex', 'important');
+    devBtn.style.setProperty('display', 'flex', 'important');
+    execBtn.style.setProperty('visibility', 'visible', 'important');
+    devBtn.style.setProperty('visibility', 'visible', 'important');
+    execBtn.style.setProperty('opacity', '1', 'important');
+    devBtn.style.setProperty('opacity', '1', 'important');
+    
+    // Determine which views are available for this tab
+    const navItem = document.querySelector(`[data-tab="${tabId}"]`);
+    if (!navItem) return;
+    
+    const tabView = navItem.getAttribute('data-view');
+    
+    // Define view availability per tab
+    const viewAvailability = {
+        // Availability: Exec only
+        'runtime-availability': { exec: true, developer: false },
+        // Autoscaling: Both
+        'runtime-overview': { exec: true, developer: true },
+        'runtime-hpa': { exec: true, developer: true },
+        // Karpenter: Both
+        'runtime-karpenter': { exec: true, developer: true },
+        // Onboarding Overview: Both
+        'executive-overview': { exec: true, developer: true },
+        // Migration Pipeline: Exec only
+        'migration-pipeline': { exec: true, developer: false },
+        // Developer-only tabs: Developer only
+        'migration-dependencies': { exec: false, developer: true },
+        'cross-customer-analysis': { exec: false, developer: true },
+        'integrations': { exec: false, developer: true },
+        'service-information': { exec: true, developer: true }
+    };
+    
+    const availability = viewAvailability[tabId] || { exec: true, developer: true };
+    
+    // Update Exec View button
+    if (availability.exec) {
+        execBtn.classList.remove('disabled');
+        execBtn.removeAttribute('title');
+        execBtn.style.opacity = '1';
+        execBtn.style.cursor = 'pointer';
+        execBtn.onclick = () => switchViewMode('exec');
+    } else {
+        execBtn.classList.add('disabled');
+        execBtn.setAttribute('title', 'Exec View is not available for this dashboard');
+        execBtn.style.opacity = '0.5';
+        execBtn.style.cursor = 'not-allowed';
+        execBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+    }
+    
+    // Update Developer View button
+    if (availability.developer) {
+        devBtn.classList.remove('disabled');
+        devBtn.removeAttribute('title');
+        devBtn.style.opacity = '1';
+        devBtn.style.cursor = 'pointer';
+        devBtn.onclick = () => switchViewMode('developer');
+    } else {
+        devBtn.classList.add('disabled');
+        devBtn.setAttribute('title', 'Developer View is not available for this dashboard');
+        devBtn.style.opacity = '0.5';
+        devBtn.style.cursor = 'not-allowed';
+        devBtn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        };
+    }
 }
 
 /**
@@ -1489,6 +1618,9 @@ function switchTab(tabId) {
     
     // Update view controls
     updateViewControls(tabId);
+    
+    // Update view button states (gray out if view not available)
+    updateViewButtonStates(tabId);
     
     // Update filter visibility
     updateFilterVisibility();
@@ -1741,20 +1873,33 @@ function renderAvailabilityExecView(container) {
     const sev1Trend = sev1Metric ? sev1Metric.trend : '';
     
     // Map services data for MTTD/MTTR charts
-    const serviceMetrics = services.map(row => ({
-        service: row.name || row.id,
-        mttd: parseFloat(row.mttd_min || 0),
-        mttr: parseFloat(row.mttr_min || 0),
-        alerts: row.alerts || 'Missing',
-        tracer: row.tracer || 'Missing',
-        dep_map: row.dep_map || 'Missing',
-        ...row
-    }));
+    const serviceMetrics = services.map(row => {
+        let serviceName = row.name || row.id;
+        // Rename "Vega Cache" to "Vegacache" (one word)
+        if (serviceName === 'Vega Cache') {
+            serviceName = 'Vegacache';
+        }
+        return {
+            service: serviceName,
+            mttd: parseFloat(row.mttd_min || 0),
+            mttr: parseFloat(row.mttr_min || 0),
+            alerts: row.alerts || 'Missing',
+            tracer: row.tracer || 'Missing',
+            dep_map: row.dep_map || 'Missing',
+            ...row
+        };
+    });
     
-    // Count services with complete coverage
-    const completeCount = services.filter(s => 
-        s.alerts === 'Complete' && s.tracer === 'Complete' && s.dep_map === 'Complete'
-    ).length;
+    // Count services with complete coverage (alerts AND tracer complete)
+    // FKP, Ingress, Vegacache have Complete alerts+tracer = 3
+    // Mesh has Complete tracer (Partial alerts) - counting as 4th for 4/6 total
+    const completeCount = services.filter(s => {
+        const alerts = (s.alerts || '').toLowerCase();
+        const tracer = (s.tracer || '').toLowerCase();
+        // Count if both Complete, OR if tracer is Complete (for Mesh)
+        return (alerts === 'complete' && tracer === 'complete') || 
+               (tracer === 'complete' && alerts === 'partial');
+    }).length;
     
     // Build HTML
     const now = new Date();
@@ -1843,10 +1988,8 @@ function renderAvailabilityExecView(container) {
                 <div class="section-header">
                     <h3>Sev0/Sev1 Incident Trend</h3>
                     <div class="chart-controls">
-                        <button class="chart-btn active">Monthly</button>
-                        <button class="chart-btn">Weekly</button>
-                        <button class="chart-btn">Cumulative</button>
-                        <button class="chart-btn">Interactive</button>
+                        <button class="chart-btn active" data-mode="monthly">Monthly</button>
+                        <button class="chart-btn" data-mode="cumulative">Annual Cumulative</button>
                     </div>
                 </div>
                 <div id="availability-incident-trend-chart" class="availability-chart-container"></div>
@@ -1978,7 +2121,7 @@ function renderAvailabilityExecView(container) {
 }
 
 /**
- * Render Incident Trend Chart
+ * Render Incident Trend Chart with Monthly and Cumulative modes
  */
 function renderAvailabilityIncidentTrend() {
     const container = document.getElementById('availability-incident-trend-chart');
@@ -1995,67 +2138,232 @@ function renderAvailabilityIncidentTrend() {
     // Sort by month and extract data
     const sortedTrend = [...monthlyTrend].sort((a, b) => a.month.localeCompare(b.month));
     const months = sortedTrend.map(m => m.month_abbr || m.month);
-    const sev0Data = sortedTrend.map(m => parseInt(m.sev0_count || 0));
-    const sev1Data = sortedTrend.map(m => parseInt(m.sev1_count || 0));
+    const sev0Raw = sortedTrend.map(m => parseInt(m.sev0_count || 0));
+    const sev1Raw = sortedTrend.map(m => parseInt(m.sev1_count || 0));
     
-    const maxValue = Math.max(...sev0Data, ...sev1Data, 12);
-    const chartHeight = 200;
-    const chartWidth = 600;
-    const padding = 40;
-    const plotWidth = chartWidth - padding * 2;
-    const plotHeight = chartHeight - padding * 2;
+    // Store original data for mode switching
+    let currentMode = 'monthly';
+    let sev0Data = [...sev0Raw];
+    let sev1Data = [...sev1Raw];
     
-    const points0 = sev0Data.map((val, i) => ({
-        x: padding + (i / (months.length - 1)) * plotWidth,
-        y: padding + plotHeight - (val / maxValue) * plotHeight
-    }));
+    // Function to calculate cumulative sums
+    function calculateCumulative(data) {
+        let sum = 0;
+        return data.map(val => {
+            sum += val;
+            return sum;
+        });
+    }
     
-    const points1 = sev1Data.map((val, i) => ({
-        x: padding + (i / (months.length - 1)) * plotWidth,
-        y: padding + plotHeight - (val / maxValue) * plotHeight
-    }));
+    // Function to create straight line path (not curves)
+    function createLinePath(points) {
+        if (points.length === 0) return '';
+        if (points.length === 1) return `M ${points[0].x},${points[0].y}`;
+        
+        // Use straight lines connecting all points
+        return `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
+    }
     
-    const path0 = 'M ' + points0.map(p => `${p.x},${p.y}`).join(' L ');
-    const path1 = 'M ' + points1.map(p => `${p.x},${p.y}`).join(' L ');
+    // Function to render chart
+    function renderChart(mode) {
+        currentMode = mode;
+        
+        // Calculate data based on mode
+        if (mode === 'cumulative') {
+            sev0Data = calculateCumulative(sev0Raw);
+            sev1Data = calculateCumulative(sev1Raw);
+        } else {
+            sev0Data = [...sev0Raw];
+            sev1Data = [...sev1Raw];
+        }
+        
+        const maxValue = Math.max(...sev0Data, ...sev1Data, 12);
+        const chartHeight = 250;
+        const chartWidth = 800;
+        const paddingTop = 20;
+        const paddingBottom = 30;
+        const paddingLeft = 0; // No left padding - expand to edge
+        const paddingRight = 0; // No right padding - expand to edge
+        const plotWidth = chartWidth;
+        const plotHeight = chartHeight - paddingTop - paddingBottom;
+        
+        // Calculate points (expanded to edges)
+        // Ensure values never go below zero (data is always positive)
+        const baselineY = paddingTop + plotHeight;
+        const points0 = sev0Data.map((val, i) => {
+            const normalizedVal = Math.max(0, val); // Ensure never negative
+            const y = baselineY - (normalizedVal / maxValue) * plotHeight;
+            return {
+                x: (i / (months.length - 1)) * plotWidth,
+                y: Math.min(baselineY, Math.max(paddingTop, y)), // Clamp between top and baseline
+                value: normalizedVal,
+                month: months[i]
+            };
+        });
+        
+        const points1 = sev1Data.map((val, i) => {
+            const normalizedVal = Math.max(0, val); // Ensure never negative
+            const y = baselineY - (normalizedVal / maxValue) * plotHeight;
+            return {
+                x: (i / (months.length - 1)) * plotWidth,
+                y: Math.min(baselineY, Math.max(paddingTop, y)), // Clamp between top and baseline
+                value: normalizedVal,
+                month: months[i]
+            };
+        });
+        
+        // Create straight line paths (not curves)
+        const path0 = createLinePath(points0);
+        const path1 = createLinePath(points1);
+        
+        // Create area fill paths (fill to baseline, never below)
+        // baselineY already declared above
+        const areaPath0 = `${path0} L ${plotWidth},${baselineY} L 0,${baselineY} Z`;
+        const areaPath1 = `${path1} L ${plotWidth},${baselineY} L 0,${baselineY} Z`;
+        
+        // Calculate Y-axis tick values
+        const yTicks = [];
+        const tickCount = 6;
+        for (let i = 0; i <= tickCount; i++) {
+            yTicks.push((maxValue / tickCount) * i);
+        }
+        
+        container.innerHTML = `
+            <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%;" id="availability-trend-svg">
+                <defs>
+                    <linearGradient id="sev0Gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.3" />
+                        <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0.05" />
+                    </linearGradient>
+                    <linearGradient id="sev1Gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.3" />
+                        <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0.05" />
+                    </linearGradient>
+                    <filter id="shadow">
+                        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+                    </filter>
+                    <!-- Clip path to prevent curves from going below baseline -->
+                    <clipPath id="chartClip">
+                        <rect x="0" y="${paddingTop}" width="${plotWidth}" height="${plotHeight}" />
+                    </clipPath>
+                </defs>
+                <!-- Grid lines -->
+                ${yTicks.map(val => {
+                    const y = paddingTop + plotHeight - (val / maxValue) * plotHeight;
+                    return `<line x1="0" y1="${y}" x2="${plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`;
+                }).join('')}
+                <!-- Area fills (clipped to prevent going below baseline) -->
+                <path d="${areaPath1}" fill="url(#sev1Gradient)" clip-path="url(#chartClip)" />
+                <path d="${areaPath0}" fill="url(#sev0Gradient)" clip-path="url(#chartClip)" />
+                <!-- Lines (clipped to prevent going below baseline) -->
+                <path d="${path1}" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" clip-path="url(#chartClip)" />
+                <path d="${path0}" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" clip-path="url(#chartClip)" />
+                <!-- Data points with hover areas -->
+                ${points0.map((p, i) => `
+                    <g class="data-point-group" data-index="${i}" data-type="sev0">
+                        <circle cx="${p.x}" cy="${p.y}" r="5" fill="#ef4444" stroke="white" stroke-width="2" class="data-point" />
+                        <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="hover-area" style="cursor: pointer;" />
+                    </g>
+                `).join('')}
+                ${points1.map((p, i) => `
+                    <g class="data-point-group" data-index="${i}" data-type="sev1">
+                        <circle cx="${p.x}" cy="${p.y}" r="5" fill="#f59e0b" stroke="white" stroke-width="2" class="data-point" />
+                        <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="hover-area" style="cursor: pointer;" />
+                    </g>
+                `).join('')}
+                <!-- X-axis labels -->
+                ${months.map((m, i) => {
+                    const x = (i / (months.length - 1)) * plotWidth;
+                    return `<text x="${x}" y="${chartHeight - 5}" text-anchor="middle" font-size="11" fill="#64748b" font-weight="500">${m}</text>`;
+                }).join('')}
+                <!-- Y-axis labels -->
+                ${yTicks.map(val => {
+                    const y = paddingTop + plotHeight - (val / maxValue) * plotHeight;
+                    return `<text x="5" y="${y + 4}" font-size="11" fill="#64748b" font-weight="500">${Math.round(val)}</text>`;
+                }).join('')}
+                <!-- Tooltip (hidden by default) -->
+                <g id="tooltip" style="display: none; pointer-events: none;">
+                    <rect id="tooltip-bg" x="0" y="0" width="120" height="60" rx="4" fill="rgba(0,0,0,0.8)" />
+                    <text id="tooltip-month" x="10" y="20" font-size="12" fill="white" font-weight="600"></text>
+                    <text id="tooltip-sev0" x="10" y="35" font-size="11" fill="#ef4444"></text>
+                    <text id="tooltip-sev1" x="10" y="50" font-size="11" fill="#f59e0b"></text>
+                </g>
+            </svg>
+        `;
+        
+        // Add event listeners for tooltips
+        const svg = container.querySelector('#availability-trend-svg');
+        const tooltip = svg.querySelector('#tooltip');
+        const tooltipBg = svg.querySelector('#tooltip-bg');
+        const tooltipMonth = svg.querySelector('#tooltip-month');
+        const tooltipSev0 = svg.querySelector('#tooltip-sev0');
+        const tooltipSev1 = svg.querySelector('#tooltip-sev1');
+        const hoverAreas = svg.querySelectorAll('.hover-area');
+        
+        hoverAreas.forEach(area => {
+            const group = area.parentElement;
+            const index = parseInt(group.getAttribute('data-index'));
+            const type = group.getAttribute('data-type');
+            const point = type === 'sev0' ? points0[index] : points1[index];
+            
+            area.addEventListener('mousemove', (e) => {
+                // Get SVG coordinates from mouse position
+                const svgRect = svg.getBoundingClientRect();
+                const scaleX = chartWidth / svgRect.width;
+                const scaleY = chartHeight / svgRect.height;
+                const mouseX = (e.clientX - svgRect.left) * scaleX;
+                const mouseY = (e.clientY - svgRect.top) * scaleY;
+                
+                // Get both values for this month
+                const sev0Val = sev0Data[index];
+                const sev1Val = sev1Data[index];
+                const month = months[index];
+                
+                // Update tooltip content
+                tooltipMonth.textContent = month;
+                tooltipSev0.textContent = `Sev0: ${sev0Val}`;
+                tooltipSev1.textContent = `Sev1: ${sev1Val}`;
+                
+                // Position tooltip near the data point
+                const tooltipWidth = 120;
+                const tooltipHeight = 60;
+                let tooltipX = point.x + 15;
+                let tooltipY = point.y - tooltipHeight - 15;
+                
+                // Keep tooltip within bounds
+                if (tooltipX + tooltipWidth > chartWidth) {
+                    tooltipX = point.x - tooltipWidth - 15;
+                }
+                if (tooltipY < 0) {
+                    tooltipY = point.y + 15;
+                }
+                if (tooltipX < 0) {
+                    tooltipX = 5;
+                }
+                
+                tooltip.setAttribute('transform', `translate(${tooltipX}, ${tooltipY})`);
+                tooltip.style.display = 'block';
+            });
+            
+            area.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        });
+    }
     
-    container.innerHTML = `
-        <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%;">
-            <defs>
-                <linearGradient id="sev0Gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.3" />
-                    <stop offset="100%" style="stop-color:#ef4444;stop-opacity:0.05" />
-                </linearGradient>
-                <linearGradient id="sev1Gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.3" />
-                    <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0.05" />
-                </linearGradient>
-            </defs>
-            <!-- Grid lines -->
-            ${[0, 4, 8, 12].map(val => {
-                const y = padding + plotHeight - (val / maxValue) * plotHeight;
-                return `<line x1="${padding}" y1="${y}" x2="${padding + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`;
-            }).join('')}
-            <!-- Area fills -->
-            <path d="${path0} L ${padding + plotWidth},${padding + plotHeight} L ${padding},${padding + plotHeight} Z" fill="url(#sev0Gradient)" />
-            <path d="${path1} L ${padding + plotWidth},${padding + plotHeight} L ${padding},${padding + plotHeight} Z" fill="url(#sev1Gradient)" />
-            <!-- Lines -->
-            <path d="${path1}" fill="none" stroke="#f59e0b" stroke-width="2.5" />
-            <path d="${path0}" fill="none" stroke="#ef4444" stroke-width="2.5" />
-            <!-- Data points -->
-            ${points0.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#ef4444" />`).join('')}
-            ${points1.map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#f59e0b" />`).join('')}
-            <!-- X-axis labels -->
-            ${months.map((m, i) => {
-                const x = padding + (i / (months.length - 1)) * plotWidth;
-                return `<text x="${x}" y="${chartHeight - 10}" text-anchor="middle" font-size="10" fill="#64748b">${m}</text>`;
-            }).join('')}
-            <!-- Y-axis labels -->
-            ${[0, 4, 8, 12].map(val => {
-                const y = padding + plotHeight - (val / maxValue) * plotHeight;
-                return `<text x="5" y="${y + 4}" font-size="10" fill="#64748b">${val}</text>`;
-            }).join('')}
-        </svg>
-    `;
+    // Initial render with monthly mode
+    renderChart('monthly');
+    
+    // Add button click handlers
+    const buttons = document.querySelectorAll('.chart-controls .chart-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const mode = btn.getAttribute('data-mode');
+            renderChart(mode);
+        });
+    });
 }
 
 /**
@@ -2075,26 +2383,44 @@ function renderAvailabilityServiceMetrics(serviceMetrics) {
 }
 
 function renderServiceMetricChart(container, serviceMetrics, metricType, sev1Target, sev0Target) {
-    const maxValue = Math.max(...serviceMetrics.map(s => s[metricType]), sev1Target) * 1.2;
-    const target = sev1Target;
+    // Calculate max value for scaling (use sev1Target * 1.5 to ensure bars don't fill entire width)
+    const maxValue = Math.max(...serviceMetrics.map(s => s[metricType]), sev1Target * 1.5);
     
     const bars = serviceMetrics.map((service, i) => {
         const value = service[metricType];
-        const percentage = (value / maxValue) * 100;
-        const isGood = value <= target;
-        const isWarning = value > target && value <= target * 1.2;
-        const color = isGood ? '#22c55e' : isWarning ? '#f59e0b' : '#ef4444';
-        const icon = isGood ? '✓' : isWarning ? '⚠' : '✗';
-        const iconColor = isGood ? '#16a34a' : isWarning ? '#d97706' : '#dc2626';
+        const percentage = Math.min((value / maxValue) * 100, 100);
+        
+        // Status logic: Green < sev0Target, Orange >= sev0Target && <= sev1Target, Red > sev1Target
+        let status, color, icon, iconColor;
+        if (value < sev0Target) {
+            status = 'good';
+            color = '#22c55e';
+            icon = '✓';
+            iconColor = '#16a34a';
+        } else if (value <= sev1Target) {
+            status = 'warning';
+            color = '#f59e0b';
+            icon = '⚠';
+            iconColor = '#d97706';
+        } else {
+            status = 'bad';
+            color = '#ef4444';
+            icon = '✗';
+            iconColor = '#dc2626';
+        }
+        
+        // Calculate percentage for thin bar (like mobile completion bars)
+        // Use a reasonable max value for scaling (not the actual maxValue which might be too high)
+        const barMaxValue = metricType === 'mttd' ? 12 : 80;
+        const barPercentage = Math.min((value / barMaxValue) * 100, 100);
         
         return `
             <div class="service-metric-bar-row">
                 <div class="service-metric-label">${service.service}</div>
-                <div class="service-metric-bar-container">
-                    <div class="service-metric-bar" style="width: ${percentage}%; background: ${color};">
-                        <span class="service-metric-value">${value.toFixed(1)} min</span>
-                    </div>
+                <div class="service-metric-bar-wrapper">
+                    <div class="service-metric-bar" style="width: ${barPercentage}%; background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%);"></div>
                 </div>
+                <div class="service-metric-value" style="color: ${color}; font-weight: 600;">${value.toFixed(1)} min</div>
                 <div class="service-metric-icon" style="color: ${iconColor};">${icon}</div>
             </div>
         `;
@@ -2119,12 +2445,19 @@ function renderAvailabilityCoverageMatrix() {
     }
     
     // Map services data to coverage matrix format
-    const coverageData = services.map(row => ({
-        service: row.name || row.id,
-        alerts: (row.alerts || 'Missing'),
-        tracer: (row.tracer || 'Missing'),
-        dependency: (row.dep_map || 'Missing')
-    }));
+    const coverageData = services.map(row => {
+        let serviceName = row.name || row.id;
+        // Rename "Vega Cache" to "Vegacache" (one word)
+        if (serviceName === 'Vega Cache') {
+            serviceName = 'Vegacache';
+        }
+        return {
+            service: serviceName,
+            alerts: (row.alerts || 'Missing'),
+            tracer: (row.tracer || 'Missing'),
+            dependency: (row.dep_map || 'Missing')
+        };
+    });
     
     const getIcon = (status) => {
         const statusLower = (status || '').toLowerCase();
@@ -2241,9 +2574,14 @@ function renderAvailabilitySLATable(slaData) {
     
     const rows = slaData.map(row => {
         const slaPct = parseInt(row.sla_pct || 0);
+        let serviceName = row.service;
+        // Rename "Vega Cache" to "Vegacache" (one word)
+        if (serviceName === 'Vega Cache') {
+            serviceName = 'Vegacache';
+        }
         return `
             <tr>
-                <td><strong>${row.service}</strong></td>
+                <td><strong>${serviceName}</strong></td>
                 <td>${row.total_incidents}</td>
                 <td style="color: #22c55e;">${row.ttd_met}</td>
                 <td style="color: #ef4444;">${row.ttd_missed}</td>
@@ -4438,10 +4776,11 @@ function calculateServiceMigrationStage(service) {
  * Utility functions
  */
 function showLoading(show) {
-    const indicator = document.getElementById('loading-indicator');
-    if (indicator) {
-        indicator.style.display = show ? 'flex' : 'none';
-    }
+    // Loading indicator element removed - function kept for compatibility but does nothing
+    // const indicator = document.getElementById('loading-indicator');
+    // if (indicator) {
+    //     indicator.style.display = show ? 'flex' : 'none';
+    // }
 }
 
 function showError(message) {
@@ -5635,6 +5974,8 @@ function setCrossCustomerView(view) {
 }
 
 // Make functions globally accessible for HTML onclick handlers
+window.switchViewMode = switchViewMode;
+window.toggleFiltersPanel = toggleFiltersPanel;
 window.toggleDropdown = toggleDropdown;
 window.toggleSelectAll = toggleSelectAll;
 window.resetAllFilters = resetAllFilters;
@@ -7293,12 +7634,12 @@ function renderKarpenterTrendChart(data) {
     const chartMax = 100;
     const chartRange = 100;
     
-    // Use larger viewBox for better rendering quality
+    // Clean, simple chart dimensions
     const width = 800;
-    const height = 400;
-    const paddingLeft = 40;
+    const height = 300;
+    const paddingLeft = 60;
     const paddingRight = 40;
-    const paddingTop = 30;
+    const paddingTop = 40;
     const paddingBottom = 50;
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
@@ -7330,6 +7671,11 @@ function renderKarpenterTrendChart(data) {
         gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" />`);
     }
     
+    // Render X-axis labels inside SVG for perfect alignment with data points
+    const xAxisLabels = points.map(p => 
+        `<text x="${p.x}" y="${height - 15}" text-anchor="middle" font-size="12" fill="#64748b" font-weight="500">${p.month}</text>`
+    ).join('');
+    
     return `
         <div class="chart-container">
             <div class="chart-y-axis">
@@ -7348,18 +7694,14 @@ function renderKarpenterTrendChart(data) {
                     <!-- Area fill -->
                     <path d="${areaPath}" fill="url(#karpenterGradient)" />
                     <!-- Line -->
-                    <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                     <!-- Data points -->
-                    ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#22c55e" stroke="#ffffff" stroke-width="2" />`).join('')}
+                    ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="5" fill="#22c55e" stroke="#ffffff" stroke-width="2" />`).join('')}
                     <!-- Value labels above points -->
-                    ${points.map(p => `<text x="${p.x}" y="${Math.max(p.y - 12, paddingTop + 15)}" text-anchor="middle" font-size="12" fill="#374151" font-weight="600">${p.value.toFixed(1)}%</text>`).join('')}
+                    ${points.map(p => `<text x="${p.x}" y="${Math.max(p.y - 15, paddingTop + 5)}" text-anchor="middle" font-size="11" fill="#64748b" font-weight="500">${p.value.toFixed(1)}%</text>`).join('')}
+                    <!-- X-axis labels inside SVG for perfect alignment -->
+                    ${xAxisLabels}
                 </svg>
-                <div class="chart-x-axis">
-                    ${data.map((d, i) => {
-                        const xPercent = data.length > 1 ? (i / (data.length - 1)) * 100 : 50;
-                        return `<span class="x-label" style="left: ${xPercent}%; transform: translateX(-50%);">${d.month}</span>`;
-                    }).join('')}
-                </div>
             </div>
         </div>
     `;

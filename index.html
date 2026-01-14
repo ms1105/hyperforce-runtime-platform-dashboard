@@ -84,6 +84,9 @@
                         <div class="nav-subitem" data-tab="migration-pipeline" data-view="exec">
                             <span class="nav-text">Migration Pipeline</span>
                         </div>
+                        <div class="nav-subitem" data-tab="projections-roadmap" data-view="exec">
+                            <span class="nav-text">Projections & Roadmap</span>
+                        </div>
                         <div class="nav-subitem" data-tab="service-information" data-view="developer">
                             <span class="nav-text">Overview</span>
                         </div>
@@ -529,6 +532,21 @@
                                     <h3>Loading Migration Pipeline...</h3>
                                     <p>Analyzing service migration stages across FKP platform</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Projections & Roadmap Tab -->
+                    <div class="tab-pane" id="projections-roadmap">
+                        <div class="tab-header">
+                            <h2>📈 Projections & Roadmap</h2>
+                            <p>FKP Adoption Projections by Environment (FY26Q3 → FY27Q4)</p>
+                        </div>
+                        <div id="projections-roadmap-content">
+                            <div class="placeholder-message">
+                                <div class="placeholder-icon">📈</div>
+                                <h3>Loading Projections...</h3>
+                                <p>Analyzing adoption projections and roadmap data</p>
                             </div>
                         </div>
                     </div>
@@ -1292,7 +1310,7 @@
                                     console.log('HCP CTS data loaded from API:', data);
                                     hcpCtsDataLoaded = true;
                                     renderHCPCTSData(data);
-                            } catch (error) {
+                                } catch (error) {
                                 console.error('Error loading HCP CTS data:', error);
                                 const loadingDiv = document.getElementById('hcp-cts-loading');
                                 if (loadingDiv) {

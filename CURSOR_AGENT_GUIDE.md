@@ -12,10 +12,20 @@
 
 | Section | Owner | Description |
 |---------|-------|-------------|
-| **Onboarding** | Aravinth | FKP/Mesh adoption tracking, migration pipeline, service information |
-| **Runtime Scale & Availability** | TBD | HPA adoption, incidents, Multi-AZ, Karpenter |
+| **Onboarding** | Aravinth | FKP/Mesh adoption tracking, migration pipeline, projections & roadmap, service information |
+| **Runtime Scale & Availability** | TBD | HPA adoption, availability metrics, Karpenter |
 | **Cost to Serve** | TBD | Platform cost analysis, HCP FKP Addon costs |
-| **Self Serve** | TBD | Self-service tools (coming soon) |
+
+### Onboarding Tabs
+| Tab ID | Name | View Mode | Description |
+|--------|------|-----------|-------------|
+| `executive-overview` | Overview | Exec | High-level adoption metrics, roadmap timeline |
+| `migration-pipeline` | Migration Pipeline | Exec | 6-stage migration cross-tab |
+| `projections-roadmap` | Projections & Roadmap | Exec | Adoption projections FY26Q3→FY27Q4 |
+| `service-information` | Overview | Developer | Detailed service table with filters |
+| `migration-dependencies` | Migration Dependencies | Developer | Feature requirements analysis |
+| `cross-customer-analysis` | COGS Analysis | Developer | Cross-customer cost analysis |
+| `integrations` | Integrations | Developer | Integration services list |
 
 ---
 
@@ -199,6 +209,93 @@ fkpDashboard = {
 | `calculateGrowthProjections()` | Calculates next quarter growth based on timeline_requirements.csv |
 | `handleFilterChange()` | Manages filter updates with debouncing for multi-select UX |
 | `renderServiceInformationMetrics()` | Renders metrics cards for Service Information tab |
+| `renderProjectionsRoadmap()` | Renders Projections & Roadmap tab (Exec View) |
+| `loadProjectionsData()` | Loads roadmap CSV and calculates projections |
+
+---
+
+## 📈 Projections & Roadmap Tab
+
+### Overview
+The **Projections & Roadmap** tab (Exec View only) shows FKP adoption projections by environment from FY26Q3 to FY27Q4.
+
+### Tab Details
+| Property | Value |
+|----------|-------|
+| Tab ID | `projections-roadmap` |
+| View Mode | Exec View only |
+| Data-view attribute | `exec` |
+| Section | Onboarding |
+
+### Data Sources
+| File | Purpose |
+|------|---------|
+| `assets/data/FY26 Platform Backlog - Customer Adoption Roadmap - SoT.csv` | Service ETAs, decommission dates |
+| `fkp_adoption.csv` | Current quarter Commercial/GIA instances |
+| `fkp_adoption_prev_q.csv` | Previous quarter data (FY26Q3 baseline) |
+| `assets/data/blackjack_adoption_normalized.csv` | BlackJack current instances |
+| `assets/data/blackjack_adoption_prev_q_normalized.csv` | BlackJack previous quarter |
+
+### Roadmap CSV Columns
+| Column | Description |
+|--------|-------------|
+| `Service Name` | Service identifier |
+| `Org Leader` | Responsible org leader |
+| `Parent Cloud` | Parent cloud grouping |
+| `Cloud` | Cloud name |
+| `Team Name` | Team responsible |
+| `Commercial ETA` | FKP migration ETA for Commercial |
+| `Gia2h ETA` | FKP migration ETA for GIA |
+| `BlackJack ETA` | FKP migration ETA for BlackJack |
+| `Decommission ETA` | When service will be decommissioned |
+
+### ETA Parsing Logic
+```javascript
+function parseProjectionETA(eta) {
+    // Returns null for: 'N/A', 'Need More Info', 'Not Started', empty
+    // Returns 'DECOM' for: 'To Be Decommissioned'
+    // Returns 'CLEANUP' for: 'Completed with Clean-Up Required'
+    // Returns 'FYxxQx' for valid quarters
+}
+```
+
+### Projection Calculation
+```
+For each projected quarter (FY27Q1 → FY27Q4):
+  FKP_Q = Current_FKP + Σ(self-managed instances for ETAs ≤ Q)
+  Total_Q = Current_Total - Σ(instances for Decom ETAs ≤ Q)
+  Adoption_Q = FKP_Q / Total_Q * 100
+```
+
+### Key Functions
+| Function | Purpose |
+|----------|---------|
+| `renderProjectionsRoadmap()` | Main render function, shows loading state |
+| `loadProjectionsData()` | Loads roadmap CSV, calculates projections |
+| `calculateProjectionMetricsFromDashboard()` | Gets current metrics from instance data |
+| `calculatePrevQuarterMetrics()` | Calculates FY26Q3 baseline from raw data |
+| `calculateQuarterlyProjections()` | Cumulative projection calculation |
+| `buildServiceMapFromDashboard()` | Maps services to environment breakdowns |
+| `findServicesNeedingCompletion()` | Services with FKP but still have self-managed |
+| `findServicesNeedingGovcloud()` | Commercial FKP but GovCloud gaps |
+| `findServicesWithoutETAs()` | Services missing valid ETAs |
+| `renderProjectionsChart()` | SVG line chart with solid/dashed lines |
+
+### Tab Components
+1. **Metrics Cards** - Current adoption % for Commercial, GIA, BlackJack
+2. **Line Chart** - Projections by quarter (solid = actual, dashed = projected)
+3. **Analysis Tables** (side-by-side):
+   - Services Enabled - Need to Complete Adoption
+   - Services Enabled - GovCloud Adoption Gap
+4. **Clouds Needing ETA Alignment** - Aggregated by cloud
+
+### CSS Classes
+- `.projections-metrics-grid` - 3-column grid for metric cards
+- `.projections-metric-card` - Individual metric card with colored top border
+- `.projections-chart-container` - Chart wrapper
+- `.projections-analysis-grid` - 2-column grid for analysis tables
+- `.projections-analysis-section` - Individual analysis section
+- `.projections-table-scroll` - Scrollable table container
 
 ---
 
@@ -294,5 +391,5 @@ my-service,FY26Q2,FY26Q3,TBD,ARM support
 
 ---
 
-*Last Updated: December 2024*
+*Last Updated: January 2026*
 

@@ -5785,3 +5785,295 @@ body.developer-view .sidebar-subtitle::after {
         visibility: visible !important;
     }
 }
+
+/* ============================================
+   PROJECTIONS & ROADMAP TAB STYLES
+   ============================================ */
+
+.projections-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.projections-metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    border: 1px solid #e5e7eb;
+    position: relative;
+    overflow: hidden;
+}
+
+.projections-metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+}
+
+.projections-metric-card.commercial::before { background: #0176d3; }
+.projections-metric-card.gia::before { background: #9050e9; }
+.projections-metric-card.blackjack::before { background: #ea001e; }
+
+.projections-metric-card h3 {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.projections-metric-card .metric-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.projections-metric-card .metric-subtitle {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+}
+
+.projections-metric-card.commercial .metric-value { color: #0176d3; }
+.projections-metric-card.gia .metric-value { color: #9050e9; }
+.projections-metric-card.blackjack .metric-value { color: #ea001e; }
+
+.projections-chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.projections-chart-container h2 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.projections-chart-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.projections-chart-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #374151;
+}
+
+.projections-chart-legend .legend-color {
+    width: 20px;
+    height: 3px;
+    border-radius: 2px;
+}
+
+.projections-chart-legend .legend-color.commercial { background: #0176d3; }
+.projections-chart-legend .legend-color.gia { background: #9050e9; }
+.projections-chart-legend .legend-color.blackjack { background: #ea001e; }
+
+.projections-chart-legend .legend-line {
+    width: 20px;
+    height: 2px;
+    display: inline-block;
+    margin-right: 0.25rem;
+}
+
+.projections-chart-legend .legend-line.solid {
+    background: #6b7280;
+}
+
+.projections-chart-legend .legend-line.dashed {
+    background: repeating-linear-gradient(
+        90deg,
+        #6b7280 0,
+        #6b7280 4px,
+        transparent 4px,
+        transparent 8px
+    );
+}
+
+.projections-chart-svg {
+    width: 100%;
+    height: 380px;
+    position: relative;
+}
+
+.projections-chart-svg svg {
+    width: 100%;
+    height: 100%;
+}
+
+.projections-analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.projections-analysis-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+}
+
+.projections-analysis-section h2 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.projections-analysis-section .insight-icon {
+    width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.projections-analysis-section .section-subtitle {
+    color: #6b7280;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+}
+
+.projections-analysis-section .badge-count {
+    background: #f3f4f6;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    font-weight: 400;
+    color: #6b7280;
+}
+
+.projections-table-scroll {
+    flex: 1;
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.projections-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.projections-data-table th,
+.projections-data-table td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.projections-data-table th {
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    background: #f9fafb;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.projections-data-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.projections-summary-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.projections-summary-section h2 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    color: #f59e0b;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.projections-summary-section .section-subtitle {
+    color: #6b7280;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+}
+
+.projections-summary-section .badge-count {
+    background: rgba(245, 158, 11, 0.1);
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    font-weight: 400;
+    color: #f59e0b;
+}
+
+/* Environment badges for projections */
+.projections-data-table .env-badge,
+.projections-summary-section .env-badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    margin-right: 0.25rem;
+    font-weight: 500;
+}
+
+.env-badge.commercial {
+    background: rgba(1, 118, 211, 0.1);
+    color: #0176d3;
+}
+
+.env-badge.gia {
+    background: rgba(144, 80, 233, 0.1);
+    color: #9050e9;
+}
+
+.env-badge.blackjack {
+    background: rgba(234, 0, 30, 0.1);
+    color: #ea001e;
+}
+
+@media (max-width: 1200px) {
+    .projections-analysis-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .projections-metrics-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+}

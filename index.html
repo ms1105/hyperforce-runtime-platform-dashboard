@@ -23,9 +23,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Configure API URL for Cost to Serve (CTS) and Karpenter sections
-        // Both sections use http://localhost:8080 as API server
-        window.CTS_API_URL = 'http://localhost:8080';
-        window.BINPACKING_API_URL = 'http://localhost:8080';
+        // Use http://localhost:8080 only when accessed from localhost
+        // GitLab Pages users will see error messages directing them to localhost:8080
+        const hostname = window.location.hostname;
+        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+        
+        if (isLocalhost) {
+            // Running on localhost - use localhost:8080 for API
+            window.CTS_API_URL = 'http://localhost:8080';
+            window.BINPACKING_API_URL = 'http://localhost:8080';
+        } else {
+            // GitLab Pages or other remote access - still try localhost:8080
+            // Error messages will guide users to access via localhost:8080
+            window.CTS_API_URL = 'http://localhost:8080';
+            window.BINPACKING_API_URL = 'http://localhost:8080';
+        }
     </script>
 </head>
 <body>

@@ -7795,18 +7795,18 @@ function renderKarpenterTrendChart(data) {
         ? `M ${points[0].x},${axisBottom} L ${points.map(p => `${p.x},${p.y}`).join(' L ')} L ${points[points.length - 1].x},${axisBottom} Z`
         : '';
     
-    // Y-axis labels - ALWAYS 0% to 100% with 8% increments: 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%, 96%, 100%
+    // Y-axis labels - ALWAYS 0% to 100% with 20% increments: 0%, 20%, 40%, 60%, 80%, 100%
     // Position labels with small offset from edges to avoid clipping
     const labelOffsetTop = 8;
     const labelOffsetBottom = 8;
-    // Always show 0% to 100% in 8% increments (13 ticks total: 0, 8, 16, ..., 96, 100)
-    const yTickCount = 13; // 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%, 96%, 100%
+    // Always show 0% to 100% in 20% increments (6 ticks total: 0, 20, 40, 60, 80, 100)
+    const yTickCount = 6; // 0%, 20%, 40%, 60%, 80%, 100%
     const yLabels = [];
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
         // Values: Start from top (100%) and go down to bottom (0%)
         // i=0 should be 100% (top), i=yTickCount-1 should be 0% (bottom)
-        const value = 100 - (i * 8);
+        const value = 100 - (i * 20);
         // Position labels with small offset from top/bottom edges
         const y = labelOffsetTop + (axisHeight - labelOffsetTop - labelOffsetBottom) / (yTickCount - 1) * i;
         yLabels.push(`${value}%`);

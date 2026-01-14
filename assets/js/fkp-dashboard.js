@@ -7700,13 +7700,13 @@ function renderKarpenterTrendChart(data) {
     const chartMax = 100;
     const chartRange = 100;
     
-    // Large, beautiful chart dimensions
+    // Large, beautiful chart dimensions - no gaps, graph connects to axes
     const width = 1400;
     const height = 600;
     const paddingLeft = 100;
-    const paddingRight = 60;
-    const paddingTop = 70;
-    const paddingBottom = 90;
+    const paddingRight = 0;
+    const paddingTop = 0;
+    const paddingBottom = 80;
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
     
@@ -7720,9 +7720,9 @@ function renderKarpenterTrendChart(data) {
     });
     
     const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
-    const areaPath = `M ${paddingLeft},${paddingTop + plotHeight} L ${points.map(p => `${p.x},${p.y}`).join(' L ')} L ${paddingLeft + plotWidth},${paddingTop + plotHeight} Z`;
+    // No area fill - removed shaded background
     
-    // Generate Y-axis labels (0% to 100% in 20% steps)
+    // Generate Y-axis labels (0% to 100% in 20% steps) - positioned at axis
     const yLabels = ['100%', '80%', '60%', '40%', '20%', '0%'];
     const yPositions = [];
     for (let i = 0; i < 6; i++) {
@@ -7730,18 +7730,18 @@ function renderKarpenterTrendChart(data) {
         yPositions.push(y);
     }
     
-    // Generate horizontal grid lines (at 20%, 40%, 60%, 80%) - more beautiful styling
+    // Generate horizontal grid lines (at 20%, 40%, 60%, 80%) - extend to edges
     const gridLines = [];
     for (let i = 1; i < 5; i++) {
         const y = paddingTop + (plotHeight / 5) * i;
-        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" />`);
+        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${width}" y2="${y}" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" />`);
     }
     
-    // Add vertical grid lines for better readability
+    // Add vertical grid lines for better readability - extend to edges
     const verticalGridLines = [];
     for (let i = 0; i < points.length; i++) {
         const x = points[i].x;
-        verticalGridLines.push(`<line x1="${x}" y1="${paddingTop}" x2="${x}" y2="${paddingTop + plotHeight}" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="2,2" opacity="0.4" />`);
+        verticalGridLines.push(`<line x1="${x}" y1="0" x2="${x}" y2="${paddingTop + plotHeight}" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="2,2" opacity="0.4" />`);
     }
     
     // Render X-axis labels inside SVG - beautiful styling
@@ -7780,8 +7780,6 @@ function renderKarpenterTrendChart(data) {
                             <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
                         </linearGradient>
                     </defs>
-                    <!-- Background -->
-                    <rect x="${paddingLeft}" y="${paddingTop}" width="${plotWidth}" height="${plotHeight}" fill="#fafbfc" rx="4" />
                     <!-- Vertical grid lines -->
                     ${verticalGridLines.join('')}
                     <!-- Horizontal grid lines -->
@@ -7790,19 +7788,17 @@ function renderKarpenterTrendChart(data) {
                     ${yAxisLine}
                     <!-- X-axis line -->
                     ${xAxisLine}
-                    <!-- Area fill -->
-                    <path d="${areaPath}" fill="url(#karpenterGradient)" />
-                    <!-- Line with gradient -->
+                    <!-- Line with gradient - no area fill -->
                     <path d="${linePath}" fill="none" stroke="url(#lineGradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)" />
                     <!-- Data points with shadow effect -->
                     ${points.map(p => `
                         <circle cx="${p.x}" cy="${p.y}" r="9" fill="#ffffff" opacity="0.8" />
                         <circle cx="${p.x}" cy="${p.y}" r="8" fill="#22c55e" stroke="#ffffff" stroke-width="3" />
                     `).join('')}
-                    <!-- Value labels above points - beautiful styling -->
+                    <!-- Value labels above points -->
                     ${points.map(p => `
-                        <rect x="${p.x - 25}" y="${Math.max(p.y - 40, paddingTop - 5)}" width="50" height="22" rx="4" fill="#ffffff" opacity="0.95" stroke="#e2e8f0" stroke-width="1" />
-                        <text x="${p.x}" y="${Math.max(p.y - 25, paddingTop + 10)}" text-anchor="middle" font-size="14" fill="#1e293b" font-weight="700" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.value.toFixed(1)}%</text>
+                        <rect x="${p.x - 25}" y="${Math.max(p.y - 40, 5)}" width="50" height="22" rx="4" fill="#ffffff" opacity="0.95" stroke="#e2e8f0" stroke-width="1" />
+                        <text x="${p.x}" y="${Math.max(p.y - 25, 18)}" text-anchor="middle" font-size="14" fill="#1e293b" font-weight="700" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.value.toFixed(1)}%</text>
                     `).join('')}
                     <!-- X-axis labels inside SVG for perfect alignment -->
                     ${xAxisLabels}

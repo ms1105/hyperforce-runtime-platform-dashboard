@@ -7830,8 +7830,6 @@ function renderKarpenterTrendChart(data) {
                     <!-- Y-axis line removed - using CSS border-right on .chart-y-axis instead (like bar chart) -->
                     <!-- X-axis - connects to Y-axis at bottom, extends full width with NO GAPS -->
                     <line x1="${paddingLeft}" y1="${axisBottom}" x2="${paddingLeft + plotWidth}" y2="${axisBottom}" stroke="#64748b" stroke-width="2" />
-                    <!-- Y-axis bottom segment to connect with X-axis -->
-                    <line x1="${paddingLeft}" y1="${axisTop}" x2="${paddingLeft}" y2="${axisBottom}" stroke="#64748b" stroke-width="2" />
                     <!-- Trend line -->
                     <path d="${linePath}" fill="none" stroke="url(#trendLineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="trend-line-path" />
                     <!-- Data points -->

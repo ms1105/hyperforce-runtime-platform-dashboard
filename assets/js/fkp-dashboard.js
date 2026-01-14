@@ -7034,12 +7034,12 @@ function renderKarpenterExecView(container) {
     const avgCluster = clusterMetrics.avg;
     const avgEnv = envMetrics.avg;
     
-    // Calculate trends using the adjusted trendData (which shows improvement)
-    // This ensures metric cards match the trend chart
-    let trendFI = fiMetrics.trend;
-    let trendFD = fdMetrics.trend;
-    let trendCluster = clusterMetrics.trend;
-    let trendEnv = envMetrics.trend;
+    // Calculate trends for each dimension based on filtered data
+    // Each metric calculates its own trend comparing filtered data's April vs latest month
+    const trendFI = fiMetrics.trend;
+    const trendFD = fdMetrics.trend;
+    const trendCluster = clusterMetrics.trend;
+    const trendEnv = envMetrics.trend;
     
     // Build trend chart data: Average % across all FIs, FDs, Clusters for each month (April to October)
     // This aggregates data respecting all current filters

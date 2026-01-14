@@ -7058,67 +7058,38 @@ function renderKarpenterExecView(container) {
     const trendCluster = clusterMetrics.trend;
     const trendEnv = envMetrics.trend;
     
-    // Build trend chart data from filtered main summary (already have filteredData above)
-    const monthlyAgg = {};
-    filteredData.forEach(r => {
-        const key = r.month;
-        if (!monthlyAgg[key]) {
-            monthlyAgg[key] = { month: r.month, month_name: r.month_name, sum: 0, count: 0 };
-        }
-        monthlyAgg[key].sum += parseFloat(r.avg_cpu || 0);
-        monthlyAgg[key].count += 1;
-    });
-    // Calculate monthly averages and ensure improvement trend from April baseline
-    const monthOrder = ['April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const monthlyValues = monthOrder.map(monthName => {
-        const monthData = Object.values(monthlyAgg).find(m => m.month_name === monthName);
-        return monthData && monthData.count > 0 ? (monthData.sum / monthData.count) : null;
-    });
+    // Build trend chart data: Average % across all FIs, FDs, Clusters for each month (April to October)
+    // This aggregates data respecting all current filters
+    const monthOrder = ['April', 'May', 'June', 'July', 'August', 'September', 'October'];
+    const monthCodeMap = {
+        'April': '2025-04',
+        'May': '2025-05',
+        'June': '2025-06',
+        'July': '2025-07',
+        'August': '2025-08',
+        'September': '2025-09',
+        'October': '2025-10'
+    };
     
-    // Find April baseline (or first available month)
-    let baseline = null;
-    let baselineIndex = -1;
-    for (let i = 0; i < monthlyValues.length; i++) {
-        if (monthlyValues[i] !== null) {
-            baseline = monthlyValues[i];
-            baselineIndex = i;
-            break;
-        }
-    }
-    
-    // Calculate trend ensuring improvement from baseline
-    let previousValue = baseline || 0;
-    const trendData = monthOrder.map((monthName, index) => {
-        const rawValue = monthlyValues[index];
-        let displayValue = rawValue;
+    // Calculate average for each month from filtered data
+    const trendData = monthOrder.map(monthName => {
+        const monthCode = monthCodeMap[monthName];
+        // Filter data for this specific month (but respect other filters)
+        const monthData = filteredData.filter(r => r.month === monthCode);
         
-        if (rawValue !== null) {
-            // Ensure improvement: each month should be >= previous month
-            if (displayValue < previousValue) {
-                // If current month is lower, use previous + small increment to show improvement
-                displayValue = previousValue + 0.1;
-            }
-            previousValue = displayValue;
-        } else if (index > baselineIndex && baseline !== null) {
-            // Interpolate missing months - show improvement trend
-            const progress = (index - baselineIndex) / (monthlyValues.length - baselineIndex - 1);
-            const expectedImprovement = baseline * 0.08; // 8% improvement target
-            displayValue = Math.max(baseline + (expectedImprovement * progress), previousValue);
-            previousValue = displayValue;
-        } else {
-            displayValue = 0;
+        if (monthData.length === 0) {
+            return null;
         }
+        
+        // Calculate average CPU across all records for this month
+        const sum = monthData.reduce((acc, r) => acc + parseFloat(r.avg_cpu || 0), 0);
+        const avg = sum / monthData.length;
         
         return {
             month: monthName,
-            value: displayValue
+            value: avg
         };
-    }).filter(d => {
-        // Include all months that have data OR are part of the improvement trend
-        // This ensures April baseline is always shown even if value is 0
-        const monthIndex = monthOrder.indexOf(d.month);
-        return monthIndex >= baselineIndex && (d.value > 0 || monthIndex === baselineIndex);
-    });
+    }).filter(d => d !== null); // Only include months with data
     
     // Build environment bar chart data - aggregate by environment from filtered data
     const envAgg = {};

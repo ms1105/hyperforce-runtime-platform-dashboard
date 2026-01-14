@@ -4889,8 +4889,8 @@ body.developer-view .sidebar-subtitle::after {
     flex: 1;
     width: 100%;
     height: auto;
-    max-height: 550px;
-    min-height: 500px;
+    max-height: 350px;
+    min-height: 320px;
     border-radius: 0;
     overflow: visible;
     display: block;

@@ -7752,9 +7752,9 @@ function renderKarpenterTrendChart(data) {
         return '<div class="no-data" style="padding: 2rem; text-align: center; color: #64748b;">No trend data available for selected filters</div>';
     }
     
-    // Chart dimensions - remove gaps by setting padding to 0 for axes
+    // Chart dimensions - smaller height, matching bar chart style
     const width = 1000;
-    const height = 400;
+    const height = 320; // Reduced height
     const paddingLeft = 70;
     const paddingRight = 30;
     const paddingTop = 0; // No top padding - axis starts at top

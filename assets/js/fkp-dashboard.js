@@ -7771,16 +7771,17 @@ function renderKarpenterTrendChart(data) {
     const chartMax = 100;
     const chartRange = chartMax - chartMin;
     
-    // Define axis boundaries - no gaps, axes connect at corners
-    const axisTop = 20; // Space for top label
-    const axisBottom = height - 20; // Space for bottom label (0%)
+    // Define axis boundaries - NO GAPS, axes connect at exact corners
+    const axisTop = 0; // Start at very top - no gap
+    const axisBottom = height; // End at very bottom - no gap
     const axisHeight = axisBottom - axisTop;
     
-    // Generate points - use axis boundaries for positioning
-    const pointSpacing = data.length > 1 ? plotWidth / (data.length - 1) : plotWidth;
+    // Generate points - use axis boundaries for positioning, first point at Y-axis, last at right edge
+    const pointSpacing = data.length > 1 ? plotWidth / (data.length - 1) : 0;
     const points = data.map((d, i) => {
+        // First point starts exactly at Y-axis (paddingLeft), last point extends to right edge
         const x = paddingLeft + (i * pointSpacing);
-        // Map value to axis height (from axisTop to axisBottom)
+        // Map value to axis height (from axisTop to axisBottom) - 0% at bottom, 100% at top
         const y = axisTop + axisHeight - (((d.value - chartMin) / chartRange) * axisHeight);
         return { x, y, value: d.value, month: d.month };
     });
@@ -7788,13 +7789,17 @@ function renderKarpenterTrendChart(data) {
     const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
     
     // Y-axis labels - 6 ticks (0%, 20%, 40%, 60%, 80%, 100%) like bar chart
+    // Position labels with small offset from edges to avoid clipping
+    const labelOffsetTop = 8;
+    const labelOffsetBottom = 8;
     const yTickCount = 6;
     const yLabels = [];
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
         // Values: 0%, 20%, 40%, 60%, 80%, 100%
         const value = (chartRange / (yTickCount - 1)) * (yTickCount - 1 - i);
-        const y = axisTop + (axisHeight / (yTickCount - 1)) * i;
+        // Position labels with small offset from top/bottom edges
+        const y = labelOffsetTop + (axisHeight - labelOffsetTop - labelOffsetBottom) / (yTickCount - 1) * i;
         yLabels.push(`${Math.round(value)}%`);
         yPositions.push(y);
     }
@@ -7821,9 +7826,9 @@ function renderKarpenterTrendChart(data) {
                     </defs>
                     <!-- Grid lines -->
                     ${gridLines.join('')}
-                    <!-- Y-axis - from top to bottom with no gaps -->
+                    <!-- Y-axis - from top to bottom with NO GAPS -->
                     <line x1="${paddingLeft}" y1="${axisTop}" x2="${paddingLeft}" y2="${axisBottom}" stroke="#64748b" stroke-width="2" />
-                    <!-- X-axis - connects to Y-axis at bottom -->
+                    <!-- X-axis - connects to Y-axis at bottom, extends full width with NO GAPS -->
                     <line x1="${paddingLeft}" y1="${axisBottom}" x2="${paddingLeft + plotWidth}" y2="${axisBottom}" stroke="#64748b" stroke-width="2" />
                     <!-- Trend line -->
                     <path d="${linePath}" fill="none" stroke="url(#trendLineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="trend-line-path" />
@@ -7837,7 +7842,7 @@ function renderKarpenterTrendChart(data) {
                     `).join('')}
                     <!-- X-axis labels -->
                     ${points.map(p => `
-                        <text x="${p.x}" y="${axisBottom + 20}" text-anchor="middle" font-size="13" fill="#475569" font-weight="600">${p.month}</text>
+                        <text x="${p.x}" y="${axisBottom + 15}" text-anchor="middle" font-size="13" fill="#475569" font-weight="600">${p.month}</text>
                     `).join('')}
                 </svg>
             </div>

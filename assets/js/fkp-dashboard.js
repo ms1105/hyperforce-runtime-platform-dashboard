@@ -7772,6 +7772,12 @@ function renderKarpenterTrendChart(data) {
     
     const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
     
+    // Create area path for shaded region under the line
+    // Start at first point, follow the line, then go down to X-axis, then back to start
+    const areaPath = points.length > 0 
+        ? `M ${points[0].x},${axisBottom} L ${points.map(p => `${p.x},${p.y}`).join(' L ')} L ${points[points.length - 1].x},${axisBottom} Z`
+        : '';
+    
     // Y-axis labels - 6 ticks (0%, 20%, 40%, 60%, 80%, 100%) like bar chart
     // Position labels with small offset from edges to avoid clipping
     const labelOffsetTop = 8;
@@ -7808,12 +7814,18 @@ function renderKarpenterTrendChart(data) {
                             <stop offset="0%" style="stop-color:#1B96FF"/>
                             <stop offset="100%" style="stop-color:#0176D3"/>
                         </linearGradient>
+                        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3"/>
+                            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.1"/>
+                        </linearGradient>
                     </defs>
                     <!-- Grid lines -->
                     ${gridLines.join('')}
                     <!-- Y-axis line removed - using CSS border-right on .chart-y-axis instead (like bar chart) -->
                     <!-- X-axis - connects to Y-axis at bottom, extends full width with NO GAPS -->
                     <line x1="${paddingLeft}" y1="${axisBottom}" x2="${paddingLeft + plotWidth}" y2="${axisBottom}" stroke="#64748b" stroke-width="2" />
+                    <!-- Shaded area under trend line -->
+                    <path d="${areaPath}" fill="url(#areaGradient)" opacity="0.2" class="trend-area" />
                     <!-- Trend line -->
                     <path d="${linePath}" fill="none" stroke="url(#trendLineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="trend-line-path" />
                     <!-- Data points -->

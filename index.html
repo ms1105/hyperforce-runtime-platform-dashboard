@@ -1223,8 +1223,28 @@
                         // Load data if not already loaded
                         if (!hcpCtsDataLoaded) {
                             const loadingDiv = document.getElementById('hcp-cts-loading');
+                            const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
+                            const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
+                            const loadingText = document.getElementById('hcp-cts-loading-text');
+                            
+                            // Check if on GitLab Pages
+                            const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
+                            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                            
                             if (loadingDiv) {
                                 loadingDiv.style.display = 'block';
+                            }
+                            
+                            // Show GitLab Pages message immediately if on GitLab Pages
+                            if (isGitLabPages && !isLocalhost) {
+                                if (gitlabMessage) gitlabMessage.style.display = 'block';
+                                if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                if (loadingText) loadingText.style.display = 'none';
+                                return; // Don't try to fetch API on GitLab Pages
+                            } else {
+                                if (gitlabMessage) gitlabMessage.style.display = 'none';
+                                if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
+                                if (loadingText) loadingText.style.display = 'block';
                             }
                             
                             try {

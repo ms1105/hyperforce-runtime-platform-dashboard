@@ -7804,6 +7804,57 @@ function renderKarpenterTrendChart(data) {
             </div>
         </div>
     `;
+    
+    // Add interactivity after rendering
+    setTimeout(() => {
+        const svg = document.querySelector('#karpenter-trend-chart .trend-svg');
+        if (svg) {
+            const dataPoints = svg.querySelectorAll('.data-point-group');
+            const valueLabels = svg.querySelectorAll('.value-label-group');
+            const trendLine = svg.querySelector('.trend-line');
+            
+            dataPoints.forEach((point, idx) => {
+                const label = valueLabels[idx];
+                if (!label) return;
+                
+                point.addEventListener('mouseenter', () => {
+                    // Highlight this point
+                    const circle = point.querySelector('.data-point');
+                    if (circle) {
+                        circle.setAttribute('r', '11');
+                        circle.setAttribute('fill', '#10b981');
+                        circle.setAttribute('stroke-width', '4');
+                    }
+                    // Show label
+                    if (label) {
+                        label.style.opacity = '1';
+                    }
+                    // Enhance line
+                    if (trendLine) {
+                        trendLine.setAttribute('stroke-width', '5');
+                    }
+                });
+                
+                point.addEventListener('mouseleave', () => {
+                    // Reset point
+                    const circle = point.querySelector('.data-point');
+                    if (circle) {
+                        circle.setAttribute('r', '9');
+                        circle.setAttribute('fill', '#22c55e');
+                        circle.setAttribute('stroke-width', '3');
+                    }
+                    // Hide label
+                    if (label) {
+                        label.style.opacity = '0';
+                    }
+                    // Reset line
+                    if (trendLine) {
+                        trendLine.setAttribute('stroke-width', '4.5');
+                    }
+                });
+            });
+        }
+    }, 100);
 }
 
 /**

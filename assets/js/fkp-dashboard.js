@@ -7859,11 +7859,11 @@ function renderKarpenterTrendChart(data) {
             point.addEventListener('mouseenter', () => {
                 if (circle) {
                     circle.setAttribute('r', '8');
-                    circle.setAttribute('fill', '#10b981');
+                    circle.setAttribute('fill', '#1B96FF');
                 }
                 if (valueLabel) {
                     valueLabel.setAttribute('font-size', '14');
-                    valueLabel.setAttribute('fill', '#10b981');
+                    valueLabel.setAttribute('fill', '#0176D3');
                     valueLabel.setAttribute('font-weight', '700');
                 }
             });
@@ -7871,7 +7871,7 @@ function renderKarpenterTrendChart(data) {
             point.addEventListener('mouseleave', () => {
                 if (circle) {
                     circle.setAttribute('r', '6');
-                    circle.setAttribute('fill', '#22c55e');
+                    circle.setAttribute('fill', '#0176D3');
                 }
                 if (valueLabel) {
                     valueLabel.setAttribute('font-size', '12');

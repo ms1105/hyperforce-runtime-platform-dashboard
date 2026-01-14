@@ -43,25 +43,11 @@
         </div>
     </div>
     <script>
-        // Show warning banner ONLY if accessed via GitLab Pages (NOT on localhost:8080)
+        // Hide banner everywhere - GitLab Pages users will see error messages in the CTS section instead
         (function() {
-            const hostname = window.location.hostname;
-            const port = window.location.port;
-            const isLocalhost = (hostname === 'localhost' || hostname === '127.0.0.1') && (port === '8080' || port === '');
-            const isGitLabPages = (hostname.includes('git.soma.salesforce.com') || hostname.includes('pages')) && !isLocalhost;
-            
-            // Only show banner on GitLab Pages, never on localhost:8080
-            if (isGitLabPages) {
-                const warningBanner = document.getElementById('gitlab-pages-warning');
-                if (warningBanner) {
-                    warningBanner.style.display = 'block';
-                }
-            } else {
-                // Explicitly hide banner on localhost
-                const warningBanner = document.getElementById('gitlab-pages-warning');
-                if (warningBanner) {
-                    warningBanner.style.display = 'none';
-                }
+            const warningBanner = document.getElementById('gitlab-pages-warning');
+            if (warningBanner) {
+                warningBanner.style.display = 'none';
             }
         })();
     </script>

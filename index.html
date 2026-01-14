@@ -1338,11 +1338,8 @@
                                         throw new Error('Invalid JSON data structure - missing initiatives');
                                     }
                                     
-                                    // Hide loading elements before rendering
-                                    if (loadingSpinner) loadingSpinner.style.display = 'none';
-                                    if (loadingText) loadingText.style.display = 'none';
-                                    
                                     hcpCtsDataLoaded = true;
+                                    // renderHCPCTSData will hide loading elements
                                     renderHCPCTSData(data);
                                 } catch (error) {
                                     console.error('Error loading HCP CTS data from JSON:', error);
@@ -1382,13 +1379,8 @@
                                     const data = await response.json();
                                     console.log('HCP CTS data loaded from API:', data);
                                     
-                                    // Hide loading elements before rendering
-                                    const loadingSpinnerApi = document.getElementById('hcp-cts-loading-spinner');
-                                    const loadingTextApi = document.getElementById('hcp-cts-loading-text');
-                                    if (loadingSpinnerApi) loadingSpinnerApi.style.display = 'none';
-                                    if (loadingTextApi) loadingTextApi.style.display = 'none';
-                                    
                                     hcpCtsDataLoaded = true;
+                                    // renderHCPCTSData will hide loading elements
                                     renderHCPCTSData(data);
                                 } catch (error) {
                                     console.error('Error loading HCP CTS data from API:', error);

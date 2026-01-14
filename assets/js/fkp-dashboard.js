@@ -7804,10 +7804,11 @@ function renderKarpenterTrendChart(data) {
         yPositions.push(y);
     }
     
-    // Grid lines
+    // Grid lines - use same positioning as labels but extend full width
     const gridLines = [];
     for (let i = 1; i < yTickCount - 1; i++) {
         const y = yPositions[i];
+        // Grid lines extend from Y-axis to right edge
         gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,4" />`);
     }
     

@@ -22,13 +22,10 @@
     <!-- Chart.js for Cost to Serve charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Configure API URL for Cost to Serve (CTS) section
-        // CTS API server: http://localhost:8080
+        // Configure API URL for Cost to Serve (CTS) and Karpenter sections
+        // Both sections use http://localhost:8080 as API server
         window.CTS_API_URL = 'http://localhost:8080';
-        
-        // Keep BINPACKING_API_URL for other sections (binpacking, nodes, etc.)
-        // These can use relative URLs or different endpoints
-        window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
+        window.BINPACKING_API_URL = 'http://localhost:8080';
     </script>
 </head>
 <body>

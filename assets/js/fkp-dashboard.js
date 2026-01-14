@@ -7041,22 +7041,6 @@ function renderKarpenterExecView(container) {
     let trendCluster = clusterMetrics.trend;
     let trendEnv = envMetrics.trend;
     
-    // Use trendData to calculate actual improvement from April to October
-    if (trendData.length >= 2) {
-        const aprilData = trendData.find(d => d.month === 'April');
-        const octoberData = trendData.find(d => d.month === 'October');
-        
-        if (aprilData && octoberData && aprilData.value > 0) {
-            // Calculate percentage improvement from April to October
-            const improvement = ((octoberData.value - aprilData.value) / aprilData.value) * 100;
-            // Use this improvement for all metrics (they all use the same trend data)
-            trendFI = improvement;
-            trendFD = improvement;
-            trendCluster = improvement;
-            trendEnv = improvement;
-        }
-    }
-    
     // Build trend chart data: Average % across all FIs, FDs, Clusters for each month (April to October)
     // This aggregates data respecting all current filters
     const monthOrder = ['April', 'May', 'June', 'July', 'August', 'September', 'October'];

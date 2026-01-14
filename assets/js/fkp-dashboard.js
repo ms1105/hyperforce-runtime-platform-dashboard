@@ -7127,22 +7127,6 @@ function renderKarpenterExecView(container) {
         previousAdjustedValue = adjustedValue;
     });
     
-    // Use trendData to calculate actual improvement from April to October (now that trendData exists)
-    if (trendData.length >= 2) {
-        const aprilData = trendData.find(d => d.month === 'April');
-        const octoberData = trendData.find(d => d.month === 'October');
-        
-        if (aprilData && octoberData && aprilData.value > 0) {
-            // Calculate percentage improvement from April to October
-            const improvement = ((octoberData.value - aprilData.value) / aprilData.value) * 100;
-            // Use this improvement for all metrics (they all use the same trend data)
-            trendFI = improvement;
-            trendFD = improvement;
-            trendCluster = improvement;
-            trendEnv = improvement;
-        }
-    }
-    
     // Build environment bar chart data - aggregate by environment from filtered data
     const envAgg = {};
     // Get the latest month from filtered data (or use trendData if available)

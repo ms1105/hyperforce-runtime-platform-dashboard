@@ -6675,18 +6675,12 @@ async function renderAutoscalingDeveloperView() {
             hpaBadgeClass += ' hpa-partial';
         }
         
-        // Action button - HPA Enabled if HPA > 0%
-        const actionBtn = service.hpa > 0 
-            ? '<button class="action-btn enabled">HPA Enabled</button>'
-            : '<button class="action-btn enroll">Enroll to HPA</button>';
-        
         return `
             <tr>
                 <td>${service.serviceName}</td>
                 <td>Platform Services</td>
                 <td><span class="${tierBadgeClass}">${tierLabel}</span></td>
                 <td><span class="${hpaBadgeClass}">${Math.round(service.hpa)}%</span></td>
-                <td>${actionBtn}</td>
             </tr>
         `;
     }).join('');

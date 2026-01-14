@@ -4965,10 +4965,11 @@ body.developer-view .sidebar-subtitle::after {
 
 .bar-wrapper {
     width: 80px;
-    height: 380px;
+    height: 100%;
     display: flex;
     align-items: flex-end;
     position: relative;
+    padding-bottom: 0;
 }
 
 .bar {

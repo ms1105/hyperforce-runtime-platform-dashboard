@@ -7704,64 +7704,59 @@ function calculateKarpenterTrend(data, field) {
 }
 
 /**
- * Render Karpenter trend line chart
+ * Render Karpenter trend line chart - Clean, Professional Implementation
  */
 function renderKarpenterTrendChart(data) {
     if (!data || data.length === 0) {
         return '<div class="no-data">No trend data available</div>';
     }
     
-    // Fixed 0-100% range
-    const chartMin = 0;
-    const chartMax = 100;
-    const chartRange = 100;
-    
-    // Large, beautiful chart dimensions - no gaps, graph connects to axes
-    const width = 1400;
-    const height = 600;
-    const paddingLeft = 100;
-    const paddingRight = 0;
-    const paddingTop = 0;
-    const paddingBottom = 80;
+    // Chart dimensions
+    const width = 1200;
+    const height = 500;
+    const paddingLeft = 80;
+    const paddingRight = 40;
+    const paddingTop = 40;
+    const paddingBottom = 60;
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
     
-    const pointSpacing = data.length > 1 ? plotWidth / (data.length - 1) : plotWidth;
+    // Calculate data range
+    const values = data.map(d => d.value);
+    const minValue = Math.min(...values);
+    const maxValue = Math.max(...values);
+    const valueRange = maxValue - minValue || 1;
+    const chartMin = Math.max(0, Math.floor((minValue - valueRange * 0.1) / 10) * 10);
+    const chartMax = Math.min(100, Math.ceil((maxValue + valueRange * 0.1) / 10) * 10);
+    const chartRange = chartMax - chartMin;
     
-    // Generate SVG path for line
+    // Generate points
+    const pointSpacing = data.length > 1 ? plotWidth / (data.length - 1) : plotWidth;
     const points = data.map((d, i) => {
         const x = paddingLeft + (i * pointSpacing);
-        const y = paddingTop + (plotHeight - ((d.value - chartMin) / chartRange * plotHeight));
+        const y = paddingTop + plotHeight - (((d.value - chartMin) / chartRange) * plotHeight);
         return { x, y, value: d.value, month: d.month };
     });
     
     const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
-    // No area fill - removed shaded background
     
-    // Generate Y-axis labels (0% to 100% in 20% steps) - positioned at axis
-    const yLabels = ['100%', '80%', '60%', '40%', '20%', '0%'];
+    // Y-axis labels - dynamic based on data range
+    const yTickCount = 6;
+    const yLabels = [];
     const yPositions = [];
-    for (let i = 0; i < 6; i++) {
-        const y = paddingTop + (plotHeight / 5) * (5 - i);
+    for (let i = 0; i < yTickCount; i++) {
+        const value = chartMax - (chartRange / (yTickCount - 1)) * i;
+        const y = paddingTop + (plotHeight / (yTickCount - 1)) * i;
+        yLabels.push(`${Math.round(value)}%`);
         yPositions.push(y);
     }
     
-    // Generate horizontal grid lines (at 20%, 40%, 60%, 80%) - extend to edges
+    // Grid lines
     const gridLines = [];
-    for (let i = 1; i < 5; i++) {
-        const y = paddingTop + (plotHeight / 5) * i;
-        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${width}" y2="${y}" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.6" />`);
+    for (let i = 1; i < yTickCount - 1; i++) {
+        const y = yPositions[i];
+        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />`);
     }
-    
-    // Add vertical grid lines for better readability - extend to edges
-    const verticalGridLines = [];
-    for (let i = 0; i < points.length; i++) {
-        const x = points[i].x;
-        verticalGridLines.push(`<line x1="${x}" y1="0" x2="${x}" y2="${paddingTop + plotHeight}" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="2,2" opacity="0.4" />`);
-    }
-    
-    // X-axis labels will be rendered outside SVG using CSS positioning
-    // No inner axis lines - using only exterior axis from CSS borders
     
     return `
         <div class="chart-container">
@@ -7771,106 +7766,66 @@ function renderKarpenterTrendChart(data) {
             <div class="chart-main">
                 <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
                     <defs>
-                        <linearGradient id="karpenterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3" />
-                            <stop offset="50%" style="stop-color:#22c55e;stop-opacity:0.15" />
-                            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.05" />
-                        </linearGradient>
-                        <filter id="glow">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                            <feMerge>
-                                <feMergeNode in="coloredBlur"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
                         <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#10b981"/>
+                            <stop offset="100%" style="stop-color:#22c55e"/>
                         </linearGradient>
                     </defs>
-                    <!-- Y-axis line - stops at X-axis -->
-                    <line x1="${paddingLeft}" y1="0" x2="${paddingLeft}" y2="${paddingTop + plotHeight}" stroke="#94a3b8" stroke-width="3" />
-                    <!-- X-axis line -->
-                    <line x1="${paddingLeft}" y1="${paddingTop + plotHeight}" x2="${width}" y2="${paddingTop + plotHeight}" stroke="#94a3b8" stroke-width="3" />
-                    <!-- Vertical grid lines -->
-                    ${verticalGridLines.join('')}
-                    <!-- Horizontal grid lines -->
+                    <!-- Grid lines -->
                     ${gridLines.join('')}
-                    <!-- Line with gradient - no area fill -->
-                    <path d="${linePath}" fill="none" stroke="url(#lineGradient)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)" class="trend-line" />
-                    <!-- Interactive data points with hover effects -->
+                    <!-- Y-axis -->
+                    <line x1="${paddingLeft}" y1="${paddingTop}" x2="${paddingLeft}" y2="${paddingTop + plotHeight}" stroke="#64748b" stroke-width="2" />
+                    <!-- X-axis -->
+                    <line x1="${paddingLeft}" y1="${paddingTop + plotHeight}" x2="${paddingLeft + plotWidth}" y2="${paddingTop + plotHeight}" stroke="#64748b" stroke-width="2" />
+                    <!-- Trend line -->
+                    <path d="${linePath}" fill="none" stroke="url(#lineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="trend-line-path" />
+                    <!-- Data points -->
                     ${points.map((p, idx) => `
-                        <g class="data-point-group" data-index="${idx}" data-month="${p.month}" data-value="${p.value.toFixed(1)}">
-                            <circle cx="${p.x}" cy="${p.y}" r="10" fill="#ffffff" opacity="0.9" class="point-shadow" />
-                            <circle cx="${p.x}" cy="${p.y}" r="9" fill="#22c55e" stroke="#ffffff" stroke-width="3" class="data-point" />
-                            <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="point-hit-area" style="cursor: pointer;" />
+                        <g class="trend-point" data-index="${idx}">
+                            <circle cx="${p.x}" cy="${p.y}" r="6" fill="#22c55e" stroke="#ffffff" stroke-width="2" class="point-circle" />
+                            <circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" class="point-hit" />
+                            <text x="${p.x}" y="${p.y - 20}" text-anchor="middle" font-size="12" fill="#1e293b" font-weight="600" class="point-value" opacity="0">${p.value.toFixed(1)}%</text>
                         </g>
                     `).join('')}
-                    <!-- Value labels above points - shown on hover -->
-                    ${points.map((p, idx) => `
-                        <g class="value-label-group" data-index="${idx}" style="opacity: 0; transition: opacity 0.2s;">
-                            <rect x="${p.x - 30}" y="${Math.max(p.y - 45, 5)}" width="60" height="26" rx="6" fill="#1e293b" opacity="0.95" />
-                            <text x="${p.x}" y="${Math.max(p.y - 28, 20)}" text-anchor="middle" font-size="13" fill="#ffffff" font-weight="700" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.value.toFixed(1)}%</text>
-                            <text x="${p.x}" y="${Math.max(p.y - 12, 35)}" text-anchor="middle" font-size="11" fill="#94a3b8" font-weight="600" font-family="'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">${p.month}</text>
-                        </g>
+                    <!-- X-axis labels -->
+                    ${points.map(p => `
+                        <text x="${p.x}" y="${height - 15}" text-anchor="middle" font-size="14" fill="#475569" font-weight="600">${p.month}</text>
                     `).join('')}
                 </svg>
-                <div class="chart-x-axis">
-                    ${points.map(p => `<span class="x-label" style="left: ${((p.x / width) * 100).toFixed(2)}%;">${p.month}</span>`).join('')}
-                </div>
             </div>
         </div>
     `;
     
-    // Add interactivity after rendering
+    // Add interactivity
     setTimeout(() => {
         const svg = document.querySelector('#karpenter-trend-chart .trend-svg');
-        if (svg) {
-            const dataPoints = svg.querySelectorAll('.data-point-group');
-            const valueLabels = svg.querySelectorAll('.value-label-group');
-            const trendLine = svg.querySelector('.trend-line');
+        if (!svg) return;
+        
+        const points = svg.querySelectorAll('.trend-point');
+        points.forEach(point => {
+            const circle = point.querySelector('.point-circle');
+            const valueLabel = point.querySelector('.point-value');
             
-            dataPoints.forEach((point, idx) => {
-                const label = valueLabels[idx];
-                if (!label) return;
-                
-                point.addEventListener('mouseenter', () => {
-                    // Highlight this point
-                    const circle = point.querySelector('.data-point');
-                    if (circle) {
-                        circle.setAttribute('r', '11');
-                        circle.setAttribute('fill', '#10b981');
-                        circle.setAttribute('stroke-width', '4');
-                    }
-                    // Show label
-                    if (label) {
-                        label.style.opacity = '1';
-                    }
-                    // Enhance line
-                    if (trendLine) {
-                        trendLine.setAttribute('stroke-width', '5');
-                    }
-                });
-                
-                point.addEventListener('mouseleave', () => {
-                    // Reset point
-                    const circle = point.querySelector('.data-point');
-                    if (circle) {
-                        circle.setAttribute('r', '9');
-                        circle.setAttribute('fill', '#22c55e');
-                        circle.setAttribute('stroke-width', '3');
-                    }
-                    // Hide label
-                    if (label) {
-                        label.style.opacity = '0';
-                    }
-                    // Reset line
-                    if (trendLine) {
-                        trendLine.setAttribute('stroke-width', '4.5');
-                    }
-                });
+            point.addEventListener('mouseenter', () => {
+                if (circle) {
+                    circle.setAttribute('r', '8');
+                    circle.setAttribute('fill', '#10b981');
+                }
+                if (valueLabel) {
+                    valueLabel.setAttribute('opacity', '1');
+                }
             });
-        }
+            
+            point.addEventListener('mouseleave', () => {
+                if (circle) {
+                    circle.setAttribute('r', '6');
+                    circle.setAttribute('fill', '#22c55e');
+                }
+                if (valueLabel) {
+                    valueLabel.setAttribute('opacity', '0');
+                }
+            });
+        });
     }, 100);
 }
 

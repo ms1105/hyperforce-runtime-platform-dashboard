@@ -7746,13 +7746,13 @@ function renderKarpenterTrendChart(data) {
     const plotWidth = width - paddingLeft - paddingRight;
     const plotHeight = height - paddingTop - paddingBottom;
     
-    // Calculate data range for Y-axis - ALWAYS start at 0% with nice increments like bar chart
+    // Calculate data range for Y-axis - ALWAYS start at 0% with 8% increments (matching screenshot)
     const values = data.map(d => d.value);
     const minValue = Math.min(...values);
     const maxValue = Math.max(...values);
-    // Y-axis always starts at 0% and goes to 100% with 20% increments (like bar chart)
+    // Y-axis always starts at 0% and goes to nearest multiple of 8 above max value
     const chartMin = 0;
-    const chartMax = 100;
+    const chartMax = Math.ceil(maxValue / 8) * 8; // Round up to nearest multiple of 8
     const chartRange = chartMax - chartMin;
     
     // Define axis boundaries - NO GAPS, axes connect at exact corners
@@ -7778,19 +7778,22 @@ function renderKarpenterTrendChart(data) {
         ? `M ${points[0].x},${axisBottom} L ${points.map(p => `${p.x},${p.y}`).join(' L ')} L ${points[points.length - 1].x},${axisBottom} Z`
         : '';
     
-    // Y-axis labels - 6 ticks (0%, 20%, 40%, 60%, 80%, 100%) like bar chart
+    // Y-axis labels - match screenshot: 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%
     // Position labels with small offset from edges to avoid clipping
     const labelOffsetTop = 8;
     const labelOffsetBottom = 8;
-    const yTickCount = 6;
+    // Calculate max value and create ticks in 8% increments up to nearest multiple of 8 above max
+    const maxDataValue = Math.max(...values);
+    const yAxisMax = Math.ceil(maxDataValue / 8) * 8; // Round up to nearest multiple of 8
+    const yTickCount = Math.floor(yAxisMax / 8) + 1; // Number of ticks (0, 8, 16, ... up to yAxisMax)
     const yLabels = [];
     const yPositions = [];
     for (let i = 0; i < yTickCount; i++) {
-        // Values: 0%, 20%, 40%, 60%, 80%, 100%
-        const value = (chartRange / (yTickCount - 1)) * (yTickCount - 1 - i);
+        // Values: 0%, 8%, 16%, 24%, 32%, 40%, 48%, 56%, 64%, 72%, 80%, 88%, etc.
+        const value = i * 8;
         // Position labels with small offset from top/bottom edges
         const y = labelOffsetTop + (axisHeight - labelOffsetTop - labelOffsetBottom) / (yTickCount - 1) * i;
-        yLabels.push(`${Math.round(value)}%`);
+        yLabels.push(`${value}%`);
         yPositions.push(y);
     }
     
@@ -7811,8 +7814,8 @@ function renderKarpenterTrendChart(data) {
                 <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
                     <defs>
                         <linearGradient id="trendLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#1B96FF"/>
-                            <stop offset="100%" style="stop-color:#0176D3"/>
+                            <stop offset="0%" style="stop-color:#22c55e"/>
+                            <stop offset="100%" style="stop-color:#16a34a"/>
                         </linearGradient>
                         <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3"/>
@@ -7831,7 +7834,7 @@ function renderKarpenterTrendChart(data) {
                     <!-- Data points -->
                     ${points.map((p, idx) => `
                         <g class="trend-point" data-index="${idx}">
-                            <circle cx="${p.x}" cy="${p.y}" r="6" fill="#0176D3" stroke="#ffffff" stroke-width="2" class="point-circle" />
+                            <circle cx="${p.x}" cy="${p.y}" r="6" fill="#22c55e" stroke="#ffffff" stroke-width="2" class="point-circle" />
                             <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="point-hit" style="cursor: pointer;" />
                             <text x="${p.x}" y="${p.y - 20}" text-anchor="middle" font-size="12" fill="#1e293b" font-weight="700" class="point-value" opacity="1">${p.value.toFixed(1)}%</text>
                         </g>
@@ -7858,11 +7861,11 @@ function renderKarpenterTrendChart(data) {
             point.addEventListener('mouseenter', () => {
                 if (circle) {
                     circle.setAttribute('r', '8');
-                    circle.setAttribute('fill', '#1B96FF');
+                    circle.setAttribute('fill', '#16a34a');
                 }
                 if (valueLabel) {
                     valueLabel.setAttribute('font-size', '14');
-                    valueLabel.setAttribute('fill', '#0176D3');
+                    valueLabel.setAttribute('fill', '#16a34a');
                     valueLabel.setAttribute('font-weight', '700');
                 }
             });
@@ -7870,7 +7873,7 @@ function renderKarpenterTrendChart(data) {
             point.addEventListener('mouseleave', () => {
                 if (circle) {
                     circle.setAttribute('r', '6');
-                    circle.setAttribute('fill', '#0176D3');
+                    circle.setAttribute('fill', '#22c55e');
                 }
                 if (valueLabel) {
                     valueLabel.setAttribute('font-size', '12');

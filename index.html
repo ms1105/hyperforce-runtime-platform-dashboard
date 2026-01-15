@@ -1697,30 +1697,53 @@
                 // Also use MutationObserver to detect when tab pane becomes visible
                 const tabPane = document.getElementById('cost-to-serve-overview');
                 if (tabPane) {
+                    let lastVisibilityState = false;
                     const observer = new MutationObserver(function(mutations) {
-                        mutations.forEach(function(mutation) {
-                            if (mutation.type === 'attributes') {
-                                const isVisible = tabPane.style.display !== 'none' && tabPane.classList.contains('active');
-                                if (isVisible && !hcpCtsDataLoaded) {
-                                    console.log('🔵 Cost to Serve tab pane became visible (MutationObserver), loading data...');
-                                    if (window.loadCTSData) {
-                                        window.loadCTSData().catch(err => {
-                                            console.error('❌ Error in loadCTSData from MutationObserver:', err);
-                                        });
-                                    }
-                                }
+                        const isVisible = tabPane.style.display !== 'none' && tabPane.classList.contains('active');
+                        // Only trigger if visibility changed from hidden to visible
+                        if (isVisible && !lastVisibilityState && !hcpCtsDataLoaded && !window._ctsDataLoading) {
+                            console.log('🔵 Cost to Serve tab pane became visible (MutationObserver), loading data...');
+                            if (window.loadCTSData) {
+                                window.loadCTSData().catch(err => {
+                                    console.error('❌ Error in loadCTSData from MutationObserver:', err);
+                                });
                             }
-                        });
+                        }
+                        lastVisibilityState = isVisible;
                     });
                     
                     observer.observe(tabPane, {
                         attributes: true,
-                        attributeFilter: ['style', 'class']
+                        attributeFilter: ['style', 'class'],
+                        childList: false,
+                        subtree: false
                     });
                     console.log('✅ MutationObserver installed for cost-to-serve-overview');
                 } else {
                     console.warn('⚠️ cost-to-serve-overview tab pane not found');
                 }
+                
+                // ALSO: Directly check tab visibility periodically as a fallback
+                let intervalCheckCount = 0;
+                const maxIntervalChecks = 30; // Check for 60 seconds max (30 * 2s)
+                const visibilityCheckInterval = setInterval(function() {
+                    intervalCheckCount++;
+                    const tabPane = document.getElementById('cost-to-serve-overview');
+                    const isVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
+                    if (isVisible && !hcpCtsDataLoaded && !window._ctsDataLoading) {
+                        console.log('🔵 Cost to Serve tab visible (interval check #' + intervalCheckCount + '), loading data...');
+                        if (window.loadCTSData) {
+                            window.loadCTSData().catch(err => {
+                                console.error('❌ Error in loadCTSData from interval:', err);
+                            });
+                        }
+                    }
+                    // Stop checking after max attempts or if data is loaded
+                    if (hcpCtsDataLoaded || intervalCheckCount >= maxIntervalChecks) {
+                        clearInterval(visibilityCheckInterval);
+                        console.log('✅ Stopped interval check - data loaded or max attempts reached');
+                    }
+                }, 2000); // Check every 2 seconds as fallback
             }, 1000);
         });
     </script>

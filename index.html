@@ -1450,18 +1450,32 @@
                             
                             clearTimeout(loadingTimeout);
                             hcpCtsDataLoaded = true;
-                            console.log('✅ Data loaded successfully, hiding loading elements IMMEDIATELY...');
+                            window._ctsDataLoading = false; // Clear loading flag
+                            console.log('✅ Data loaded successfully from JSON, data keys:', Object.keys(data));
+                            console.log('✅ Initiatives count:', data.initiatives?.length);
                             
                             // HIDE LOADING ELEMENTS IMMEDIATELY - BEFORE calling renderHCPCTSData
                             hideLoadingElements();
                             
                             console.log('✅ Loading elements hidden, calling renderHCPCTSData...');
-                            // renderHCPCTSData will also hide loading elements (double-check)
+                            // renderHCPCTSData will also hide loading elements (double-check) and SHOW exec view
                             try {
                                 // Ensure renderHCPCTSData exists
                                 if (typeof renderHCPCTSData === 'function') {
                                     renderHCPCTSData(data);
                                     console.log('✅ renderHCPCTSData call completed');
+                                    // Double-check exec view is visible
+                                    setTimeout(function() {
+                                        const execViewDiv = document.getElementById('hcp-cts-exec-view');
+                                        if (execViewDiv) {
+                                            execViewDiv.style.display = 'block';
+                                            execViewDiv.style.visibility = 'visible';
+                                            execViewDiv.style.opacity = '1';
+                                            console.log('✅ Exec view confirmed visible after renderHCPCTSData');
+                                        } else {
+                                            console.error('❌ hcp-cts-exec-view div not found after renderHCPCTSData!');
+                                        }
+                                    }, 100);
                                 } else {
                                     console.error('❌ renderHCPCTSData is not a function!', typeof renderHCPCTSData);
                                     // Already hidden above, but ensure it stays hidden

@@ -1691,24 +1691,34 @@
                             // Check if Cost to Serve tab was switched to
                             if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-details') {
                                 console.log('🔵 Cost to Serve tab switched via switchTab:', tabId);
-                                // Use setTimeout to check tab visibility AFTER switchTab completes
+                                // Show loading immediately
+                                const loadingDiv = document.getElementById('hcp-cts-loading');
+                                if (loadingDiv) {
+                                    loadingDiv.style.display = 'block';
+                                }
+                                // Call loadCTSData IMMEDIATELY - don't wait for visibility check
+                                if (!hcpCtsDataLoaded && window.loadCTSData) {
+                                    console.log('🔵 Calling loadCTSData() IMMEDIATELY from switchTab hook...');
+                                    window.loadCTSData().catch(err => {
+                                        console.error('❌ Error in loadCTSData from switchTab:', err);
+                                    });
+                                } else if (hcpCtsDataLoaded) {
+                                    console.log('✅ CTS data already loaded');
+                                } else {
+                                    console.error('❌ window.loadCTSData is not defined!');
+                                }
+                                // Also use setTimeout as backup
                                 setTimeout(function() {
                                     const tabPane = document.getElementById('cost-to-serve-overview');
                                     const isVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
                                     console.log('🔵 Tab visibility check after switchTab - isVisible:', isVisible, 'hcpCtsDataLoaded:', hcpCtsDataLoaded);
-                                    if (isVisible && !hcpCtsDataLoaded) {
-                                        console.log('🔵 Calling loadCTSData() directly from switchTab hook...');
-                                        if (window.loadCTSData) {
-                                            window.loadCTSData().catch(err => {
-                                                console.error('❌ Error in loadCTSData from switchTab:', err);
-                                            });
-                                        } else {
-                                            console.error('❌ window.loadCTSData is not defined!');
-                                        }
-                                    } else if (hcpCtsDataLoaded) {
-                                        console.log('✅ CTS data already loaded');
+                                    if (isVisible && !hcpCtsDataLoaded && window.loadCTSData) {
+                                        console.log('🔵 Backup: Calling loadCTSData() from switchTab timeout...');
+                                        window.loadCTSData().catch(err => {
+                                            console.error('❌ Error in loadCTSData from switchTab timeout:', err);
+                                        });
                                     }
-                                }, 100); // Small delay to ensure DOM is updated
+                                }, 100); // Small delay to ensure DOM is updated by switchTab
                             }
                             return result;
                         };

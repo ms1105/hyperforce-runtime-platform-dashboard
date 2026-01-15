@@ -13,10 +13,12 @@ const PORT = process.env.PORT || 8080;
 // Enable CORS
 app.use(cors());
 
-// Proxy API requests to bin-packing server (port 8080)
+// Proxy API requests to bin-packing server (port 3001)
 // IMPORTANT: API routes must be BEFORE static file serving
-// Note: Bin-packing server should run on port 8080, so API calls go to http://localhost:8080/api/*
-const binPackingServerUrl = process.env.BINPACKING_SERVER_URL || 'http://localhost:8080';
+const binPackingServerUrl = process.env.BINPACKING_SERVER_URL || 'http://localhost:3001';
+
+// Cost to Serve Dashboard server URL (port 3001)
+const costToServeServerUrl = process.env.COST_TO_SERVE_SERVER_URL || 'http://localhost:3001';
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -71,25 +73,48 @@ app.use('/api', (req, res, next) => {
   apiProxy(req, res, next);
 });
 
-// Serve static files from current directory (for index.html and assets)
-// This must be AFTER API routes
-// Exclude /api routes from static file serving
-const staticMiddleware = express.static(__dirname);
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api/')) {
-    return next(); // Skip static file serving for API routes
+// Proxy Cost to Serve Dashboard requests to port 3001
+// This allows accessing the Cost to Serve Dashboard at http://localhost:8080/
+const costToServeProxy = createProxyMiddleware({
+  target: costToServeServerUrl,
+  changeOrigin: true,
+  logLevel: 'debug',
+  onProxyReq: (proxyReq, req, res) => {
+    console.log(`[Cost to Serve Proxy] ${req.method} ${req.url} -> ${costToServeServerUrl}${req.url}`);
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    console.log(`[Cost to Serve Proxy Response] ${req.url} -> ${proxyRes.statusCode}`);
+  },
+  onError: (err, req, res) => {
+    console.error(`[Cost to Serve Proxy Error] ${req.url}:`, err.message);
+    if (!res.headersSent) {
+      res.status(500).json({ 
+        error: 'Proxy error', 
+        message: 'Failed to connect to Cost to Serve Dashboard server',
+        details: err.message 
+      });
+    }
   }
-  staticMiddleware(req, res, next);
 });
 
-// Handle client-side routing - serve index.html for all non-API routes
-app.get('*', (req, res, next) => {
-  // Skip API routes (they should have been handled above)
+// Serve static files from current directory (for index.html and assets)
+// This must be AFTER API routes
+app.use(express.static(__dirname));
+
+// Proxy Cost to Serve Dashboard - check if request is for Cost to Serve Dashboard
+// If the request path matches Cost to Serve Dashboard routes, proxy it
+app.use((req, res, next) => {
+  // Check if this is a request for Cost to Serve Dashboard
+  // Cost to Serve Dashboard typically serves from root with React Router
+  // We'll proxy all non-API, non-static file requests to the Cost to Serve Dashboard
   if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
+    return next(); // Let API routes be handled above
   }
-  // Serve index.html for all other routes
-  res.sendFile(path.join(__dirname, 'index.html'));
+  
+  // Check if it's a static asset request (already served by express.static above)
+  // If express.static didn't handle it, proxy to Cost to Serve Dashboard
+  // This handles React Router routes and other Cost to Serve Dashboard routes
+  costToServeProxy(req, res, next);
 });
 
 // Error handling

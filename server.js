@@ -97,29 +97,28 @@ const costToServeProxy = createProxyMiddleware({
   }
 });
 
-// Proxy Cost to Serve Dashboard BEFORE static file serving
-// This ensures index.html and all routes are proxied to Cost to Serve Dashboard
-// Priority: API routes > Cost to Serve Dashboard proxy > Static files
+// Since port 3001 shows the Cost to Serve Dashboard (as user mentioned),
+// we need to proxy to port 3001, but also ensure API calls work correctly
+// The Cost to Serve Dashboard on port 3001 needs API access to bin-packing server
 
-// Proxy root and index.html to Cost to Serve Dashboard
+// Proxy root and index.html to Cost to Serve Dashboard (port 3001)
 app.get(['/', '/index.html'], (req, res, next) => {
   console.log(`[Cost to Serve] Proxying ${req.url} to Cost to Serve Dashboard at ${costToServeServerUrl}`);
   costToServeProxy(req, res, next);
 });
 
 // Proxy all other non-API routes to Cost to Serve Dashboard (for React Router and static assets)
-app.get('*', (req, res, next) => {
+app.use((req, res, next) => {
   // Skip API routes (they should have been handled above)
   if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
+    return next(); // Let API proxy handle it
   }
   // Proxy to Cost to Serve Dashboard for all other routes (including assets, etc.)
   console.log(`[Cost to Serve] Proxying ${req.url} to Cost to Serve Dashboard at ${costToServeServerUrl}`);
   costToServeProxy(req, res, next);
 });
 
-// Serve static files from current directory ONLY if proxy didn't handle it
-// This is a fallback for any local assets that might be needed
+// Serve static files from current directory as fallback
 app.use(express.static(__dirname));
 
 // Error handling

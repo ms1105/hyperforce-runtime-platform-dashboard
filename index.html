@@ -21,19 +21,6 @@
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <!-- Chart.js for Cost to Serve charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Configure API URL based on environment
-        // For localhost (local development), use localhost:8080
-        // For GitLab Pages and other deployments, use relative URLs (empty string)
-        // This allows the page to work for everyone, not just those with localhost:8080 running
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            window.BINPACKING_API_URL = window.BINPACKING_API_URL || 'http://localhost:8080';
-        } else {
-            // GitLab Pages and other deployments - use relative URLs
-            // This works for everyone accessing the main repo
-            window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
-        }
-    </script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -1205,62 +1192,31 @@
                             
                             try {
                                 console.log('Fetching HCP CTS data...');
-                                // Use relative URL - proxy at localhost:8080 will handle it
+                                // Try to use the bin-packing server API
+                                // Use relative URL so it goes through the proxy on port 8080
                                 const apiUrl = window.BINPACKING_API_URL || '';
-                                const apiEndpoint = `${apiUrl}/api/hcp-cts-forecast-actuals`;
-                                
-                                // Add timeout to prevent hanging
-                                const controller = new AbortController();
-                                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-                                
-                                const response = await fetch(apiEndpoint, {
+                                const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
                                     mode: 'cors',
                                     headers: {
                                         'Content-Type': 'application/json'
-                                    },
-                                    signal: controller.signal
+                                    }
                                 });
-                                
-                                clearTimeout(timeoutId);
-                                
-                                // Check if response is actually JSON
-                                const contentType = response.headers.get('content-type');
-                                if (!contentType || !contentType.includes('application/json')) {
-                                    throw new Error('Response is not JSON. API server may not be available.');
-                                }
-                                
                                 if (!response.ok) {
                                     throw new Error(`HTTP error! status: ${response.status}`);
                                 }
-                                
                                 const data = await response.json();
                                 console.log('HCP CTS data loaded:', data);
                                 hcpCtsDataLoaded = true;
-                                
-                                // Hide loading and show content
-                                const loadingDiv = document.getElementById('hcp-cts-loading');
-                                if (loadingDiv) {
-                                    loadingDiv.style.display = 'none';
-                                }
-                                
                                 renderHCPCTSData(data);
                             } catch (error) {
                                 console.error('Error loading HCP CTS data:', error);
                                 const loadingDiv = document.getElementById('hcp-cts-loading');
                                 if (loadingDiv) {
-                                    const errorMessage = error.name === 'AbortError' 
-                                        ? 'Request timed out. API server may not be accessible.'
-                                        : error.message || 'Unknown error occurred';
-                                    
                                     loadingDiv.innerHTML = `
                                         <div style="text-align: center; padding: 3rem;">
                                             <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
-                                            <p style="color: #718096; font-size: 0.875rem;">Error: ${errorMessage}</p>
-                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">
-                                                ${window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                                                    ? 'Please ensure the server is running at http://localhost:8080'
-                                                    : 'This dashboard requires a local API server. Please access it at <a href="http://localhost:8080/index.html" style="color: #3182ce; text-decoration: underline;">http://localhost:8080/index.html</a>'}
-                                            </p>
+                                            <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
+                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the bin-packing server is running at ${window.BINPACKING_API_URL || 'http://localhost:3001'}</p>
                                         </div>
                                     `;
                                 }

@@ -1320,11 +1320,34 @@
                     const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
                     const loadingText = document.getElementById('hcp-cts-loading-text');
                     
+                    // Helper function to ALWAYS hide loading elements
+                    const hideLoadingElements = function() {
+                        console.log('🔴 Hiding all loading elements...');
+                        if (loadingDiv) {
+                            loadingDiv.style.display = 'none';
+                            loadingDiv.style.visibility = 'hidden';
+                            loadingDiv.style.opacity = '0';
+                        }
+                        if (loadingSpinner) {
+                            loadingSpinner.style.display = 'none';
+                            loadingSpinner.style.visibility = 'hidden';
+                        }
+                        if (loadingText) {
+                            loadingText.style.display = 'none';
+                            loadingText.style.visibility = 'hidden';
+                        }
+                        if (gitlabMessage) {
+                            gitlabMessage.style.display = 'none';
+                            gitlabMessage.style.visibility = 'hidden';
+                        }
+                    };
+                    
                     // Check if on GitLab Pages
                     const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
                     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                     
                     console.log('🔵 Loading CTS data - isGitLabPages:', isGitLabPages, 'isLocalhost:', isLocalhost);
+                    console.log('🔵 window.CTS_API_URL:', window.CTS_API_URL);
                     
                     if (loadingDiv) {
                         loadingDiv.style.display = 'block';
@@ -1340,14 +1363,15 @@
                         loadingText.style.visibility = 'visible';
                     }
                     
-                    // Set a timeout to hide loading if data doesn't load within 30 seconds
+                    // Set a timeout to hide loading if data doesn't load within 10 seconds (reduced from 30)
                     const loadingTimeout = setTimeout(() => {
-                        console.error('⚠️ CTS data loading timeout - hiding loading elements');
-                        if (loadingDiv) loadingDiv.style.display = 'none';
-                        if (loadingSpinner) loadingSpinner.style.display = 'none';
-                        if (loadingText) loadingText.style.display = 'none';
-                        if (gitlabMessage) gitlabMessage.style.display = 'none';
-                    }, 30000);
+                        console.error('⚠️ CTS data loading timeout after 10 seconds - hiding loading elements');
+                        hideLoadingElements();
+                        if (loadingDiv) {
+                            loadingDiv.innerHTML = '<p style="color: #dc2626;">Loading timed out. Please check console for errors.</p>';
+                            loadingDiv.style.display = 'block';
+                        }
+                    }, 10000);
                     
                     // On GitLab Pages, load from static JSON file; on localhost, use API
                     if (isGitLabPages && !isLocalhost) {
@@ -1405,19 +1429,33 @@
                             console.log('✅ Data loaded successfully, calling renderHCPCTSData...');
                             // renderHCPCTSData will hide loading elements
                             try {
-                                renderHCPCTSData(data);
-                                console.log('✅ renderHCPCTSData call completed');
+                                // Ensure renderHCPCTSData exists
+                                if (typeof renderHCPCTSData === 'function') {
+                                    renderHCPCTSData(data);
+                                    console.log('✅ renderHCPCTSData call completed');
+                                } else {
+                                    console.error('❌ renderHCPCTSData is not a function!', typeof renderHCPCTSData);
+                                    hideLoadingElements();
+                                    if (loadingDiv) {
+                                        loadingDiv.innerHTML = '<p style="color: #dc2626;">Error: renderHCPCTSData function not found. Check console for details.</p>';
+                                        loadingDiv.style.display = 'block';
+                                    }
+                                }
                             } catch (renderError) {
                                 console.error('❌ Error in renderHCPCTSData:', renderError);
-                                // Force hide loading elements even if render fails
-                                if (loadingDiv) loadingDiv.style.display = 'none';
-                                if (loadingSpinner) loadingSpinner.style.display = 'none';
-                                if (loadingText) loadingText.style.display = 'none';
+                                console.error('Error stack:', renderError.stack);
+                                hideLoadingElements();
+                                if (loadingDiv) {
+                                    loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${renderError.message}</p><p style="color: #718096; font-size: 0.875rem;">Check console for details</p>`;
+                                    loadingDiv.style.display = 'block';
+                                }
                             }
                         } catch (error) {
                             clearTimeout(loadingTimeout);
-                            console.error('Error loading HCP CTS data from JSON:', error);
-                            // Hide loading spinner and show error
+                            console.error('❌ Error loading HCP CTS data from JSON:', error);
+                            console.error('Error stack:', error.stack);
+                            hideLoadingElements();
+                            // Show error message
                             if (loadingDiv) {
                                 loadingDiv.innerHTML = `
                                     <div style="text-align: center; padding: 3rem;">
@@ -1426,10 +1464,8 @@
                                         <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please check browser console (F12) for details.</p>
                                     </div>
                                 `;
+                                loadingDiv.style.display = 'block';
                             }
-                            if (gitlabMessage) gitlabMessage.style.display = 'none';
-                            if (loadingSpinner) loadingSpinner.style.display = 'none';
-                            if (loadingText) loadingText.style.display = 'none';
                         }
                     } else {
                         // Localhost - use API server
@@ -1496,40 +1532,41 @@
                         } catch (error) {
                             clearTimeout(loadingTimeout);
                             console.error('❌ Error loading HCP CTS data from API:', error);
-                            const loadingDiv = document.getElementById('hcp-cts-loading');
-                            if (loadingDiv) {
-                                const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
-                                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                                
-                                let errorMessage = `
-                                    <div style="text-align: center; padding: 3rem;">
-                                        <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
-                                        <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
+                            console.error('Error stack:', error.stack);
+                            console.error('API URL was:', apiUrl);
+                            hideLoadingElements();
+                            
+                            const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
+                            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                            
+                            let errorMessage = `
+                                <div style="text-align: center; padding: 3rem;">
+                                    <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
+                                    <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
+                            `;
+                            
+                            if (isGitLabPages && !isLocalhost) {
+                                errorMessage += `
+                                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                                        <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
+                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">This dashboard requires access to a local API server.</p>
+                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem;"><strong>Please access the dashboard at:</strong></p>
+                                        <p style="background: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; color: #1e293b; font-weight: 600; margin-bottom: 0.75rem;">http://localhost:8080/index.html</p>
+                                        <p style="color: #78350f; font-size: 0.875rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></p>
+                                    </div>
                                 `;
-                                
-                                if (isGitLabPages && !isLocalhost) {
-                                    errorMessage += `
-                                        <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                                            <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
-                                            <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">This dashboard requires access to a local API server.</p>
-                                            <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem;"><strong>Please access the dashboard at:</strong></p>
-                                            <p style="background: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; color: #1e293b; font-weight: 600; margin-bottom: 0.75rem;">http://localhost:8080/index.html</p>
-                                            <p style="color: #78350f; font-size: 0.875rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></p>
-                                        </div>
-                                    `;
-                                } else {
-                                    errorMessage += `
-                                        <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
-                                    `;
-                                }
-                                
-                                errorMessage += `</div>`;
+                            } else {
+                                errorMessage += `
+                                    <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
+                                    <p style="color: #718096; font-size: 0.875rem;">Check browser console (F12) for detailed error information.</p>
+                                `;
+                            }
+                            
+                            errorMessage += `</div>`;
+                            if (loadingDiv) {
                                 loadingDiv.innerHTML = errorMessage;
                                 loadingDiv.style.display = 'block';
                             }
-                            if (gitlabMessage) gitlabMessage.style.display = 'none';
-                            if (loadingSpinner) loadingSpinner.style.display = 'none';
-                            if (loadingText) loadingText.style.display = 'none';
                         }
                     }
                 }

@@ -1312,6 +1312,206 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Wait for fkp-dashboard.js to initialize, then hook into tab switching
             setTimeout(function() {
+                // Function to load CTS data - MUST be defined before it's used
+                async function loadCTSData() {
+                    if (hcpCtsDataLoaded) {
+                        console.log('✅ CTS data already loaded, skipping...');
+                        return;
+                    }
+                    
+                    const loadingDiv = document.getElementById('hcp-cts-loading');
+                    const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
+                    const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
+                    const loadingText = document.getElementById('hcp-cts-loading-text');
+                    
+                    // Check if on GitLab Pages
+                    const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
+                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    
+                    console.log('🔵 Loading CTS data - isGitLabPages:', isGitLabPages, 'isLocalhost:', isLocalhost);
+                    
+                    if (loadingDiv) {
+                        loadingDiv.style.display = 'block';
+                        loadingDiv.style.visibility = 'visible';
+                        loadingDiv.style.opacity = '1';
+                    }
+                    if (loadingSpinner) {
+                        loadingSpinner.style.display = 'inline-block';
+                        loadingSpinner.style.visibility = 'visible';
+                    }
+                    if (loadingText) {
+                        loadingText.style.display = 'block';
+                        loadingText.style.visibility = 'visible';
+                    }
+                    
+                    // Set a timeout to hide loading if data doesn't load within 30 seconds
+                    const loadingTimeout = setTimeout(() => {
+                        console.error('⚠️ CTS data loading timeout - hiding loading elements');
+                        if (loadingDiv) loadingDiv.style.display = 'none';
+                        if (loadingSpinner) loadingSpinner.style.display = 'none';
+                        if (loadingText) loadingText.style.display = 'none';
+                        if (gitlabMessage) gitlabMessage.style.display = 'none';
+                    }, 30000);
+                    
+                    // On GitLab Pages, load from static JSON file; on localhost, use API
+                    if (isGitLabPages && !isLocalhost) {
+                        // GitLab Pages - load from static JSON file
+                        if (gitlabMessage) gitlabMessage.style.display = 'none';
+                        if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
+                        if (loadingText) loadingText.style.display = 'block';
+                        
+                        try {
+                            console.log('Fetching HCP CTS data from static JSON file...');
+                            // Detect base path for GitLab Pages
+                            const basePath = window.location.pathname.split('/').slice(0, -1).join('/') || '';
+                            console.log('Detected base path:', basePath);
+                            
+                            // Try multiple possible paths for GitLab Pages
+                            const jsonPaths = [
+                                basePath + '/assets/data/hcp-cts-forecast-actuals.json',
+                                'assets/data/hcp-cts-forecast-actuals.json',
+                                '/assets/data/hcp-cts-forecast-actuals.json',
+                                './assets/data/hcp-cts-forecast-actuals.json'
+                            ];
+                            
+                            let response = null;
+                            let lastError = null;
+                            
+                            for (const jsonPath of jsonPaths) {
+                                try {
+                                    console.log('Trying path:', jsonPath);
+                                    response = await fetch(jsonPath);
+                                    if (response.ok) {
+                                        console.log('✅ Found JSON file at:', jsonPath);
+                                        break;
+                                    } else {
+                                        console.log('⚠️ Path returned status:', response.status);
+                                    }
+                                } catch (err) {
+                                    lastError = err;
+                                    console.log('⚠️ Failed to load from:', jsonPath, err.message);
+                                }
+                            }
+                            
+                            if (!response || !response.ok) {
+                                throw new Error(`Failed to load JSON file. Status: ${response?.status || 'no response'}. ${lastError?.message || ''}`);
+                            }
+                            
+                            const data = await response.json();
+                            console.log('HCP CTS data loaded from JSON:', data);
+                            
+                            if (!data || !data.initiatives) {
+                                throw new Error('Invalid JSON data structure - missing initiatives');
+                            }
+                            
+                            clearTimeout(loadingTimeout);
+                            hcpCtsDataLoaded = true;
+                            console.log('✅ Data loaded successfully, calling renderHCPCTSData...');
+                            // renderHCPCTSData will hide loading elements
+                            try {
+                                renderHCPCTSData(data);
+                                console.log('✅ renderHCPCTSData call completed');
+                            } catch (renderError) {
+                                console.error('❌ Error in renderHCPCTSData:', renderError);
+                                // Force hide loading elements even if render fails
+                                if (loadingDiv) loadingDiv.style.display = 'none';
+                                if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                if (loadingText) loadingText.style.display = 'none';
+                            }
+                        } catch (error) {
+                            clearTimeout(loadingTimeout);
+                            console.error('Error loading HCP CTS data from JSON:', error);
+                            // Hide loading spinner and show error
+                            if (loadingDiv) {
+                                loadingDiv.innerHTML = `
+                                    <div style="text-align: center; padding: 3rem;">
+                                        <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
+                                        <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
+                                        <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please check browser console (F12) for details.</p>
+                                    </div>
+                                `;
+                            }
+                            if (gitlabMessage) gitlabMessage.style.display = 'none';
+                            if (loadingSpinner) loadingSpinner.style.display = 'none';
+                            if (loadingText) loadingText.style.display = 'none';
+                        }
+                    } else {
+                        // Localhost - use API server
+                        if (gitlabMessage) gitlabMessage.style.display = 'none';
+                        if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
+                        if (loadingText) loadingText.style.display = 'block';
+                        
+                        try {
+                            console.log('Fetching HCP CTS data from API...');
+                            // CTS API server: http://localhost:8080
+                            const apiUrl = window.CTS_API_URL;
+                            const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
+                                mode: 'cors',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            const data = await response.json();
+                            console.log('HCP CTS data loaded from API:', data);
+                            
+                            clearTimeout(loadingTimeout);
+                            hcpCtsDataLoaded = true;
+                            console.log('✅ Data loaded successfully from API, calling renderHCPCTSData...');
+                            // renderHCPCTSData will hide loading elements
+                            try {
+                                renderHCPCTSData(data);
+                                console.log('✅ renderHCPCTSData call completed');
+                            } catch (renderError) {
+                                console.error('❌ Error in renderHCPCTSData:', renderError);
+                                // Force hide loading elements even if render fails
+                                if (loadingDiv) loadingDiv.style.display = 'none';
+                                if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                if (loadingText) loadingText.style.display = 'none';
+                            }
+                        } catch (error) {
+                            clearTimeout(loadingTimeout);
+                            console.error('❌ Error loading HCP CTS data from API:', error);
+                            const loadingDiv = document.getElementById('hcp-cts-loading');
+                            if (loadingDiv) {
+                                const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
+                                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                                
+                                let errorMessage = `
+                                    <div style="text-align: center; padding: 3rem;">
+                                        <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
+                                        <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
+                                `;
+                                
+                                if (isGitLabPages && !isLocalhost) {
+                                    errorMessage += `
+                                        <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                                            <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
+                                            <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">This dashboard requires access to a local API server.</p>
+                                            <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem;"><strong>Please access the dashboard at:</strong></p>
+                                            <p style="background: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; color: #1e293b; font-weight: 600; margin-bottom: 0.75rem;">http://localhost:8080/index.html</p>
+                                            <p style="color: #78350f; font-size: 0.875rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></p>
+                                        </div>
+                                    `;
+                                } else {
+                                    errorMessage += `
+                                        <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
+                                    `;
+                                }
+                                
+                                errorMessage += `</div>`;
+                                loadingDiv.innerHTML = errorMessage;
+                                loadingDiv.style.display = 'block';
+                            }
+                            if (gitlabMessage) gitlabMessage.style.display = 'none';
+                            if (loadingSpinner) loadingSpinner.style.display = 'none';
+                            if (loadingText) loadingText.style.display = 'none';
+                        }
+                    }
+                }
+                
                 // Hook into the existing tab switching mechanism
                 const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-details"]');
                 costToServeTabs.forEach(tab => {
@@ -1550,16 +1750,10 @@
                         // Check if Cost to Serve tab was switched to
                         if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-details') {
                             console.log('🔵 Cost to Serve tab switched via switchTab:', tabId);
-                            // Load data if not already loaded
+                            // Load data if not already loaded - call directly, don't rely on click
                             if (!hcpCtsDataLoaded) {
-                                // Trigger the data loading
-                            const tabElement = document.querySelector(`[data-tab="${tabId}"]`);
-                            if (tabElement) {
-                                tabElement.click();
-                                } else {
-                                    // If click doesn't work, load data directly
-                                    loadCTSData();
-                                }
+                                console.log('🔵 Calling loadCTSData() directly from switchTab...');
+                                loadCTSData();
                             }
                         }
                     };
@@ -1591,206 +1785,6 @@
                         attributes: true,
                         attributeFilter: ['style', 'class']
                     });
-                }
-                
-                // Function to load CTS data
-                async function loadCTSData() {
-                    if (hcpCtsDataLoaded) {
-                        console.log('✅ CTS data already loaded, skipping...');
-                        return;
-                    }
-                    
-                    const loadingDiv = document.getElementById('hcp-cts-loading');
-                    const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
-                    const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
-                    const loadingText = document.getElementById('hcp-cts-loading-text');
-                    
-                    // Check if on GitLab Pages
-                    const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
-                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    
-                    console.log('🔵 Loading CTS data - isGitLabPages:', isGitLabPages, 'isLocalhost:', isLocalhost);
-                    
-                    if (loadingDiv) {
-                        loadingDiv.style.display = 'block';
-                        loadingDiv.style.visibility = 'visible';
-                        loadingDiv.style.opacity = '1';
-                    }
-                    if (loadingSpinner) {
-                        loadingSpinner.style.display = 'inline-block';
-                        loadingSpinner.style.visibility = 'visible';
-                    }
-                    if (loadingText) {
-                        loadingText.style.display = 'block';
-                        loadingText.style.visibility = 'visible';
-                    }
-                    
-                    // Set a timeout to hide loading if data doesn't load within 30 seconds
-                    const loadingTimeout = setTimeout(() => {
-                        console.error('⚠️ CTS data loading timeout - hiding loading elements');
-                        if (loadingDiv) loadingDiv.style.display = 'none';
-                        if (loadingSpinner) loadingSpinner.style.display = 'none';
-                        if (loadingText) loadingText.style.display = 'none';
-                        if (gitlabMessage) gitlabMessage.style.display = 'none';
-                    }, 30000);
-                    
-                    // On GitLab Pages, load from static JSON file; on localhost, use API
-                    if (isGitLabPages && !isLocalhost) {
-                        // GitLab Pages - load from static JSON file
-                        if (gitlabMessage) gitlabMessage.style.display = 'none';
-                        if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
-                        if (loadingText) loadingText.style.display = 'block';
-                        
-                        try {
-                            console.log('Fetching HCP CTS data from static JSON file...');
-                            // Detect base path for GitLab Pages
-                            const basePath = window.location.pathname.split('/').slice(0, -1).join('/') || '';
-                            console.log('Detected base path:', basePath);
-                            
-                            // Try multiple possible paths for GitLab Pages
-                            const jsonPaths = [
-                                basePath + '/assets/data/hcp-cts-forecast-actuals.json',
-                                'assets/data/hcp-cts-forecast-actuals.json',
-                                '/assets/data/hcp-cts-forecast-actuals.json',
-                                './assets/data/hcp-cts-forecast-actuals.json'
-                            ];
-                            
-                            let response = null;
-                            let lastError = null;
-                            
-                            for (const jsonPath of jsonPaths) {
-                                try {
-                                    console.log('Trying path:', jsonPath);
-                                    response = await fetch(jsonPath);
-                                    if (response.ok) {
-                                        console.log('✅ Found JSON file at:', jsonPath);
-                                        break;
-                                    } else {
-                                        console.log('⚠️ Path returned status:', response.status);
-                                    }
-                                } catch (err) {
-                                    lastError = err;
-                                    console.log('⚠️ Failed to load from:', jsonPath, err.message);
-                                }
-                            }
-                            
-                            if (!response || !response.ok) {
-                                throw new Error(`Failed to load JSON file. Status: ${response?.status || 'no response'}. ${lastError?.message || ''}`);
-                            }
-                            
-                            const data = await response.json();
-                            console.log('HCP CTS data loaded from JSON:', data);
-                            
-                            if (!data || !data.initiatives) {
-                                throw new Error('Invalid JSON data structure - missing initiatives');
-                            }
-                            
-                            clearTimeout(loadingTimeout);
-                            hcpCtsDataLoaded = true;
-                            console.log('✅ Data loaded successfully, calling renderHCPCTSData...');
-                            // renderHCPCTSData will hide loading elements
-                            try {
-                                renderHCPCTSData(data);
-                                console.log('✅ renderHCPCTSData call completed');
-                            } catch (renderError) {
-                                console.error('❌ Error in renderHCPCTSData:', renderError);
-                                // Force hide loading elements even if render fails
-                                if (loadingDiv) loadingDiv.style.display = 'none';
-                                if (loadingSpinner) loadingSpinner.style.display = 'none';
-                                if (loadingText) loadingText.style.display = 'none';
-                            }
-                        } catch (error) {
-                            clearTimeout(loadingTimeout);
-                            console.error('Error loading HCP CTS data from JSON:', error);
-                            // Hide loading spinner and show error
-                            if (loadingDiv) {
-                                loadingDiv.innerHTML = `
-                                    <div style="text-align: center; padding: 3rem;">
-                                        <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
-                                        <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                                        <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please check browser console (F12) for details.</p>
-                                    </div>
-                                `;
-                            }
-                            if (gitlabMessage) gitlabMessage.style.display = 'none';
-                            if (loadingSpinner) loadingSpinner.style.display = 'none';
-                            if (loadingText) loadingText.style.display = 'none';
-                        }
-                    } else {
-                        // Localhost - use API server
-                        if (gitlabMessage) gitlabMessage.style.display = 'none';
-                        if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
-                        if (loadingText) loadingText.style.display = 'block';
-                        
-                        try {
-                            console.log('Fetching HCP CTS data from API...');
-                            // CTS API server: http://localhost:8080
-                            const apiUrl = window.CTS_API_URL;
-                            const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
-                                mode: 'cors',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            const data = await response.json();
-                            console.log('HCP CTS data loaded from API:', data);
-                            
-                            clearTimeout(loadingTimeout);
-                            hcpCtsDataLoaded = true;
-                            console.log('✅ Data loaded successfully from API, calling renderHCPCTSData...');
-                            // renderHCPCTSData will hide loading elements
-                            try {
-                                renderHCPCTSData(data);
-                                console.log('✅ renderHCPCTSData call completed');
-                            } catch (renderError) {
-                                console.error('❌ Error in renderHCPCTSData:', renderError);
-                                // Force hide loading elements even if render fails
-                                if (loadingDiv) loadingDiv.style.display = 'none';
-                                if (loadingSpinner) loadingSpinner.style.display = 'none';
-                                if (loadingText) loadingText.style.display = 'none';
-                            }
-                        } catch (error) {
-                            clearTimeout(loadingTimeout);
-                            console.error('❌ Error loading HCP CTS data from API:', error);
-                            const loadingDiv = document.getElementById('hcp-cts-loading');
-                            if (loadingDiv) {
-                                const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
-                                const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                                
-                                let errorMessage = `
-                                    <div style="text-align: center; padding: 3rem;">
-                                        <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
-                                        <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                                `;
-                                
-                                if (isGitLabPages && !isLocalhost) {
-                                    errorMessage += `
-                                        <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                                            <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
-                                            <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">This dashboard requires access to a local API server.</p>
-                                            <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem;"><strong>Please access the dashboard at:</strong></p>
-                                            <p style="background: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; color: #1e293b; font-weight: 600; margin-bottom: 0.75rem;">http://localhost:8080/index.html</p>
-                                            <p style="color: #78350f; font-size: 0.875rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></p>
-                                        </div>
-                                    `;
-                                } else {
-                                    errorMessage += `
-                                        <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
-                                    `;
-                                }
-                                
-                                errorMessage += `</div>`;
-                                loadingDiv.innerHTML = errorMessage;
-                                loadingDiv.style.display = 'block';
-                            }
-                            if (gitlabMessage) gitlabMessage.style.display = 'none';
-                            if (loadingSpinner) loadingSpinner.style.display = 'none';
-                            if (loadingText) loadingText.style.display = 'none';
-                        }
-                    }
                 }
             }, 1000);
         });

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Content Security Policy: Allow CDN resources for stylesheets and scripts -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' 'unsafe-hashes' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.socket.io https://unpkg.com; script-src-elem 'self' 'unsafe-inline' 'unsafe-hashes' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.socket.io https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss: http://localhost:8080 https://cdn.jsdelivr.net https://cdn.socket.io;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' 'unsafe-hashes' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.socket.io https://unpkg.com; script-src-elem 'self' 'unsafe-inline' 'unsafe-hashes' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.socket.io https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss: http://localhost:3001 https://cdn.jsdelivr.net https://cdn.socket.io;">
     <title>Hyperforce Runtime Platform 360 - FKP Adoption Dashboard</title>
     <!-- Favicon (prevents 404) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
@@ -25,8 +25,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Configure API URL for Cost to Serve (CTS) and Karpenter sections
-        // Use http://localhost:8080 only when accessed from localhost
-        // GitLab Pages users will see error messages directing them to localhost:8080
+        // Use http://localhost:3001 only when accessed from localhost
+        // GitLab Pages users will see error messages directing them to localhost:3001
         const hostname = window.location.hostname;
         const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
         
@@ -48,7 +48,7 @@
         <div style="max-width: 1200px; margin: 0 auto;">
             <p style="color: #92400e; font-weight: 600; margin: 0; font-size: 0.95rem;">
                 ⚠️ This dashboard requires a local API server. 
-                <strong>Please access it at: <a href="http://localhost:8080/index.html" style="color: #1e40af; text-decoration: underline;">http://localhost:8080/index.html</a></strong>
+                <strong>Please access it at: <a href="http://localhost:3001/index.html" style="color: #1e40af; text-decoration: underline;">http://localhost:3001/index.html</a></strong>
                 <span style="margin-left: 1rem; font-size: 0.875rem; font-weight: normal;">(Make sure the server is running: <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code>)</span>
             </p>
         </div>
@@ -1520,8 +1520,8 @@
                         
                         try {
                             console.log('Fetching HCP CTS data from API...');
-                            // CTS API server: http://localhost:8080
-                            const apiUrl = window.CTS_API_URL || 'http://localhost:8080';
+                            // CTS API server: http://localhost:3001
+                            const apiUrl = window.CTS_API_URL || 'http://localhost:3001';
                             console.log('Using API URL:', apiUrl);
                             const apiEndpoint = `${apiUrl}/api/hcp-cts-forecast-actuals`;
                             console.log('Fetching from:', apiEndpoint);

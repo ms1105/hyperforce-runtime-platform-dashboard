@@ -1458,11 +1458,24 @@
                                     
                                     clearTimeout(loadingTimeout);
                                     hcpCtsDataLoaded = true;
+                                    console.log('✅ Data loaded successfully from API, calling renderHCPCTSData...');
                                     // renderHCPCTSData will hide loading elements
-                                    renderHCPCTSData(data);
+                                    try {
+                                        renderHCPCTSData(data);
+                                        console.log('✅ renderHCPCTSData call completed');
+                                    } catch (renderError) {
+                                        console.error('❌ Error in renderHCPCTSData:', renderError);
+                                        // Force hide loading elements even if render fails
+                                        const loadingDiv = document.getElementById('hcp-cts-loading');
+                                        const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
+                                        const loadingText = document.getElementById('hcp-cts-loading-text');
+                                        if (loadingDiv) loadingDiv.style.display = 'none';
+                                        if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                        if (loadingText) loadingText.style.display = 'none';
+                                    }
                                 } catch (error) {
                                     clearTimeout(loadingTimeout);
-                                    console.error('Error loading HCP CTS data from API:', error);
+                                    console.error('❌ Error loading HCP CTS data from API:', error);
                                     const loadingDiv = document.getElementById('hcp-cts-loading');
                                     if (loadingDiv) {
                                     const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');

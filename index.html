@@ -1318,6 +1318,23 @@
                     tab.addEventListener('click', async function() {
                         // Load data if not already loaded
                         if (!hcpCtsDataLoaded) {
+                            console.log('🔵 Cost to Serve tab clicked, loading data...');
+                            loadCTSData();
+                            return; // Exit early, loadCTSData handles everything
+                        }
+                    });
+                });
+                
+                // Also check immediately if tab is already visible on page load
+                setTimeout(function() {
+                    const tabPane = document.getElementById('cost-to-serve-overview');
+                    if (tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active') && !hcpCtsDataLoaded) {
+                        console.log('🔵 Cost to Serve tab already visible on page load, loading data...');
+                        loadCTSData();
+                    }
+                }, 500);
+                
+                // Old click handler code removed - now using loadCTSData function above
                             const loadingDiv = document.getElementById('hcp-cts-loading');
                             const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
                             const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
@@ -1500,7 +1517,7 @@
                                     } else {
                                         errorMessage += `
                                             <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
-                                        `;
+                                    `;
                                     }
                                     
                                     errorMessage += `</div>`;

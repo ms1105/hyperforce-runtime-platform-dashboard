@@ -1207,28 +1207,60 @@
                                 console.log('Fetching HCP CTS data...');
                                 // Use relative URL - proxy at localhost:8080 will handle it
                                 const apiUrl = window.BINPACKING_API_URL || '';
-                                const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
+                                const apiEndpoint = `${apiUrl}/api/hcp-cts-forecast-actuals`;
+                                
+                                // Add timeout to prevent hanging
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                                
+                                const response = await fetch(apiEndpoint, {
                                     mode: 'cors',
                                     headers: {
                                         'Content-Type': 'application/json'
-                                    }
+                                    },
+                                    signal: controller.signal
                                 });
+                                
+                                clearTimeout(timeoutId);
+                                
+                                // Check if response is actually JSON
+                                const contentType = response.headers.get('content-type');
+                                if (!contentType || !contentType.includes('application/json')) {
+                                    throw new Error('Response is not JSON. API server may not be available.');
+                                }
+                                
                                 if (!response.ok) {
                                     throw new Error(`HTTP error! status: ${response.status}`);
                                 }
+                                
                                 const data = await response.json();
                                 console.log('HCP CTS data loaded:', data);
                                 hcpCtsDataLoaded = true;
+                                
+                                // Hide loading and show content
+                                const loadingDiv = document.getElementById('hcp-cts-loading');
+                                if (loadingDiv) {
+                                    loadingDiv.style.display = 'none';
+                                }
+                                
                                 renderHCPCTSData(data);
                             } catch (error) {
                                 console.error('Error loading HCP CTS data:', error);
                                 const loadingDiv = document.getElementById('hcp-cts-loading');
                                 if (loadingDiv) {
+                                    const errorMessage = error.name === 'AbortError' 
+                                        ? 'Request timed out. API server may not be accessible.'
+                                        : error.message || 'Unknown error occurred';
+                                    
                                     loadingDiv.innerHTML = `
                                         <div style="text-align: center; padding: 3rem;">
                                             <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
-                                            <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the API server is accessible</p>
+                                            <p style="color: #718096; font-size: 0.875rem;">Error: ${errorMessage}</p>
+                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">
+                                                ${window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                                                    ? 'Please ensure the server is running at http://localhost:8080'
+                                                    : 'This dashboard requires a local API server. Please access it at <a href="http://localhost:8080/index.html" style="color: #3182ce; text-decoration: underline;">http://localhost:8080/index.html</a>'}
+                                            </p>
                                         </div>
                                     `;
                                 }

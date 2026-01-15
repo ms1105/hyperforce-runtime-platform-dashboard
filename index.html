@@ -1072,10 +1072,10 @@
                                 <div id="hcp-cts-gitlab-message" style="display: none;">
                                     <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; max-width: 600px; margin: 0 auto;">
                                         <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
-                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">The Cost to Serve section requires access to a local API server at <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">http://localhost:8080</code>.</p>
+                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">The Cost to Serve section requires access to a local API server at <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">http://localhost:3001</code>.</p>
                                         <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem; margin-top: 1rem;"><strong>To view this section, please:</strong></p>
                                         <ol style="color: #78350f; font-size: 0.875rem; text-align: left; max-width: 500px; margin: 0 auto;">
-                                            <li style="margin-bottom: 0.5rem;">Access the dashboard at: <a href="http://localhost:8080/index.html" style="color: #1e40af; text-decoration: underline;">http://localhost:8080/index.html</a></li>
+                                            <li style="margin-bottom: 0.5rem;">Access the dashboard at: <a href="http://localhost:3001/index.html" style="color: #1e40af; text-decoration: underline;">http://localhost:3001/index.html</a></li>
                                             <li style="margin-bottom: 0.5rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></li>
                                         </ol>
                                     </div>
@@ -1609,13 +1609,13 @@
                                         <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
                                         <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">This dashboard requires access to a local API server.</p>
                                         <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem;"><strong>Please access the dashboard at:</strong></p>
-                                        <p style="background: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; color: #1e293b; font-weight: 600; margin-bottom: 0.75rem;">http://localhost:8080/index.html</p>
+                                        <p style="background: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; color: #1e293b; font-weight: 600; margin-bottom: 0.75rem;">http://localhost:3001/index.html</p>
                                         <p style="color: #78350f; font-size: 0.875rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></p>
                                     </div>
                                 `;
                             } else {
                                 errorMessage += `
-                                    <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:8080</p>
+                                    <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:3001</p>
                                     <p style="color: #718096; font-size: 0.875rem;">Check browser console (F12) for detailed error information.</p>
                                 `;
                             }

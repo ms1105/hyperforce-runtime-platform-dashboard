@@ -3376,6 +3376,18 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     margin-right: 0.5rem;
 }
 
+.data-range-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #e0e7ff;
+    color: #3730a3;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
 .last-updated {
     font-size: 0.875rem;
     color: #64748b;

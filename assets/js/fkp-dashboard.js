@@ -14,7 +14,8 @@ const INTEGRATION_SERVICES = [
     'stampy-webhook', 'madkub-watchdog', 'collection', 'madkub-injection-webhook',
     'collectioninjector', 'metadata-concealer', 'identity-controller-refresher', 
     'identity-controller', 'clustermanagement', 'collectioninjectortest', 
-    'visibility-agent', 'vault', 'mars', 'authzwebhook', 'kubesyntheticscaler'
+    'visibility-agent', 'vault', 'mars', 'authzwebhook', 'kubesyntheticscaler',
+    'identitycontrollertest'
 ];
 
 // Global state management
@@ -1482,6 +1483,8 @@ function updateViewButtonStates(tabId) {
         'executive-overview': { exec: true, developer: true },
         // Migration Pipeline: Exec only
         'migration-pipeline': { exec: true, developer: false },
+        // Projections & Roadmap: Exec only
+        'projections-roadmap': { exec: true, developer: false },
         // Developer-only tabs: Developer only
         'migration-dependencies': { exec: false, developer: true },
         'cross-customer-analysis': { exec: false, developer: true },
@@ -1649,6 +1652,10 @@ function updatePageHeader(tabId) {
             title: 'Onboarding', 
             subtitle: 'Migration Pipeline'
         },
+        'projections-roadmap': {
+            title: 'Onboarding',
+            subtitle: 'Projections & Roadmap'
+        },
         'migration-dependencies': {
             title: 'Onboarding',
             subtitle: 'Migration Dependencies'
@@ -1717,6 +1724,9 @@ function refreshCurrentTab() {
             break;
         case 'migration-pipeline':
             renderMigrationPipeline();
+            break;
+        case 'projections-roadmap':
+            renderProjectionsRoadmap();
             break;
         case 'service-information':
             renderServiceInformation();
@@ -1930,6 +1940,7 @@ function renderAvailabilityExecView(container) {
                         </div>
                     </div>
                     <div class="availability-header-badges">
+                        <span class="data-range-badge">📅 Jan 2025 - Dec 2025 (12 months)</span>
                         <span class="last-updated">Last Updated: ${formattedDate} @ ${formattedTime}</span>
                     </div>
                 </div>
@@ -1952,7 +1963,7 @@ function renderAvailabilityExecView(container) {
                         <span class="kpi-label">SEV1 INCIDENTS (12MO)</span>
                     </div>
                     <div class="kpi-value">${sev1Incidents}</div>
-                    <div class="kpi-trend trend-up">↑ ${sev1Trend || 'vs prior period'}</div>
+                    <div class="kpi-trend trend-up">↑ 12 vs prior 12mo</div>
                 </div>
                 
                 <div class="availability-kpi-card success">
@@ -2598,10 +2609,10 @@ function renderAvailabilitySLATable(slaData) {
                 <tr>
                     <th>SERVICE</th>
                     <th>TOTAL</th>
-                    <th>TTD MET</th>
-                    <th>TTD MISSED</th>
-                    <th>TTR MET</th>
-                    <th>TTR MISSED</th>
+                    <th>MTTD MET</th>
+                    <th>MTTD MISSED</th>
+                    <th>MTTR MET</th>
+                    <th>MTTR MISSED</th>
                     <th>OVERALL SLA %</th>
                 </tr>
             </thead>
@@ -7978,6 +7989,18 @@ let availabilityData = {
     loaded: false
 };
 
+// Store projections data globally
+let projectionsData = {
+    loaded: false,
+    roadmap: [],
+    prevMetrics: null,
+    currentMetrics: null,
+    projections: null,
+    servicesNeedingCompletion: [],
+    servicesNeedingGovcloud: [],
+    servicesWithoutETAs: []
+};
+
 /**
  * Parse CSV helper function
  */
@@ -8476,4 +8499,833 @@ function renderServiceBarChart(containerId, services, valueField, slaTarget, met
         </div>
         ${slaInfoHtml}
     `;
+}
+
+// ============================================
+// PROJECTIONS & ROADMAP SECTION
+// ============================================
+
+/**
+ * Render Projections & Roadmap tab
+ */
+async function renderProjectionsRoadmap() {
+    console.log('📈 Rendering Projections & Roadmap');
+    
+    const container = document.getElementById('projections-roadmap-content');
+    if (!container) return;
+    
+    // Show loading state
+    container.innerHTML = `
+        <div class="placeholder-message">
+            <div class="placeholder-icon">📈</div>
+            <h3>Loading Projections...</h3>
+            <p>Analyzing adoption projections and roadmap data</p>
+        </div>
+    `;
+    
+    try {
+        // Load roadmap data if not already loaded
+        if (!projectionsData.loaded) {
+            await loadProjectionsData();
+        }
+        
+        // Render the dashboard
+        renderProjectionsDashboard(container);
+        
+    } catch (error) {
+        console.error('❌ Error loading projections:', error);
+        container.innerHTML = `
+            <div class="error-message" style="padding: 2rem; text-align: center;">
+                <h3>Error Loading Projections</h3>
+                <p>${error.message}</p>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Load projections data from CSV files
+ */
+async function loadProjectionsData() {
+    console.log('📈 Loading projections data...');
+    
+    const QUARTERS = ['FY26Q3', 'FY26Q4', 'FY27Q1', 'FY27Q2', 'FY27Q3', 'FY27Q4'];
+    const PROJECTED_QUARTERS = ['FY27Q1', 'FY27Q2', 'FY27Q3', 'FY27Q4'];
+    
+    // Load roadmap CSV
+    const roadmapResponse = await fetch('assets/data/FY26 Platform Backlog - Customer Adoption Roadmap - SoT.csv');
+    const roadmapText = await roadmapResponse.text();
+    const roadmapData = parseCSVWithQuotes(roadmapText);
+    
+    projectionsData.roadmap = roadmapData;
+    console.log(`✅ Loaded ${roadmapData.length} roadmap entries`);
+    
+    // Check if main dashboard data is loaded
+    if (!fkpDashboard.data.processed || !fkpDashboard.data.processed.services || fkpDashboard.data.processed.services.size === 0) {
+        throw new Error('Dashboard data not loaded yet. Please navigate to Overview tab first to load data.');
+    }
+    
+    // Calculate metrics from processed data (use existing dashboard data)
+    const currentMetrics = calculateProjectionMetricsFromDashboard();
+    const prevMetrics = calculatePrevQuarterMetrics();
+    
+    projectionsData.currentMetrics = currentMetrics;
+    projectionsData.prevMetrics = prevMetrics;
+    
+    // Calculate projections
+    const projections = calculateQuarterlyProjections(currentMetrics, roadmapData, QUARTERS, PROJECTED_QUARTERS);
+    projectionsData.projections = projections;
+    
+    // Find services needing completion (enabled but with gaps)
+    const currentServices = buildServiceMapFromDashboard();
+    projectionsData.servicesNeedingCompletion = findServicesNeedingCompletion(currentServices, roadmapData);
+    projectionsData.servicesNeedingGovcloud = findServicesNeedingGovcloud(currentServices, roadmapData);
+    projectionsData.servicesWithoutETAs = findServicesWithoutETAs(currentServices, roadmapData);
+    
+    projectionsData.loaded = true;
+    console.log('✅ Projections data loaded successfully');
+}
+
+/**
+ * Calculate projection metrics from existing dashboard data
+ * Uses instance-level data like the Overview tab does
+ */
+function calculateProjectionMetricsFromDashboard() {
+    const metrics = {
+        Commercial: { total: 0, fkp: 0, selfManaged: 0 },
+        GIA: { total: 0, fkp: 0, selfManaged: 0 },
+        BlackJack: { total: 0, fkp: 0, selfManaged: 0 }
+    };
+    
+    // Iterate through all services and their instances (same as calculateAdoptionByCustomerType)
+    const allServices = Array.from(fkpDashboard.data.processed.services.values());
+    
+    allServices.forEach(service => {
+        service.instances.forEach(inst => {
+            // Only count Prod instances (matching Overview tab logic)
+            if (!inst.isProd) return;
+            
+            const customerType = inst.customerType; // 'Commercial', 'GIA', or 'BlackJack'
+            if (!metrics[customerType]) return;
+            
+            metrics[customerType].total++;
+            if (inst.isFKP) {
+                metrics[customerType].fkp++;
+            } else {
+                metrics[customerType].selfManaged++;
+            }
+        });
+    });
+    
+    console.log('📊 Current metrics from dashboard:', metrics);
+    return metrics;
+}
+
+/**
+ * Calculate previous quarter metrics
+ * Uses raw instance data from previous quarter files
+ */
+function calculatePrevQuarterMetrics() {
+    const metrics = {
+        Commercial: { total: 0, fkp: 0, selfManaged: 0 },
+        GIA: { total: 0, fkp: 0, selfManaged: 0 },
+        BlackJack: { total: 0, fkp: 0, selfManaged: 0 }
+    };
+    
+    // Use previous quarter data if available
+    const prevQInstances = fkpDashboard.data.instancesPrevQ || [];
+    const prevQBlackjack = fkpDashboard.data.blackjackInstancesPrevQ || [];
+    
+    // Get service mappings for filtering unmapped services
+    const mappingSet = new Set();
+    fkpDashboard.data.mappings.forEach(mapping => {
+        if (mapping.mr_servicename) {
+            mappingSet.add(mapping.mr_servicename);
+        }
+    });
+    
+    // Process previous quarter FKP instances
+    prevQInstances.forEach(instance => {
+        const fi = instance.fi || '';
+        const cluster = instance.k8s_cluster || '';
+        const serviceName = instance.label_p_servicename || '';
+        
+        if (!serviceName || serviceName === 'unknown') return;
+        if (INTEGRATION_SERVICES.includes(serviceName)) return;
+        
+        // Match main dashboard logic - only mapped services
+        if (!mappingSet.has(serviceName) && !INTEGRATION_SERVICES.includes(serviceName)) return;
+        
+        // Check if prod (match main dashboard: stage|prod|esvc)
+        const isProd = /stage|prod|esvc/i.test(fi);
+        if (!isProd) return;
+        
+        // Determine customer type
+        let customerType = 'Commercial';
+        if (/gia/i.test(fi)) {
+            customerType = 'GIA';
+        }
+        
+        // Check if FKP (cluster contains "sam")
+        const isFKP = /sam/i.test(cluster);
+        
+        metrics[customerType].total++;
+        if (isFKP) {
+            metrics[customerType].fkp++;
+        } else {
+            metrics[customerType].selfManaged++;
+        }
+    });
+    
+    // Process BlackJack previous quarter
+    prevQBlackjack.forEach(instance => {
+        const fi = instance.fi || instance.Env || '';
+        const cluster = instance.k8s_cluster || instance['EKS Cluster Name'] || '';
+        const serviceName = instance.label_p_servicename || instance.ServiceName || '';
+        
+        if (!serviceName || serviceName === 'unknown') return;
+        if (INTEGRATION_SERVICES.includes(serviceName)) return;
+        
+        // Match main dashboard logic - only mapped services
+        if (!mappingSet.has(serviceName) && !INTEGRATION_SERVICES.includes(serviceName)) return;
+        
+        // Check if prod
+        const isProd = /stage|prod|esvc/i.test(fi);
+        if (!isProd) return;
+        
+        // Check if FKP
+        const isFKP = /sam/i.test(cluster);
+        
+        metrics.BlackJack.total++;
+        if (isFKP) {
+            metrics.BlackJack.fkp++;
+        } else {
+            metrics.BlackJack.selfManaged++;
+        }
+    });
+    
+    console.log('📊 Previous quarter metrics:', metrics);
+    return metrics;
+}
+
+/**
+ * Build service map from existing dashboard data
+ * Uses instance-level data for accurate counts
+ */
+function buildServiceMapFromDashboard() {
+    const services = new Map();
+    
+    fkpDashboard.data.processed.services.forEach((service, name) => {
+        const serviceData = {
+            name: name,
+            Commercial: { total: 0, fkp: 0, selfManaged: 0 },
+            GIA: { total: 0, fkp: 0, selfManaged: 0 },
+            BlackJack: { total: 0, fkp: 0, selfManaged: 0 }
+        };
+        
+        // Count instances by customer type (Prod only)
+        service.instances.forEach(inst => {
+            if (!inst.isProd) return;
+            
+            const customerType = inst.customerType;
+            if (!serviceData[customerType]) return;
+            
+            serviceData[customerType].total++;
+            if (inst.isFKP) {
+                serviceData[customerType].fkp++;
+            } else {
+                serviceData[customerType].selfManaged++;
+            }
+        });
+        
+        services.set(name, serviceData);
+    });
+    
+    return services;
+}
+
+/**
+ * Parse CSV with proper quote handling
+ */
+function parseCSVWithQuotes(text) {
+    const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const rows = [];
+    let currentRow = [];
+    let currentField = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < normalizedText.length; i++) {
+        const char = normalizedText[i];
+        
+        if (char === '"') {
+            if (inQuotes && normalizedText[i + 1] === '"') {
+                currentField += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            currentRow.push(currentField.trim());
+            currentField = '';
+        } else if (char === '\n' && !inQuotes) {
+            currentRow.push(currentField.trim());
+            if (currentRow.some(f => f !== '')) {
+                rows.push(currentRow);
+            }
+            currentRow = [];
+            currentField = '';
+        } else {
+            currentField += char;
+        }
+    }
+    
+    if (currentField || currentRow.length > 0) {
+        currentRow.push(currentField.trim());
+        if (currentRow.some(f => f !== '')) {
+            rows.push(currentRow);
+        }
+    }
+    
+    if (rows.length < 2) return [];
+    
+    const headers = rows[0].map(h => h.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim());
+    
+    const data = [];
+    for (let i = 1; i < rows.length; i++) {
+        const row = {};
+        headers.forEach((h, idx) => {
+            row[h] = rows[i][idx] || '';
+        });
+        data.push(row);
+    }
+    
+    return data;
+}
+
+/**
+ * Calculate quarterly projections
+ */
+function calculateQuarterlyProjections(currentMetrics, roadmapData, QUARTERS, PROJECTED_QUARTERS) {
+    const projections = {};
+    
+    ['Commercial', 'GIA', 'BlackJack'].forEach(env => {
+        projections[env] = {
+            FY26Q4: {
+                fkp: currentMetrics[env].fkp,
+                total: currentMetrics[env].total,
+                adoption: currentMetrics[env].total > 0 ? 
+                    (currentMetrics[env].fkp / currentMetrics[env].total * 100) : 0
+            }
+        };
+    });
+    
+    const additions = {};
+    const decommissions = {};
+    
+    ['Commercial', 'GIA', 'BlackJack'].forEach(env => {
+        additions[env] = { FY26Q4: 0, FY27Q1: 0, FY27Q2: 0, FY27Q3: 0, FY27Q4: 0 };
+        decommissions[env] = { FY26Q4: 0, FY27Q1: 0, FY27Q2: 0, FY27Q3: 0, FY27Q4: 0 };
+    });
+    
+    const envColumns = {
+        Commercial: 'Commercial ETA',
+        GIA: 'Gia2h ETA',
+        BlackJack: 'BlackJack ETA'
+    };
+    
+    // Build service map for self-managed counts
+    const serviceMap = buildServiceMapFromDashboard();
+    
+    roadmapData.forEach(row => {
+        const serviceName = row['Service Name'];
+        if (!serviceName) return;
+        if (INTEGRATION_SERVICES.includes(serviceName)) return;
+        
+        ['Commercial', 'GIA', 'BlackJack'].forEach(env => {
+            const etaCol = envColumns[env];
+            const eta = row[etaCol];
+            const decomETA = row['Decommission ETA'];
+            
+            const service = serviceMap.get(serviceName);
+            const selfManagedCount = service ? service[env].selfManaged : 0;
+            
+            if (selfManagedCount === 0) return;
+            
+            let parsedETA = parseProjectionETA(eta);
+            let parsedDecomETA = parseProjectionETA(decomETA);
+            
+            if (parsedETA === 'CLEANUP') {
+                parsedDecomETA = 'FY27Q2';
+                parsedETA = null;
+            }
+            
+            if (parsedETA && PROJECTED_QUARTERS.includes(parsedETA)) {
+                additions[env][parsedETA] += selfManagedCount;
+            }
+            
+            if (parsedDecomETA && PROJECTED_QUARTERS.includes(parsedDecomETA)) {
+                decommissions[env][parsedDecomETA] += selfManagedCount;
+            } else if (parsedETA === 'DECOM' && parsedDecomETA && PROJECTED_QUARTERS.includes(parsedDecomETA)) {
+                decommissions[env][parsedDecomETA] += selfManagedCount;
+            }
+        });
+    });
+    
+    // Calculate cumulative projections
+    ['Commercial', 'GIA', 'BlackJack'].forEach(env => {
+        let cumulativeFKP = currentMetrics[env].fkp;
+        let cumulativeTotal = currentMetrics[env].total;
+        
+        PROJECTED_QUARTERS.forEach(q => {
+            cumulativeFKP += additions[env][q];
+            cumulativeTotal -= decommissions[env][q];
+            
+            if (cumulativeTotal < 0) cumulativeTotal = 0;
+            if (cumulativeFKP > cumulativeTotal) cumulativeFKP = cumulativeTotal;
+            
+            projections[env][q] = {
+                fkp: cumulativeFKP,
+                total: cumulativeTotal,
+                adoption: cumulativeTotal > 0 ? (cumulativeFKP / cumulativeTotal * 100) : 100
+            };
+        });
+    });
+    
+    return projections;
+}
+
+/**
+ * Parse ETA value for projections
+ */
+function parseProjectionETA(eta) {
+    if (!eta) return null;
+    const etaUpper = eta.toUpperCase().trim();
+    
+    if (etaUpper === 'N/A' || etaUpper === 'NEED MORE INFO' || etaUpper === 'NOT STARTED') {
+        return null;
+    }
+    
+    if (etaUpper === 'TO BE DECOMMISSIONED') {
+        return 'DECOM';
+    }
+    
+    if (etaUpper.includes('COMPLETED WITH CLEAN-UP REQUIRED')) {
+        return 'CLEANUP';
+    }
+    
+    const match = etaUpper.match(/FY\d{2}Q[1-4]/);
+    if (match) {
+        return match[0];
+    }
+    
+    return null;
+}
+
+/**
+ * Find services that are enabled but need to complete adoption
+ */
+function findServicesNeedingCompletion(currentServices, roadmapData) {
+    const results = [];
+    
+    const roadmapMap = new Map();
+    roadmapData.forEach(row => {
+        roadmapMap.set(row['Service Name'], row);
+    });
+    
+    currentServices.forEach((service, serviceName) => {
+        const totalFKP = service.Commercial.fkp + service.GIA.fkp + service.BlackJack.fkp;
+        if (totalFKP === 0) return;
+        
+        const envsWithGaps = [];
+        let totalGapInstances = 0;
+        
+        ['Commercial', 'GIA', 'BlackJack'].forEach(env => {
+            if (service[env].selfManaged > 0) {
+                envsWithGaps.push(env);
+                totalGapInstances += service[env].selfManaged;
+            }
+        });
+        
+        if (envsWithGaps.length === 0) return;
+        
+        const roadmapRow = roadmapMap.get(serviceName);
+        
+        results.push({
+            serviceName,
+            orgLeader: roadmapRow?.['Org Leader'] || 'Unknown',
+            cloud: roadmapRow?.['Cloud'] || 'Unknown',
+            team: roadmapRow?.['Team Name'] || 'Unknown',
+            envsWithGaps,
+            totalGapInstances
+        });
+    });
+    
+    results.sort((a, b) => b.totalGapInstances - a.totalGapInstances);
+    return results;
+}
+
+/**
+ * Find services enabled in Commercial but need GovCloud adoption
+ */
+function findServicesNeedingGovcloud(currentServices, roadmapData) {
+    const results = [];
+    
+    const roadmapMap = new Map();
+    roadmapData.forEach(row => {
+        roadmapMap.set(row['Service Name'], row);
+    });
+    
+    currentServices.forEach((service, serviceName) => {
+        if (service.Commercial.fkp === 0) return;
+        
+        const envsWithGaps = [];
+        let totalGapInstances = 0;
+        
+        ['GIA', 'BlackJack'].forEach(env => {
+            if (service[env].selfManaged > 0) {
+                envsWithGaps.push(env);
+                totalGapInstances += service[env].selfManaged;
+            }
+        });
+        
+        if (envsWithGaps.length === 0) return;
+        
+        const roadmapRow = roadmapMap.get(serviceName);
+        
+        results.push({
+            serviceName,
+            orgLeader: roadmapRow?.['Org Leader'] || 'Unknown',
+            cloud: roadmapRow?.['Cloud'] || 'Unknown',
+            team: roadmapRow?.['Team Name'] || 'Unknown',
+            envsWithGaps,
+            totalGapInstances
+        });
+    });
+    
+    results.sort((a, b) => b.totalGapInstances - a.totalGapInstances);
+    return results;
+}
+
+/**
+ * Find services without valid ETAs
+ */
+function findServicesWithoutETAs(currentServices, roadmapData) {
+    const servicesWithoutETAs = [];
+    
+    const roadmapMap = new Map();
+    roadmapData.forEach(row => {
+        roadmapMap.set(row['Service Name'], row);
+    });
+    
+    const envColumns = {
+        Commercial: 'Commercial ETA',
+        GIA: 'Gia2h ETA',
+        BlackJack: 'BlackJack ETA'
+    };
+    
+    currentServices.forEach((service, serviceName) => {
+        const roadmapRow = roadmapMap.get(serviceName);
+        
+        const envsNeedingETA = [];
+        let totalInstances = 0;
+        
+        ['Commercial', 'GIA', 'BlackJack'].forEach(env => {
+            const selfManaged = service[env].selfManaged;
+            if (selfManaged === 0) return;
+            
+            let hasValidETA = false;
+            
+            if (roadmapRow) {
+                const etaCol = envColumns[env];
+                const eta = roadmapRow[etaCol];
+                const parsedETA = parseProjectionETA(eta);
+                
+                if (parsedETA !== null) {
+                    hasValidETA = true;
+                }
+            }
+            
+            if (!hasValidETA) {
+                envsNeedingETA.push(env);
+                totalInstances += selfManaged;
+            }
+        });
+        
+        if (envsNeedingETA.length > 0) {
+            servicesWithoutETAs.push({
+                serviceName,
+                orgLeader: roadmapRow?.['Org Leader'] || 'Unknown',
+                parentCloud: roadmapRow?.['Parent Cloud'] || 'Unknown',
+                cloud: roadmapRow?.['Cloud'] || 'Unknown',
+                envsNeedingETA,
+                totalInstances,
+                inRoadmap: !!roadmapRow
+            });
+        }
+    });
+    
+    servicesWithoutETAs.sort((a, b) => b.totalInstances - a.totalInstances);
+    return servicesWithoutETAs;
+}
+
+/**
+ * Render projections dashboard
+ */
+function renderProjectionsDashboard(container) {
+    const QUARTERS = ['FY26Q3', 'FY26Q4', 'FY27Q1', 'FY27Q2', 'FY27Q3', 'FY27Q4'];
+    const COLORS = {
+        Commercial: '#0176d3',
+        GIA: '#9050e9',
+        BlackJack: '#ea001e'
+    };
+    
+    const { currentMetrics, prevMetrics, projections, servicesNeedingCompletion, servicesNeedingGovcloud, servicesWithoutETAs } = projectionsData;
+    
+    // Build quarterly data for chart
+    const quarterlyData = {
+        Commercial: [],
+        GIA: [],
+        BlackJack: []
+    };
+    
+    ['Commercial', 'GIA', 'BlackJack'].forEach(env => {
+        const prevAdoption = prevMetrics && prevMetrics[env].total > 0 ? 
+            (prevMetrics[env].fkp / prevMetrics[env].total * 100) : 0;
+        quarterlyData[env].push({ quarter: 'FY26Q3', adoption: prevAdoption, isActual: true });
+        
+        QUARTERS.slice(1).forEach(q => {
+            if (projections[env] && projections[env][q]) {
+                quarterlyData[env].push({
+                    quarter: q,
+                    adoption: projections[env][q].adoption,
+                    isActual: q === 'FY26Q4'
+                });
+            }
+        });
+    });
+    
+    // Aggregate ETA gaps by cloud
+    const cloudAgg = {};
+    servicesWithoutETAs.forEach(s => {
+        const key = s.cloud;
+        if (!cloudAgg[key]) {
+            cloudAgg[key] = {
+                orgLeader: s.orgLeader,
+                parentCloud: s.parentCloud,
+                cloud: s.cloud,
+                envsSet: new Set(),
+                totalInstances: 0
+            };
+        }
+        s.envsNeedingETA.forEach(env => cloudAgg[key].envsSet.add(env));
+        cloudAgg[key].totalInstances += s.totalInstances;
+    });
+    const cloudList = Object.values(cloudAgg).sort((a, b) => b.totalInstances - a.totalInstances);
+    
+    const totalCompletionInstances = servicesNeedingCompletion.reduce((sum, s) => sum + s.totalGapInstances, 0);
+    const totalGovcloudInstances = servicesNeedingGovcloud.reduce((sum, s) => sum + s.totalGapInstances, 0);
+    const totalETAInstances = servicesWithoutETAs.reduce((sum, s) => sum + s.totalInstances, 0);
+    
+    container.innerHTML = `
+        <div class="projections-metrics-grid">
+            <div class="projections-metric-card commercial">
+                <h3>Commercial Adoption (FY26Q4)</h3>
+                <div class="metric-value">${currentMetrics && currentMetrics.Commercial.total > 0 ? 
+                    (currentMetrics.Commercial.fkp / currentMetrics.Commercial.total * 100).toFixed(1) : 0}%</div>
+                <div class="metric-subtitle">${(currentMetrics?.Commercial.fkp || 0).toLocaleString()} / ${(currentMetrics?.Commercial.total || 0).toLocaleString()} instances</div>
+            </div>
+            <div class="projections-metric-card gia">
+                <h3>GIA Adoption (FY26Q4)</h3>
+                <div class="metric-value">${currentMetrics && currentMetrics.GIA.total > 0 ? 
+                    (currentMetrics.GIA.fkp / currentMetrics.GIA.total * 100).toFixed(1) : 0}%</div>
+                <div class="metric-subtitle">${(currentMetrics?.GIA.fkp || 0).toLocaleString()} / ${(currentMetrics?.GIA.total || 0).toLocaleString()} instances</div>
+            </div>
+            <div class="projections-metric-card blackjack">
+                <h3>BlackJack Adoption (FY26Q4)</h3>
+                <div class="metric-value">${currentMetrics && currentMetrics.BlackJack.total > 0 ? 
+                    (currentMetrics.BlackJack.fkp / currentMetrics.BlackJack.total * 100).toFixed(1) : 0}%</div>
+                <div class="metric-subtitle">${(currentMetrics?.BlackJack.fkp || 0).toLocaleString()} / ${(currentMetrics?.BlackJack.total || 0).toLocaleString()} instances</div>
+            </div>
+        </div>
+        
+        <div class="projections-chart-container">
+            <h2>📈 Adoption Projections by Quarter</h2>
+            <div class="projections-chart-legend">
+                <div class="legend-item"><div class="legend-color commercial"></div><span>Commercial</span></div>
+                <div class="legend-item"><div class="legend-color gia"></div><span>GIA</span></div>
+                <div class="legend-item"><div class="legend-color blackjack"></div><span>BlackJack</span></div>
+                <div class="legend-item" style="margin-left: auto;">
+                    <span class="legend-line solid"></span><span>Actual</span>
+                    <span class="legend-line dashed"></span><span>Projected</span>
+                </div>
+            </div>
+            <div class="projections-chart-svg">${renderProjectionsChart(quarterlyData, QUARTERS, COLORS)}</div>
+        </div>
+        
+        <div class="projections-analysis-grid">
+            <div class="projections-analysis-section">
+                <h2>
+                    <span class="insight-icon">💡</span>
+                    Services Enabled - Need to Complete Adoption
+                    <span class="badge-count">${servicesNeedingCompletion.length} services</span>
+                </h2>
+                <div class="section-subtitle">
+                    Services with ≥1 FKP instance but still have self-managed instances (${totalCompletionInstances.toLocaleString()} instances)
+                </div>
+                <div class="projections-table-scroll">
+                    <table class="projections-data-table">
+                        <thead>
+                            <tr>
+                                <th>Org Leader</th>
+                                <th>Cloud</th>
+                                <th>Team</th>
+                                <th>Gap Environment</th>
+                                <th>Instances</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${servicesNeedingCompletion.map(s => `
+                                <tr>
+                                    <td>${s.orgLeader}</td>
+                                    <td>${s.cloud}</td>
+                                    <td>${s.team}</td>
+                                    <td>${s.envsWithGaps.map(env => `<span class="env-badge ${env.toLowerCase()}">${env}</span>`).join(' ')}</td>
+                                    <td>${s.totalGapInstances.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="projections-analysis-section">
+                <h2>
+                    <span class="insight-icon">💡</span>
+                    Services Enabled - GovCloud Adoption Gap
+                    <span class="badge-count">${servicesNeedingGovcloud.length} services</span>
+                </h2>
+                <div class="section-subtitle">
+                    Services with FKP in Commercial but self-managed in GovCloud (${totalGovcloudInstances.toLocaleString()} instances)
+                </div>
+                <div class="projections-table-scroll">
+                    <table class="projections-data-table">
+                        <thead>
+                            <tr>
+                                <th>Org Leader</th>
+                                <th>Cloud</th>
+                                <th>Team</th>
+                                <th>Gap Environment</th>
+                                <th>Instances</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${servicesNeedingGovcloud.map(s => `
+                                <tr>
+                                    <td>${s.orgLeader}</td>
+                                    <td>${s.cloud}</td>
+                                    <td>${s.team}</td>
+                                    <td>${s.envsWithGaps.map(env => `<span class="env-badge ${env.toLowerCase()}">${env}</span>`).join(' ')}</td>
+                                    <td>${s.totalGapInstances.toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="projections-summary-section">
+            <h2>⚠️ Clouds Needing ETA Alignment <span class="badge-count">${cloudList.length} clouds • ${totalETAInstances.toLocaleString()} instances</span></h2>
+            <div class="section-subtitle">
+                Clouds with self-managed EKS instances that need ETAs for migration planning
+            </div>
+            <div class="projections-table-scroll">
+                <table class="projections-data-table">
+                    <thead>
+                        <tr>
+                            <th>Org Leader</th>
+                            <th>Parent Cloud</th>
+                            <th>Cloud</th>
+                            <th>Need ETA Alignment</th>
+                            <th>Instances</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${cloudList.map(c => `
+                            <tr>
+                                <td>${c.orgLeader}</td>
+                                <td>${c.parentCloud}</td>
+                                <td>${c.cloud}</td>
+                                <td>${Array.from(c.envsSet).map(env => `<span class="env-badge ${env.toLowerCase()}">${env}</span>`).join(' ')}</td>
+                                <td>${c.totalInstances.toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Render projections chart SVG
+ */
+function renderProjectionsChart(quarterlyData, QUARTERS, COLORS) {
+    const width = 1000, height = 350;
+    const padding = { top: 40, right: 50, bottom: 60, left: 80 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    const xStep = chartWidth / (QUARTERS.length - 1);
+    const yScale = (v) => chartHeight - (v / 100 * chartHeight);
+    
+    const gridLines = [0, 25, 50, 75, 100].map(v => `
+        <line x1="0" y1="${yScale(v)}" x2="${chartWidth}" y2="${yScale(v)}" stroke="#334155" stroke-width="1" stroke-dasharray="${v === 0 ? '0' : '4,4'}"/>
+        <text x="-10" y="${yScale(v) + 4}" text-anchor="end" fill="#94a3b8" font-size="11">${v}%</text>
+    `).join('');
+    
+    const xLabels = QUARTERS.map((q, i) => `
+        <text x="${i * xStep}" y="${chartHeight + 25}" text-anchor="middle" fill="#94a3b8" font-size="11">${q}</text>
+        ${i < 2 ? `<text x="${i * xStep}" y="${chartHeight + 40}" text-anchor="middle" fill="#64748b" font-size="9">(Actual)</text>` : ''}
+    `).join('');
+    
+    // Stagger label offsets to avoid overlap
+    const labelOffsets = { 'Commercial': -18, 'GIA': -8, 'BlackJack': 22 };
+    
+    const lines = ['Commercial', 'GIA', 'BlackJack'].map(env => {
+        const data = quarterlyData[env];
+        const color = COLORS[env];
+        const labelOffset = labelOffsets[env];
+        
+        const actualPoints = data.filter(d => d.isActual);
+        const projectedPoints = data.filter(d => !d.isActual);
+        
+        if (actualPoints.length > 0 && projectedPoints.length > 0) {
+            projectedPoints.unshift(actualPoints[actualPoints.length - 1]);
+        }
+        
+        const toPath = (points) => points.length === 0 ? '' : points.map((p, i) => {
+            const qIdx = QUARTERS.indexOf(p.quarter);
+            return `${i === 0 ? 'M' : 'L'} ${qIdx * xStep} ${yScale(p.adoption)}`;
+        }).join(' ');
+        
+        const circles = data.map(p => {
+            const qIdx = QUARTERS.indexOf(p.quarter);
+            return `<circle cx="${qIdx * xStep}" cy="${yScale(p.adoption)}" r="6" fill="${color}" stroke="white" stroke-width="2"/>`;
+        }).join('');
+        
+        const labels = data.map(p => {
+            const qIdx = QUARTERS.indexOf(p.quarter);
+            return `<text x="${qIdx * xStep}" y="${yScale(p.adoption) + labelOffset}" text-anchor="middle" fill="${color}" font-size="11" font-weight="600">${p.adoption.toFixed(1)}%</text>`;
+        }).join('');
+        
+        return `
+            <path d="${toPath(actualPoints)}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round"/>
+            <path d="${toPath(projectedPoints)}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-dasharray="8,4"/>
+            ${circles}${labels}
+        `;
+    }).join('');
+    
+    return `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+        <g transform="translate(${padding.left}, ${padding.top})">${gridLines}${xLabels}${lines}</g>
+    </svg>`;
 }

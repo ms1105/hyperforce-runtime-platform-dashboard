@@ -1327,8 +1327,20 @@
                             const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
                             const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                             
+                            console.log('🔵 CTS tab clicked - isGitLabPages:', isGitLabPages, 'isLocalhost:', isLocalhost);
+                            
                             if (loadingDiv) {
                                 loadingDiv.style.display = 'block';
+                                loadingDiv.style.visibility = 'visible';
+                                loadingDiv.style.opacity = '1';
+                            }
+                            if (loadingSpinner) {
+                                loadingSpinner.style.display = 'inline-block';
+                                loadingSpinner.style.visibility = 'visible';
+                            }
+                            if (loadingText) {
+                                loadingText.style.display = 'block';
+                                loadingText.style.visibility = 'visible';
                             }
                             
                             // Set a timeout to hide loading if data doesn't load within 30 seconds

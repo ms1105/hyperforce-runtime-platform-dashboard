@@ -1440,17 +1440,25 @@
                         try {
                             console.log('Fetching HCP CTS data from API...');
                             // CTS API server: http://localhost:8080
-                            const apiUrl = window.CTS_API_URL;
-                            const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
+                            const apiUrl = window.CTS_API_URL || 'http://localhost:8080';
+                            console.log('Using API URL:', apiUrl);
+                            const apiEndpoint = `${apiUrl}/api/hcp-cts-forecast-actuals`;
+                            console.log('Fetching from:', apiEndpoint);
+                            
+                            const response = await fetch(apiEndpoint, {
                                 mode: 'cors',
                                 headers: {
                                     'Content-Type': 'application/json'
                                 }
                             });
+                            
+                            console.log('API Response status:', response.status, response.statusText);
+                            
                             if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
+                                throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
                             }
                             const data = await response.json();
+                            console.log('API Response data keys:', Object.keys(data));
                             console.log('HCP CTS data loaded from API:', data);
                             
                             clearTimeout(loadingTimeout);
@@ -1458,12 +1466,30 @@
                             console.log('✅ Data loaded successfully from API, calling renderHCPCTSData...');
                             // renderHCPCTSData will hide loading elements
                             try {
-                                renderHCPCTSData(data);
-                                console.log('✅ renderHCPCTSData call completed');
+                                // Ensure renderHCPCTSData exists
+                                if (typeof renderHCPCTSData === 'function') {
+                                    renderHCPCTSData(data);
+                                    console.log('✅ renderHCPCTSData call completed');
+                                } else {
+                                    console.error('❌ renderHCPCTSData is not a function!', typeof renderHCPCTSData);
+                                    // Force hide loading elements
+                                    if (loadingDiv) loadingDiv.style.display = 'none';
+                                    if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                    if (loadingText) loadingText.style.display = 'none';
+                                    if (loadingDiv) {
+                                        loadingDiv.innerHTML = '<p style="color: #dc2626;">Error: renderHCPCTSData function not found. Check console for details.</p>';
+                                        loadingDiv.style.display = 'block';
+                                    }
+                                }
                             } catch (renderError) {
                                 console.error('❌ Error in renderHCPCTSData:', renderError);
+                                console.error('Error stack:', renderError.stack);
                                 // Force hide loading elements even if render fails
-                                if (loadingDiv) loadingDiv.style.display = 'none';
+                                if (loadingDiv) {
+                                    loadingDiv.style.display = 'none';
+                                    loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${renderError.message}</p><p style="color: #718096; font-size: 0.875rem;">Check console for details</p>`;
+                                    loadingDiv.style.display = 'block';
+                                }
                                 if (loadingSpinner) loadingSpinner.style.display = 'none';
                                 if (loadingText) loadingText.style.display = 'none';
                             }
@@ -1567,7 +1593,7 @@
                                 const isVisible = tabPane.classList.contains('active') && tabPane.style.display !== 'none';
                                 if (isVisible && !hcpCtsDataLoaded) {
                                     console.log('🔵 Cost to Serve tab pane became active, loading data...');
-                                    loadCTSData();
+                                    window.loadCTSData();
                                 }
                             }
                         });

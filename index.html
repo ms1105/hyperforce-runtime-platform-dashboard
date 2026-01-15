@@ -1581,16 +1581,18 @@
                     }
                 }
                 
-                // Hook into the existing tab switching mechanism
+                // Hook into the existing tab switching mechanism - use capture phase to intercept early
                 const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-details"]');
                 costToServeTabs.forEach(tab => {
-                    tab.addEventListener('click', async function() {
-                        console.log('🔵 Cost to Serve tab clicked');
+                    // Use capture phase to intercept BEFORE other handlers
+                    tab.addEventListener('click', async function(e) {
+                        console.log('🔵 Cost to Serve tab clicked (capture phase)');
                         // Load data if not already loaded
                         if (!hcpCtsDataLoaded) {
-                            console.log('🔵 Data not loaded yet, calling loadCTSData...');
-                            // Call loadCTSData immediately
+                            console.log('🔵 Data not loaded yet, calling loadCTSData IMMEDIATELY...');
+                            // Call loadCTSData immediately - don't wait
                             if (window.loadCTSData) {
+                                // Call immediately, don't await
                                 window.loadCTSData().catch(err => {
                                     console.error('❌ Error in loadCTSData:', err);
                                     // Hide loading elements on error
@@ -1607,8 +1609,21 @@
                         } else {
                             console.log('✅ Data already loaded');
                         }
-                    });
+                    }, true); // Use capture phase
                 });
+                
+                // ALSO: Hook into ALL nav-subitem clicks as a fallback
+                document.addEventListener('click', function(e) {
+                    const clickedTab = e.target.closest('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-details"]');
+                    if (clickedTab && !hcpCtsDataLoaded) {
+                        console.log('🔵 Cost to Serve tab clicked (document-level listener)');
+                        if (window.loadCTSData) {
+                            window.loadCTSData().catch(err => {
+                                console.error('❌ Error in loadCTSData from document listener:', err);
+                            });
+                        }
+                    }
+                }, true); // Use capture phase
                 
                 // Also check immediately if tab is already visible on page load
                 setTimeout(function() {

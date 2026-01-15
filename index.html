@@ -1405,8 +1405,18 @@
                                     
                                     clearTimeout(loadingTimeout);
                                     hcpCtsDataLoaded = true;
+                                    console.log('✅ Data loaded successfully, calling renderHCPCTSData...');
                                     // renderHCPCTSData will hide loading elements
-                                    renderHCPCTSData(data);
+                                    try {
+                                        renderHCPCTSData(data);
+                                        console.log('✅ renderHCPCTSData call completed');
+                                    } catch (renderError) {
+                                        console.error('❌ Error in renderHCPCTSData:', renderError);
+                                        // Force hide loading elements even if render fails
+                                        if (loadingDiv) loadingDiv.style.display = 'none';
+                                        if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                        if (loadingText) loadingText.style.display = 'none';
+                                    }
                                 } catch (error) {
                                     clearTimeout(loadingTimeout);
                                     console.error('Error loading HCP CTS data from JSON:', error);

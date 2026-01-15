@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bin-packing Efficiency Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Salesforce+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+        }
+
+        .header {
+            background: #1a365d;
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .salesforce-logo {
+            height: 50px;
+            width: auto;
+            margin-right: 1rem;
+            display: block;
+        }
+
+        .slack-logo {
+            height: 32px;
+            width: auto;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .slack-logo:hover {
+            opacity: 0.8;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .filter-select {
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #3182ce;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: #3182ce;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2c5aa0;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .efficiency-indicators {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .efficiency-card {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .efficiency-card:hover {
+            transform: scale(1.05);
+        }
+
+        .efficient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .moderate {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .inefficient {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .efficiency-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .efficiency-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .efficiency-range {
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+
+        .comparison-section {
+            grid-column: 1 / -1;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .before-after {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .before {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 2px solid #f87171;
+        }
+
+        .after {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border: 2px solid #4ade80;
+        }
+
+        .comparison-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .comparison-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .improvement {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #059669;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #3182ce;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+
+        .data-table {
+            margin-top: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .efficiency-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .improvement-badge-with-arrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .trend-arrow {
+            display: inline-block;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .improvement-trend-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+        }
+        
+        .mini-trend-chart {
+            display: inline-block;
+            vertical-align: middle;
+            width: 50%;
+            max-width: 50%;
+        }
+        
+        .trend-arrow-simple {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .badge-efficient {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-moderate {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-inefficient {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Efficiency Metrics Grid */
+        .efficiency-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #3182ce;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metric-title {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .metric-icon {
+            font-size: 1.2rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-change {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .metric-change.positive {
+            color: #059669;
+        }
+
+        .metric-change.negative {
+            color: #dc2626;
+        }
+
+        /* Cost Metrics Grid */
+        .cost-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .cost-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .cost-card.savings {
+            border-left: 4px solid #059669;
+        }
+
+        .cost-card.potential {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .cost-card.percentage {
+            border-left: 4px solid #8b5cf6;
+        }
+
+        .cost-card.monthly {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .cost-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .cost-title {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .cost-icon {
+            font-size: 1.2rem;
+        }
+
+        .cost-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .cost-card.savings .cost-value {
+            color: #059669;
+        }
+
+        .cost-card.potential .cost-value {
+            color: #3b82f6;
+        }
+
+        .cost-card.percentage .cost-value {
+            color: #8b5cf6;
+        }
+
+        .cost-card.monthly .cost-value {
+            color: #f59e0b;
+        }
+
+        .cost-subtitle {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        /* Heatmap Styles */
+        .heatmap-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .heatmap-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 0.75rem;
+        }
+        
+        .heatmap-legend-below {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        
+        .heatmap-legend-below .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.02);
+            white-space: nowrap;
+        }
+        
+        .heatmap-section-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .heatmap-title-wrapper {
+            flex: 1;
+        }
+        
+        .heatmap-legend-left {
+            display: flex;
+            flex-direction: row;
+            gap: 1.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .heatmap-legend-left .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.02);
+            white-space: nowrap;
+        }
+        
+        .heatmap-section-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .heatmap-title-wrapper {
+            flex: 1;
+        }
+        
+        .heatmap-legend-left {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 300px;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-auto-flow: row;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: start;
+        }
+
+        .nodes-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+
+        .heatmap-item {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            color: white;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 0;
+        }
+
+        .heatmap-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .heatmap-item.efficient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .heatmap-item.moderate {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .heatmap-item.inefficient {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .heatmap-item-name {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .heatmap-item-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .heatmap-item-env {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            opacity: 0.9;
+        }
+
+        .heatmap-item-improvement {
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+            opacity: 0.9;
+        }
+
+        .heatmap-item-improvement.improved {
+            color: #10b981;
+        }
+
+        .heatmap-item-improvement.regressed {
+            color: #ef4444;
+        }
+
+        .heatmap-item-improvement.no-change {
+            color: #6b7280;
+        }
+
+        .heatmap-item-improvement.new-node {
+            color: #3b82f6;
+        }
+
+        .heatmap-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-item.efficient .color-box {
+            background: #10b981;
+        }
+
+        .legend-item.moderate .color-box {
+            background: #f59e0b;
+        }
+
+        .legend-item.inefficient .color-box {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <svg class="salesforce-logo" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+                <g fill="#1B96FF">
+                    <!-- Main cloud shape -->
+                    <path d="M80 30c0-9.9-8-18-18-18-2.2 0-4.3 0.4-6.2 1.1C52.8 7.6 46.4 3 39 3c-9.4 0-17 7.6-17 17 0 1 0.1 1.9 0.3 2.8C18.3 24.3 17 27.4 17 31c0 8 6.5 14.5 14.5 14.5h40.5c8 0 14.5-6.5 14.5-14.5 0-8-6.5-14.5-14.5-14.5z"/>
+                    <!-- Small cloud overlays for depth -->
+                    <ellipse cx="45" cy="17" rx="7" ry="5" opacity="0.6"/>
+                    <ellipse cx="65" cy="15" rx="6" ry="4" opacity="0.5"/>
+                    <ellipse cx="72" cy="23" rx="5" ry="3" opacity="0.7"/>
+                </g>
+                <g fill="white">
+                    <!-- Salesforce text -->
+                    <text x="48" y="32" font-family="'Salesforce Sans', Arial, sans-serif" font-size="12" font-weight="bold">Salesforce</text>
+                </g>
+            </svg>
+            <h1>Bin-packing Efficiency Dashboard</h1>
+        </div>
+        <div class="header-right">
+            <svg class="slack-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" title="Join our Slack channel" style="cursor: pointer;">
+                <g>
+                    <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z" fill="#E01E5A"/>
+                    <path d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z" fill="#36C5F0"/>
+                    <path d="M18.956 8.834a2.528 2.528 0 0 1 2.521-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.523 2.521h-2.521V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z" fill="#2EB67D"/>
+                    <path d="M15.165 18.956a2.528 2.528 0 0 1 2.523 2.521A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.523v-2.521h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.528 2.528 0 0 1 2.52-2.521h6.313A2.528 2.528 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z" fill="#ECB22E"/>
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Falcon Instance (FI)</label>
+                    <select id="fiFilter" class="filter-select">
+                        <option value="all">All FI</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Functional Domain (FD)</label>
+                    <select id="fdFilter" class="filter-select">
+                        <option value="all">All FD</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Environment</label>
+                    <select id="envFilter" class="filter-select">
+                        <option value="all">All Environments</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Cluster Name</label>
+                    <select id="clusterFilter" class="filter-select">
+                        <option value="all">All Clusters</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Month</label>
+                    <select id="monthFilter" class="filter-select">
+                        <option value="all">All Months</option>
+                        <!-- Months will be populated dynamically from server -->
+                    </select>
+                </div>
+                <div class="filter-buttons">
+                    <button class="btn btn-secondary" id="resetFiltersBtn">🔄 Reset Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Efficiency Metrics Grid -->
+        <div class="efficiency-metrics-grid">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Avg. Bin-Packing Efficiency - FI</span>
+                    <span class="metric-icon">📈</span>
+                </div>
+                <div class="metric-value" id="fiEfficiency">78.5%</div>
+                <div class="metric-change positive" id="fiChange">+2.1% from last period</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Avg. Bin-Packing Efficiency - FD</span>
+                    <span class="metric-icon">🎯</span>
+                </div>
+                <div class="metric-value" id="fdEfficiency">82.3%</div>
+                <div class="metric-change positive" id="fdChange">+1.8% from last period</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Avg. Bin-Packing Efficiency - Cluster</span>
+                    <span class="metric-icon">🏗️</span>
+                </div>
+                <div class="metric-value" id="clusterEfficiency">75.8%</div>
+                <div class="metric-change negative" id="clusterChange">-0.5% from last period</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-title">Avg. Bin-Packing Efficiency - Environment</span>
+                    <span class="metric-icon">🌍</span>
+                </div>
+                <div class="metric-value" id="envEfficiency">80.1%</div>
+                <div class="metric-change positive" id="envChange">+3.2% from last period</div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- CPU Allocation Trends -->
+            <div class="card">
+                <div class="card-title">Bin-Packing Efficiency Trends (CPU Allocation Rate)</div>
+                <div class="chart-container">
+                    <canvas id="allocationTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Efficiency by Environment -->
+            <div class="card">
+                <div class="card-title">Efficiency by Environment</div>
+                <div class="chart-container">
+                    <canvas id="environmentChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Heatmap Sections -->
+        <div class="heatmap-section">
+            <div class="heatmap-title">Bin-Packing Efficiency Heatmap - Clusters</div>
+            <div class="heatmap-legend-below">
+                <span class="legend-item efficient"><span class="color-box"></span> Efficient (prod/esvc: &gt;80%, others: &gt;90%)</span>
+                <span class="legend-item moderate"><span class="color-box"></span> Moderately Efficient (prod/esvc: 50-80%, others: 70-90%)</span>
+                <span class="legend-item inefficient"><span class="color-box"></span> Inefficient (prod/esvc: &lt;50%, others: &lt;70%)</span>
+            </div>
+            <div class="heatmap-grid" id="clusterHeatmap">
+                <!-- Cluster heatmap will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="heatmap-section">
+            <div class="heatmap-title">Top 10 Efficient Nodes</div>
+            <div class="heatmap-legend-below" id="efficientNodesLegend">
+                <span class="legend-item efficient"><span class="color-box"></span> Efficient (prod/esvc: &gt;80%, others: &gt;90%)</span>
+                <span class="legend-item moderate"><span class="color-box"></span> Moderately Efficient (prod/esvc: 50-80%, others: 70-90%)</span>
+                <span class="legend-item inefficient"><span class="color-box"></span> Inefficient (prod/esvc: &lt;50%, others: &lt;70%)</span>
+            </div>
+            <div class="heatmap-grid nodes-grid" id="efficientNodesHeatmap">
+                <!-- Efficient nodes will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="heatmap-section">
+            <div class="heatmap-title">Top 10 Moderately Efficient Nodes</div>
+            <div class="heatmap-legend-below" id="moderateNodesLegend">
+                <span class="legend-item efficient"><span class="color-box"></span> Efficient (prod/esvc: &gt;80%, others: &gt;90%)</span>
+                <span class="legend-item moderate"><span class="color-box"></span> Moderately Efficient (prod/esvc: 50-80%, others: 70-90%)</span>
+                <span class="legend-item inefficient"><span class="color-box"></span> Inefficient (prod/esvc: &lt;50%, others: &lt;70%)</span>
+            </div>
+            <div class="heatmap-grid nodes-grid" id="moderateNodesHeatmap">
+                <!-- Moderately efficient nodes will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="heatmap-section">
+            <div class="heatmap-title">Top 10 Inefficient Nodes</div>
+            <div class="heatmap-legend-below" id="inefficientNodesLegend">
+                <span class="legend-item efficient"><span class="color-box"></span> Efficient (prod/esvc: &gt;80%, others: &gt;90%)</span>
+                <span class="legend-item moderate"><span class="color-box"></span> Moderately Efficient (prod/esvc: 50-80%, others: 70-90%)</span>
+                <span class="legend-item inefficient"><span class="color-box"></span> Inefficient (prod/esvc: &lt;50%, others: &lt;70%)</span>
+            </div>
+            <div class="heatmap-grid nodes-grid" id="inefficientNodesHeatmap">
+                <!-- Inefficient nodes will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Detailed Data Table -->
+        <div class="data-table">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Node</th>
+                            <th>Month</th>
+                            <th>Avg CPU (%)</th>
+                            <th>Bin Packing Improvement</th>
+                            <th>Bin Packing Efficiency Indicator</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailTableBody">
+                        <tr class="loading">
+                            <td colspan="5">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configure API base URL - check query parameter first, then window variable, then default
+        const urlParams = new URLSearchParams(window.location.search);
+        const API_BASE_URL = urlParams.get('apiUrl') || 
+                            window.BINPACKING_API_URL || 
+                            (window.location.hostname === 'localhost' ? '' : 'http://localhost:8080');
+        
+        // Global variables
+        let dashboardData = {};
+        let currentFilters = {
+            fi: 'all',
+            fd: 'all',
+            environment: 'all',
+            cluster: 'all',
+            month: 'all'
+        };
+        let charts = {};
+
+        // Initialize dashboard
+        async function initDashboard() {
+            try {
+                console.log('🚀 Initializing Bin-packing Dashboard with real node data...');
+                console.log('📍 Timestamp:', new Date().toISOString());
+                
+                await fetchData();
+                populateFilters();
+                createCharts();
+                updateUI();
+                
+                console.log('✅ Dashboard initialized successfully');
+                console.log('📊 Real node heatmap should now be visible');
+                console.log('📋 Analysis table with sam-processing1 data loaded');
+            } catch (error) {
+                console.error('❌ Error initializing dashboard:', error);
+            }
+        }
+
+        // Fetch data from API
+        async function fetchData(filters = {}) {
+            try {
+                // Only include non-empty, non-'all' filters in query params
+                const queryParamsObj = {};
+                if (filters.fi && filters.fi !== 'all') queryParamsObj.fi = filters.fi;
+                if (filters.fd && filters.fd !== 'all') queryParamsObj.fd = filters.fd;
+                if (filters.environment && filters.environment !== 'all') queryParamsObj.environment = filters.environment;
+                if (filters.cluster && filters.cluster !== 'all') queryParamsObj.cluster = filters.cluster;
+                if (filters.month && filters.month !== 'all') queryParamsObj.month = filters.month;
+                
+                const queryParams = new URLSearchParams(queryParamsObj).toString();
+                const url = queryParams ? `${API_BASE_URL}/api/binpacking/data?${queryParams}` : `${API_BASE_URL}/api/binpacking/data`;
+                console.log('📡 Fetching data with filters:', queryParamsObj, 'URL:', url);
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const newData = await response.json();
+                dashboardData = newData;
+                console.log('✅ Dashboard data loaded:', {
+                    clusters: dashboardData.clusters?.length || 0,
+                    summary: dashboardData.summary,
+                    trends: dashboardData.trends?.labels?.length || 0
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                // Load mock data as fallback
+                loadMockData();
+            }
+        }
+
+        // Load mock data for demonstration
+        function loadMockData() {
+            dashboardData = {
+                summary: {
+                    totalClusters: 24,
+                    avgEfficiencyBefore: 65.2,
+                    avgEfficiencyAfter: 87.4,
+                    improvement: 22.2,
+                    costSavings: 2.4
+                },
+                efficiencyDistribution: {
+                    efficient: 15,
+                    moderate: 7,
+                    inefficient: 2
+                },
+                clusters: [
+                    { fi: 'aws-esvc1-useast2', fd: 'uip', environment: 'prod', cluster: 'sam-processing1', beforeEfficiency: 68.2, afterEfficiency: 91.5, improvement: 23.3, status: 'efficient' },
+                    { fi: 'aws-esvc1-useast2', fd: 'uip', environment: 'prod', cluster: 'sam-processing2', beforeEfficiency: 72.1, afterEfficiency: 89.8, improvement: 17.7, status: 'efficient' },
+                    { fi: 'aws-esvc1-uswest2', fd: 'core', environment: 'prod', cluster: 'core-compute1', beforeEfficiency: 59.3, afterEfficiency: 85.7, improvement: 26.4, status: 'efficient' },
+                    { fi: 'aws-esvc1-uswest2', fd: 'core', environment: 'staging', cluster: 'core-staging1', beforeEfficiency: 61.8, afterEfficiency: 78.2, improvement: 16.4, status: 'moderate' },
+                    { fi: 'aws-esvc2-euwest1', fd: 'platform', environment: 'prod', cluster: 'platform-eu1', beforeEfficiency: 70.5, afterEfficiency: 92.3, improvement: 21.8, status: 'efficient' }
+                ],
+                trends: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                    beforeData: [65.2, 64.8, 66.1, 65.7, 64.9, 66.3, 65.5, 65.8],
+                    afterData: [78.5, 82.1, 85.2, 86.8, 87.1, 88.3, 87.9, 87.4]
+                },
+                environments: {
+                    labels: ['Production', 'Staging', 'Development', 'Testing'],
+                    beforeData: [67.2, 63.8, 62.1, 64.5],
+                    afterData: [89.1, 85.3, 82.7, 86.2]
+                }
+            };
+        }
+
+        // Populate filter dropdowns from Core June data
+        async function populateFilters() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/binpacking/filter-options`);
+                const filterOptions = await response.json();
+                
+                populateSelect('fiFilter', filterOptions.fi || []);
+                populateSelect('fdFilter', filterOptions.fd || []);
+                populateSelect('envFilter', filterOptions.environments || []);
+                populateSelect('clusterFilter', filterOptions.clusters || []);
+                
+                // Populate month filter with available months
+                if (filterOptions.months && filterOptions.months.length > 0) {
+                    const monthSelect = document.getElementById('monthFilter');
+                    // Clear existing options except "All Months"
+                    while (monthSelect.children.length > 1) {
+                        monthSelect.removeChild(monthSelect.lastChild);
+                    }
+                    // Sort months in chronological order
+                    const monthOrder = ['April', 'May', 'June', 'July', 'August', 'September', 'October'];
+                    const sortedMonths = filterOptions.months.sort((a, b) => {
+                        const indexA = monthOrder.indexOf(a);
+                        const indexB = monthOrder.indexOf(b);
+                        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+                    });
+                    sortedMonths.forEach(month => {
+                        const option = document.createElement('option');
+                        option.value = month;
+                        option.textContent = month;
+                        monthSelect.appendChild(option);
+                    });
+                    console.log(`✅ Populated month filter with: ${sortedMonths.join(', ')}`);
+                }
+            } catch (error) {
+                console.error('Error fetching filter options:', error);
+                // Fallback to using cluster data if available
+                const clusters = dashboardData.clusters || [];
+            const fiOptions = [...new Set(clusters.map(c => c.fi))];
+            const fdOptions = [...new Set(clusters.map(c => c.fd))];
+            const envOptions = [...new Set(clusters.map(c => c.environment))];
+            const clusterOptions = [...new Set(clusters.map(c => c.cluster))];
+
+            populateSelect('fiFilter', fiOptions);
+            populateSelect('fdFilter', fdOptions);
+            populateSelect('envFilter', envOptions);
+            populateSelect('clusterFilter', clusterOptions);
+            }
+        }
+
+        function populateSelect(selectId, options) {
+            const select = document.getElementById(selectId);
+            const currentValue = select.value;
+            
+            // Clear existing options except "All"
+            while (select.children.length > 1) {
+                select.removeChild(select.lastChild);
+            }
+            
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+            
+            select.value = currentValue;
+        }
+
+        // Create charts
+        function createCharts() {
+            createAllocationTrendChart();
+            createEnvironmentChart();
+        }
+
+        function createAllocationTrendChart() {
+            const canvas = document.getElementById('allocationTrendChart');
+            if (!canvas) {
+                console.error('❌ allocationTrendChart canvas not found');
+                return;
+            }
+            
+            // Destroy existing chart if it exists
+            if (charts.allocationTrend) {
+                charts.allocationTrend.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            const data = dashboardData.trends || {};
+            
+            // Use afterData as the CPU allocation trend (monthly averages)
+            // Show only the "after" line to demonstrate current efficiency
+            const cpuAllocationData = data.afterData || [];
+            
+            console.log('📊 Creating allocation trend chart with data:', {
+                labels: data.labels,
+                dataPoints: cpuAllocationData.length,
+                values: cpuAllocationData
+            });
+            
+            charts.allocationTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels || [],
+                    datasets: [{
+                        label: 'Bin-Packing Efficiency (%) - CPU Allocation Rate',
+                        data: cpuAllocationData,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Salesforce Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: {
+                                    family: 'Salesforce Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            min: function(context) {
+                                // Calculate min from data, but ensure we show improvement clearly
+                                const data = context.chart.data.datasets[0].data;
+                                if (data && data.length > 0) {
+                                    const minValue = Math.min(...data.filter(v => v != null));
+                                    // Start Y-axis 10% below minimum to show improvement clearly
+                                    return Math.max(0, Math.floor(minValue / 10) * 10 - 10);
+                                }
+                                return 0;
+                            },
+                            max: function(context) {
+                                // Calculate max from data
+                                const data = context.chart.data.datasets[0].data;
+                                if (data && data.length > 0) {
+                                    const maxValue = Math.max(...data.filter(v => v != null));
+                                    // End Y-axis 10% above maximum
+                                    return Math.min(100, Math.ceil(maxValue / 10) * 10 + 10);
+                                }
+                                return 100;
+                            },
+                            grid: { color: '#f3f4f6' },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    family: 'Salesforce Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'
+                                },
+                                stepSize: 2 // Smaller step size to show finer granularity
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createEnvironmentChart() {
+            const canvas = document.getElementById('environmentChart');
+            if (!canvas) {
+                console.error('❌ environmentChart canvas not found');
+                return;
+            }
+            
+            // Destroy existing chart if it exists
+            if (charts.environment) {
+                charts.environment.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            const envData = dashboardData.environments || {};
+            
+            // Use afterData as the CPU allocation rate (averaged across all months)
+            const cpuAllocationData = envData.afterData || [];
+            const environmentLabels = envData.labels || [];
+            
+            console.log('📊 Creating environment chart with data:', {
+                labels: environmentLabels,
+                dataPoints: cpuAllocationData.length,
+                values: cpuAllocationData
+            });
+            
+            charts.environment = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: environmentLabels,
+                    datasets: [{
+                        label: 'CPU Allocation Rate (%)',
+                        data: cpuAllocationData,
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',   // green for prod/esvc
+                            'rgba(59, 130, 246, 0.8)',   // blue for dev
+                            'rgba(245, 158, 11, 0.8)',   // orange for test
+                            'rgba(139, 92, 246, 0.8)',   // purple for staging
+                            'rgba(236, 72, 153, 0.8)'    // pink for other
+                        ],
+                        borderColor: [
+                            '#10b981',
+                            '#3b82f6',
+                            '#f59e0b',
+                            '#8b5cf6',
+                            '#ec4899'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Salesforce Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+                                    size: 12
+                                },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                family: 'Salesforce Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                family: 'Salesforce Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return 'CPU Allocation Rate: ' + context.parsed.y.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: {
+                                    family: 'Salesforce Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: '#f3f4f6' },
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                },
+                                font: {
+                                    family: 'Salesforce Sans, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif'
+                                },
+                                stepSize: 10
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update UI elements
+        function updateUI() {
+            console.log('🔄 Updating UI with dashboardData:', {
+                clustersCount: dashboardData.clusters?.length || 0,
+                summary: dashboardData.summary
+            });
+            
+            updateMetricCards();
+            updateHeatmaps();
+            updateDetailTable();
+            updateComparison();
+            updateSummaryStats();
+            updateMetricCards(); // Update metric cards based on filtered data
+            updateLegends(); // Update legends based on selected environment filter
+            
+            console.log('✅ UI update complete');
+        }
+        
+        function updateLegends() {
+            // Get selected environment filter
+            const envFilter = document.getElementById('envFilter')?.value || 'all';
+            const envLower = envFilter.toLowerCase();
+            const isProdOrEsvc = envLower === 'prod' || envLower.includes('esvc');
+            
+            // Determine which thresholds to show
+            let inefficientText, moderateText, efficientText;
+            
+            if (envFilter === 'all') {
+                // Show combined thresholds when all environments selected
+                inefficientText = 'Inefficient (prod/esvc: &lt;50%, others: &lt;70%)';
+                moderateText = 'Moderately Efficient (prod/esvc: 50-80%, others: 70-90%)';
+                efficientText = 'Efficient (prod/esvc: &gt;80%, others: &gt;90%)';
+            } else if (isProdOrEsvc) {
+                // Show prod/esvc thresholds
+                inefficientText = 'Inefficient (&lt;50%)';
+                moderateText = 'Moderately Efficient (50-80%)';
+                efficientText = 'Efficient (&gt;80%)';
+            } else {
+                // Show test/perf/dev thresholds
+                inefficientText = 'Inefficient (&lt;70%)';
+                moderateText = 'Moderately Efficient (70-90%)';
+                efficientText = 'Efficient (&gt;90%)';
+            }
+            
+            // Update legends for node heatmaps and cluster heatmap (left-side legends and below-title legends)
+            const legends = document.querySelectorAll('#efficientNodesLegend, #inefficientNodesLegend, .heatmap-legend-left, .heatmap-legend-below');
+            legends.forEach(legend => {
+                const inefficient = legend.querySelector('.legend-item.inefficient');
+                const moderate = legend.querySelector('.legend-item.moderate');
+                const efficient = legend.querySelector('.legend-item.efficient');
+                
+                // Update in order: Efficient, Moderately Efficient, Inefficient
+                if (efficient) efficient.innerHTML = `<span class="color-box"></span> ${efficientText}`;
+                if (moderate) moderate.innerHTML = `<span class="color-box"></span> ${moderateText}`;
+                if (inefficient) inefficient.innerHTML = `<span class="color-box"></span> ${inefficientText}`;
+            });
+            
+            console.log(`✅ Updated legends for environment filter: ${envFilter} (isProdOrEsvc: ${isProdOrEsvc})`);
+        }
+
+        function updateMetricCards() {
+            const summary = dashboardData.summary || {};
+            const aggregatedMetrics = dashboardData.aggregatedMetrics || {};
+            
+            // Use aggregated metrics if available, otherwise use summary
+            const fiEfficiency = aggregatedMetrics.byFI?.avgEfficiency || summary.avgEfficiencyAfter || 78.5;
+            const fdEfficiency = aggregatedMetrics.byFD?.avgEfficiency || (summary.avgEfficiencyAfter + 3.8) || 82.3;
+            const clusterEfficiency = aggregatedMetrics.byCluster?.avgEfficiency || (summary.avgEfficiencyAfter - 11.6) || 75.8;
+            const envEfficiency = aggregatedMetrics.byEnvironment?.avgEfficiency || (summary.avgEfficiencyAfter - 7.3) || 80.1;
+            
+            document.getElementById('fiEfficiency').textContent = fiEfficiency.toFixed(1) + '%';
+            document.getElementById('fdEfficiency').textContent = fdEfficiency.toFixed(1) + '%';
+            document.getElementById('clusterEfficiency').textContent = clusterEfficiency.toFixed(1) + '%';
+            document.getElementById('envEfficiency').textContent = envEfficiency.toFixed(1) + '%';
+            
+            // Update change indicators from aggregated metrics
+            const fiChange = aggregatedMetrics.byFI?.change || '+2.1%';
+            const fdChange = aggregatedMetrics.byFD?.change || '+1.8%';
+            const clusterChange = aggregatedMetrics.byCluster?.change || '-0.5%';
+            const envChange = aggregatedMetrics.byEnvironment?.change || '+3.2%';
+            
+            document.getElementById('fiChange').textContent = fiChange + ' from last period';
+            document.getElementById('fdChange').textContent = fdChange + ' from last period';
+            document.getElementById('clusterChange').textContent = clusterChange + ' from last period';
+            document.getElementById('envChange').textContent = envChange + ' from last period';
+        }
+
+
+        function updateHeatmaps() {
+            updateClusterHeatmap();
+            updateNodeHeatmap();
+        }
+
+        function updateClusterHeatmap() {
+            const clusterHeatmap = document.getElementById('clusterHeatmap');
+            const clusters = dashboardData.clusters || [];
+            
+            clusterHeatmap.innerHTML = '';
+            
+            // Get selected FD filter
+            const fdFilter = document.getElementById('fdFilter')?.value || 'all';
+            
+            // Filter clusters by FD if filter is applied
+            let filteredClusters = clusters;
+            if (fdFilter && fdFilter !== 'all') {
+                filteredClusters = clusters.filter(c => c.fd === fdFilter);
+            }
+            
+            // Sort by efficiency (descending - highest first) and take maximum 20 clusters
+            // This ensures top-to-bottom order: highest efficiency at top, lowest at bottom
+            const sortedClusters = filteredClusters
+                .sort((a, b) => {
+                    const effA = a.afterEfficiency || 0;
+                    const effB = b.afterEfficiency || 0;
+                    return effB - effA; // Descending order: highest first
+                })
+                .slice(0, 20);
+            
+            console.log(`📊 Displaying ${sortedClusters.length} clusters (filtered by FD: ${fdFilter}, max: 20)`);
+            console.log(`📊 Cluster order (top to bottom):`, sortedClusters.map(c => `${c.cluster}: ${c.afterEfficiency.toFixed(1)}%`));
+            
+            // Append clusters in sorted order (highest efficiency first = top row)
+            sortedClusters.forEach(cluster => {
+                const item = document.createElement('div');
+                item.className = `heatmap-item ${cluster.status}`;
+                item.innerHTML = `
+                    <div class="heatmap-item-name">${cluster.cluster}</div>
+                    <div class="heatmap-item-value">${cluster.afterEfficiency.toFixed(1)}%</div>
+                `;
+                clusterHeatmap.appendChild(item);
+            });
+        }
+
+        function updateNodeHeatmap() {
+            console.log('📊 Updating node heatmap with top efficient, moderate, and inefficient nodes...');
+            
+            const topNodes = dashboardData.topNodes || { efficient: [], moderate: [], inefficient: [] };
+            const efficientNodes = topNodes.efficient || [];
+            const moderateNodes = topNodes.moderate || [];
+            const inefficientNodes = topNodes.inefficient || [];
+            
+            // Update efficient nodes heatmap
+            const efficientHeatmap = document.getElementById('efficientNodesHeatmap');
+            if (efficientHeatmap) {
+                efficientHeatmap.innerHTML = '';
+                console.log(`📋 Processing ${efficientNodes.length} efficient nodes...`);
+                
+                efficientNodes.forEach(node => {
+                const item = document.createElement('div');
+                item.className = `heatmap-item ${node.status}`;
+                    item.innerHTML = `
+                        <div class="heatmap-item-name">${node.name}</div>
+                        <div class="heatmap-item-value">${node.avgCpu ? node.avgCpu.toFixed(1) + '%' : 'N/A'}</div>
+                        <div class="heatmap-item-env">${node.environment}</div>
+                    `;
+                    efficientHeatmap.appendChild(item);
+                });
+                console.log(`✅ Efficient nodes heatmap updated with ${efficientNodes.length} nodes`);
+            }
+            
+            // Update moderate nodes heatmap
+            const moderateHeatmap = document.getElementById('moderateNodesHeatmap');
+            if (moderateHeatmap) {
+                moderateHeatmap.innerHTML = '';
+                console.log(`📋 Processing ${moderateNodes.length} moderate nodes...`);
+                
+                moderateNodes.forEach(node => {
+                    const item = document.createElement('div');
+                    item.className = `heatmap-item ${node.status}`;
+                item.innerHTML = `
+                    <div class="heatmap-item-name">${node.name}</div>
+                        <div class="heatmap-item-value">${node.avgCpu ? node.avgCpu.toFixed(1) + '%' : 'N/A'}</div>
+                        <div class="heatmap-item-env">${node.environment}</div>
+                    `;
+                    moderateHeatmap.appendChild(item);
+                });
+                console.log(`✅ Moderate nodes heatmap updated with ${moderateNodes.length} nodes`);
+            }
+            
+            // Update inefficient nodes heatmap
+            const inefficientHeatmap = document.getElementById('inefficientNodesHeatmap');
+            if (inefficientHeatmap) {
+                inefficientHeatmap.innerHTML = '';
+                console.log(`📋 Processing ${inefficientNodes.length} inefficient nodes...`);
+                
+                inefficientNodes.forEach(node => {
+                    const item = document.createElement('div');
+                    item.className = `heatmap-item ${node.status}`;
+                    item.innerHTML = `
+                        <div class="heatmap-item-name">${node.name}</div>
+                        <div class="heatmap-item-value">${node.avgCpu ? node.avgCpu.toFixed(1) + '%' : 'N/A'}</div>
+                        <div class="heatmap-item-env">${node.environment}</div>
+                    `;
+                    inefficientHeatmap.appendChild(item);
+                });
+                console.log(`✅ Inefficient nodes heatmap updated with ${inefficientNodes.length} nodes`);
+            }
+        }
+
+        function getImprovementClass(improvement) {
+            switch(improvement) {
+                case 'Improved Packing': return 'improved';
+                case 'Regressed Packing': return 'regressed';
+                case 'No Change': return 'no-change';
+                case 'New Node': return 'new-node';
+                default: return '';
+            }
+        }
+
+        function getImprovementIcon(improvement) {
+            switch(improvement) {
+                case 'Improved Packing': return '↗️';
+                case 'Regressed Packing': return '↘️';
+                case 'No Change': return '→';
+                case 'New Node': return '🆕';
+                default: return '';
+            }
+        }
+
+        function updateSummaryStats() {
+            const summary = dashboardData.summary || {};
+            
+            const totalClustersEl = document.getElementById('totalClusters');
+            const avgEfficiencyEl = document.getElementById('avgEfficiency');
+            const totalImprovementEl = document.getElementById('totalImprovement');
+            const costSavingsEl = document.getElementById('costSavings');
+            
+            if (totalClustersEl) totalClustersEl.textContent = summary.totalClusters || 0;
+            if (avgEfficiencyEl) avgEfficiencyEl.textContent = (summary.avgEfficiencyAfter || 0).toFixed(1) + '%';
+            if (totalImprovementEl) totalImprovementEl.textContent = '+' + (summary.improvement || 0).toFixed(1) + '%';
+            if (costSavingsEl) costSavingsEl.textContent = '$' + (summary.costSavings || 0).toFixed(1) + 'M';
+        }
+
+        function updateComparison() {
+            const summary = dashboardData.summary || {};
+            
+            const beforeEfficiencyEl = document.getElementById('beforeEfficiency');
+            const afterEfficiencyEl = document.getElementById('afterEfficiency');
+            const improvementEl = document.getElementById('improvement');
+            
+            if (beforeEfficiencyEl) beforeEfficiencyEl.textContent = (summary.avgEfficiencyBefore || 0).toFixed(1) + '%';
+            if (afterEfficiencyEl) afterEfficiencyEl.textContent = (summary.avgEfficiencyAfter || 0).toFixed(1) + '%';
+            if (improvementEl) improvementEl.textContent = '+' + (summary.improvement || 0).toFixed(1) + '% Improvement';
+        }
+
+        function updateDetailTable() {
+            console.log('📋 Updating detail table with filtered cluster data...');
+            const tbody = document.getElementById('detailTableBody');
+            const clusters = dashboardData.clusters || [];
+            
+            tbody.innerHTML = '';
+            console.log(`📊 Processing ${clusters.length} clusters for detail table...`);
+            
+            if (clusters.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="5" style="text-align: center; padding: 20px;">No clusters match the selected filters</td>';
+                tbody.appendChild(row);
+                console.log('⚠️ No clusters found for selected filters');
+                return;
+            }
+            
+            clusters.forEach(cluster => {
+                const row = document.createElement('tr');
+                // Calculate efficiency status based on environment and avg_cpu
+                const avgCpu = cluster.afterEfficiency || 0;
+                const environment = cluster.environment || 'prod';
+                const envLower = environment.toLowerCase();
+                const isProdOrEsvc = envLower === 'prod' || envLower.includes('esvc');
+                
+                let efficiencyStatus = 'Inefficient';
+                if (isProdOrEsvc) {
+                    // For prod/esvc: >80% = efficient, 50-80% = moderately efficient, <50% = inefficient
+                    if (avgCpu > 80) efficiencyStatus = 'Efficient';
+                    else if (avgCpu >= 50) efficiencyStatus = 'Moderately Efficient';
+                    else efficiencyStatus = 'Inefficient';
+                } else {
+                    // For test/perf/dev: >90% = efficient, 70-90% = moderately efficient, <70% = inefficient
+                    if (avgCpu > 90) efficiencyStatus = 'Efficient';
+                    else if (avgCpu >= 70) efficiencyStatus = 'Moderately Efficient';
+                    else efficiencyStatus = 'Inefficient';
+                }
+                
+                const statusBadge = getAnalysisStatusBadge(efficiencyStatus);
+                const improvement = cluster.improvement > 0 ? 'Improved Packing' : cluster.improvement < 0 ? 'Regressed Packing' : 'No Change';
+                const improvementBadge = getImprovementBadge(improvement, cluster);
+                
+                // Get month from cluster data (if available) or use 'N/A'
+                const month = cluster.month || (cluster.months && Array.from(cluster.months).join(', ')) || 'N/A';
+                
+                row.innerHTML = `
+                    <td>${cluster.cluster || 'N/A'}</td>
+                    <td>${month}</td>
+                    <td>${avgCpu ? avgCpu.toFixed(2) : 'N/A'}</td>
+                    <td>${improvementBadge}</td>
+                    <td>${statusBadge}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            console.log(`✅ Detail table populated with ${clusters.length} clusters`);
+        }
+
+        function getAnalysisStatusBadge(status) {
+            let badgeClass = '';
+            switch(status) {
+                case 'Efficient': badgeClass = 'efficient'; break;
+                case 'Moderately Efficient': badgeClass = 'moderate'; break;
+                case 'Inefficient': badgeClass = 'inefficient'; break;
+                default: badgeClass = 'default';
+            }
+            return `<span class="efficiency-badge badge-${badgeClass}">${status}</span>`;
+        }
+
+        function getImprovementBadge(improvement, cluster) {
+            let badgeClass = '';
+            let badgeColor = '';
+            let arrowIcon = '';
+            let arrowColor = '';
+            
+            switch(improvement) {
+                case 'Improved Packing': 
+                    badgeClass = 'improved'; 
+                    badgeColor = 'background: #dcfce7; color: #166534;';
+                    arrowIcon = '↑'; // Upward arrow
+                    arrowColor = '#10b981'; // Green
+                    break;
+                case 'Regressed Packing': 
+                    badgeClass = 'regressed'; 
+                    badgeColor = 'background: #fee2e2; color: #991b1b;';
+                    arrowIcon = '↓'; // Downward arrow
+                    arrowColor = '#ef4444'; // Red
+                    break;
+                case 'No Change': 
+                    badgeClass = 'no-change'; 
+                    badgeColor = 'background: #f1f5f9; color: #475569;';
+                    arrowIcon = '→'; // Flat arrow
+                    arrowColor = '#64748b'; // Dark grey
+                    break;
+                case 'New Node': 
+                    badgeClass = 'new-node'; 
+                    badgeColor = 'background: #dbeafe; color: #1e40af;';
+                    arrowIcon = '🆕';
+                    arrowColor = '#3b82f6';
+                    break;
+                default: 
+                    badgeClass = 'default';
+                    badgeColor = 'background: #f3f4f6; color: #6b7280;';
+                    arrowIcon = '→';
+                    arrowColor = '#6b7280';
+            }
+            return `<span class="efficiency-badge improvement-badge-with-arrow" style="${badgeColor}">
+                <span class="trend-arrow" style="color: ${arrowColor}; font-weight: bold; font-size: 1.1em; margin-right: 0.3em;">${arrowIcon}</span>
+                ${improvement}
+            </span>`;
+        }
+        
+        function generateMiniTrendChart(cluster, color) {
+            const monthlyAverages = cluster.monthlyAverages || {};
+            const monthOrder = ['April', 'May', 'June', 'July', 'August', 'September', 'October'];
+            
+            // Get available months in order
+            const availableMonths = monthOrder.filter(m => monthlyAverages[m] !== undefined);
+            
+            if (availableMonths.length < 2) {
+                // Not enough data, show simple arrow
+                const arrow = cluster.improvement > 0 ? '↑' : cluster.improvement < 0 ? '↓' : '→';
+                return `<span class="trend-arrow-simple" style="color: ${color}; font-size: 1.2em; font-weight: bold;">${arrow}</span>`;
+            }
+            
+            // Get values for trend
+            const values = availableMonths.map(m => monthlyAverages[m]);
+            const minValue = Math.min(...values);
+            const maxValue = Math.max(...values);
+            const range = maxValue - minValue || 1; // Avoid division by zero
+            
+            // Chart dimensions - chart width is 50% of column, arrow matches chart height
+            const height = 35;
+            const padding = 10; // Space for axes
+            const chartHeight = height - padding;
+            const chartWidth = 50; // Chart width (will be 50% of column via CSS)
+            const arrowWidth = 15; // Space for arrow on right
+            const totalWidth = 100; // Total SVG width (for viewBox)
+            
+            // Generate SVG path points (using percentage-based coordinates)
+            const points = values.map((value, index) => {
+                const x = padding + (index / (values.length - 1 || 1)) * chartWidth;
+                const y = padding + chartHeight - ((value - minValue) / range) * chartHeight;
+                return `${x},${y}`;
+            });
+            
+            // Determine arrow direction and color
+            const firstValue = values[0];
+            const lastValue = values[values.length - 1];
+            const isImproving = lastValue > firstValue;
+            const isRegressing = lastValue < firstValue;
+            const arrowColor = isImproving ? '#10b981' : isRegressing ? '#ef4444' : '#64748b';
+            const arrowSymbol = isImproving ? '↑' : isRegressing ? '↓' : '→';
+            
+            // Arrow spans full chart height (same as chartHeight)
+            const arrowStartY = padding;
+            const arrowEndY = padding + chartHeight;
+            const arrowCenterY = padding + (chartHeight / 2);
+            const arrowX = padding + chartWidth + 5;
+            
+            // Create SVG with axes and arrow - responsive with viewBox
+            const svg = `
+                <svg viewBox="0 0 ${totalWidth} ${height}" class="mini-trend-chart" preserveAspectRatio="xMidYMid meet" style="vertical-align: middle; height: ${height}px;">
+                    <!-- Y-axis -->
+                    <line x1="${padding}" y1="${arrowStartY}" x2="${padding}" y2="${arrowEndY}" 
+                          stroke="#94a3b8" stroke-width="0.8"/>
+                    <!-- X-axis -->
+                    <line x1="${padding}" y1="${arrowEndY}" 
+                          x2="${padding + chartWidth}" y2="${arrowEndY}" 
+                          stroke="#94a3b8" stroke-width="0.8"/>
+                    
+                    <!-- Trend line -->
+                    <polyline 
+                        points="${points.join(' ')}" 
+                        fill="none" 
+                        stroke="${color}" 
+                        stroke-width="1.5" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round"
+                    />
+                    
+                    <!-- Data points -->
+                    ${points.map((point) => {
+                        const [x, y] = point.split(',').map(Number);
+                        return `<circle cx="${x}" cy="${y}" r="1.5" fill="${color}" />`;
+                    }).join('')}
+                    
+                    <!-- Arrow indicator on right side - spans full chart height -->
+                    <line x1="${arrowX}" y1="${arrowStartY}" x2="${arrowX}" y2="${arrowEndY}" 
+                          stroke="${arrowColor}" stroke-width="2" stroke-linecap="round"/>
+                    <text x="${arrowX}" y="${arrowCenterY}" 
+                          fill="${arrowColor}" 
+                          font-size="12" 
+                          font-weight="bold" 
+                          text-anchor="middle" 
+                          dominant-baseline="middle">
+                        ${arrowSymbol}
+                    </text>
+                </svg>
+            `;
+            
+            return svg;
+        }
+
+        // Filter and refresh functions
+        async function applyFilters() {
+            try {
+                console.log('🔍 Applying filters...');
+                
+            currentFilters = {
+                    fi: document.getElementById('fiFilter')?.value || 'all',
+                    fd: document.getElementById('fdFilter')?.value || 'all',
+                    environment: document.getElementById('envFilter')?.value || 'all',
+                    cluster: document.getElementById('clusterFilter')?.value || 'all',
+                    month: document.getElementById('monthFilter')?.value || 'all'
+                };
+                
+                console.log('📊 Current filters:', currentFilters);
+                
+                // Fetch new data with filters
+            await fetchData(currentFilters);
+                
+                console.log('✅ Data fetched, updating UI...');
+                console.log('📊 Dashboard data after fetch:', {
+                    trendsLabels: dashboardData.trends?.labels,
+                    trendsData: dashboardData.trends?.afterData,
+                    environmentsLabels: dashboardData.environments?.labels,
+                    clustersCount: dashboardData.clusters?.length
+                });
+                
+                // Update UI first
+            updateUI();
+                
+                // Then recreate charts with new data
+            recreateCharts();
+                
+                console.log('✅ Filters applied and UI updated');
+            } catch (error) {
+                console.error('❌ Error applying filters:', error);
+            }
+        }
+        
+        // Make applyFilters globally accessible
+        window.applyFilters = applyFilters;
+
+        async function resetFilters() {
+            try {
+                console.log('🔄 Resetting filters...');
+                
+                // Reset all filter dropdowns
+                const fiFilter = document.getElementById('fiFilter');
+                const fdFilter = document.getElementById('fdFilter');
+                const envFilter = document.getElementById('envFilter');
+                const clusterFilter = document.getElementById('clusterFilter');
+                const monthFilter = document.getElementById('monthFilter');
+                
+                if (!fiFilter || !fdFilter || !envFilter || !clusterFilter || !monthFilter) {
+                    console.error('❌ Filter elements not found');
+                    return;
+                }
+                
+                fiFilter.value = 'all';
+                fdFilter.value = 'all';
+                envFilter.value = 'all';
+                clusterFilter.value = 'all';
+                monthFilter.value = 'all';
+                
+                // Reset current filters
+                currentFilters = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all' };
+                
+                console.log('✅ Filter dropdowns reset to "all"');
+                console.log('📊 Fetching data without filters...');
+                
+                // Fetch data without any filters (empty object means no filters applied)
+                await fetchData({});
+                
+                console.log('✅ Data fetched, updating UI...');
+                
+                // Update UI and charts
+                updateUI();
+                recreateCharts();
+                
+                console.log('✅ Filters reset complete');
+            } catch (error) {
+                console.error('❌ Error resetting filters:', error);
+                console.error('Error stack:', error.stack);
+                alert('Error resetting filters: ' + error.message);
+            }
+        }
+        
+        // Make resetFilters globally accessible
+        window.resetFilters = resetFilters;
+        
+        // Attach event listeners to all filter elements (replacing inline handlers)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Attach change listeners to all filter selects
+            const filterSelects = ['fiFilter', 'fdFilter', 'envFilter', 'clusterFilter', 'monthFilter'];
+            filterSelects.forEach(filterId => {
+                const filterEl = document.getElementById(filterId);
+                if (filterEl) {
+                    filterEl.addEventListener('change', function() {
+                        console.log(`📊 Filter changed: ${filterId} = ${this.value}`);
+                        applyFilters();
+                    });
+                }
+            });
+            
+            // Attach click listener to reset button
+            const resetBtn = document.getElementById('resetFiltersBtn');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔄 Reset button clicked via event listener');
+                    resetFilters();
+                });
+                console.log('✅ Reset button event listener attached');
+            } else {
+                console.warn('⚠️ Reset button not found');
+            }
+            
+            // Attach click listener to Slack logo
+            const slackLogo = document.querySelector('.slack-logo');
+            if (slackLogo) {
+                slackLogo.addEventListener('click', function() {
+                    openSlackChannel();
+                });
+            }
+            
+            console.log('✅ All event listeners attached');
+        });
+
+        function recreateCharts() {
+            console.log('🔄 Recreating charts with updated data...');
+            console.log('📊 Current dashboardData.trends:', dashboardData.trends);
+            
+            // Destroy existing charts
+            if (charts.allocationTrend) {
+                charts.allocationTrend.destroy();
+                charts.allocationTrend = null;
+            }
+            if (charts.environment) {
+                charts.environment.destroy();
+                charts.environment = null;
+            }
+            
+            // Recreate charts immediately with new data
+            createAllocationTrendChart();
+            createEnvironmentChart();
+            console.log('✅ Charts recreated with filtered data');
+        }
+
+        // Utility functions
+        function openSlackChannel() {
+            window.open('https://salesforce-containers.slack.com', '_blank');
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

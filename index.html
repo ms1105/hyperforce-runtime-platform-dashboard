@@ -23,13 +23,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Set API URL to use port 8080 for API calls
-        // For localhost, use http://localhost:8080, otherwise use relative URLs
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            window.BINPACKING_API_URL = 'http://localhost:8080';
-        } else {
-            // For GitLab Pages or other deployments, use relative URLs
-            window.BINPACKING_API_URL = '';
-        }
+        // Always use http://localhost:8080 for both localhost and GitLab Pages
+        // This ensures API calls go to the local API server running on port 8080
+        window.BINPACKING_API_URL = 'http://localhost:8080';
     </script>
 </head>
 <body>

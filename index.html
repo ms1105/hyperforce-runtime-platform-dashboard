@@ -1619,25 +1619,49 @@
                     }
                 }, 500);
                 
-                // Hook into switchTab function
-                if (window.switchTab) {
-                    const originalSwitchTab = window.switchTab;
-                    window.switchTab = function(tabId) {
-                        originalSwitchTab(tabId);
-                        // Check if Cost to Serve tab was switched to
-                        if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-details') {
-                            console.log('🔵 Cost to Serve tab switched via switchTab:', tabId);
-                            // Load data if not already loaded - call directly, don't rely on click
-                            if (!hcpCtsDataLoaded) {
-                                console.log('🔵 Calling loadCTSData() directly from switchTab...');
-                                if (window.loadCTSData) {
-                                    window.loadCTSData();
+                // Hook into switchTab function - try multiple times to ensure it works
+                const hookIntoS witchTab = function() {
+                    if (window.switchTab && typeof window.switchTab === 'function') {
+                        const originalSwitchTab = window.switchTab;
+                        window.switchTab = function(tabId) {
+                            const result = originalSwitchTab.apply(this, arguments);
+                            // Check if Cost to Serve tab was switched to
+                            if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-details') {
+                                console.log('🔵 Cost to Serve tab switched via switchTab:', tabId);
+                                // Load data if not already loaded - call directly
+                                if (!hcpCtsDataLoaded) {
+                                    console.log('🔵 Calling loadCTSData() directly from switchTab...');
+                                    if (window.loadCTSData) {
+                                        window.loadCTSData().catch(err => {
+                                            console.error('❌ Error in loadCTSData from switchTab:', err);
+                                        });
+                                    } else {
+                                        console.error('❌ window.loadCTSData is not defined!');
+                                    }
                                 } else {
-                                    console.error('❌ window.loadCTSData is not defined!');
+                                    console.log('✅ CTS data already loaded');
                                 }
                             }
+                            return result;
+                        };
+                        console.log('✅ switchTab hook installed successfully');
+                        return true;
+                    }
+                    return false;
+                };
+                
+                // Try to hook immediately
+                if (!hookIntoS witchTab()) {
+                    // If switchTab doesn't exist yet, try again after delays
+                    setTimeout(function() {
+                        if (!hookIntoS witchTab()) {
+                            setTimeout(function() {
+                                if (!hookIntoS witchTab()) {
+                                    console.warn('⚠️ Could not hook into switchTab after multiple attempts');
+                                }
+                            }, 500);
                         }
-                    };
+                    }, 200);
                 }
                 
                 // Also use MutationObserver to detect when tab pane becomes visible

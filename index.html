@@ -1308,10 +1308,8 @@
         // Global variable to track if data is loaded
         let hcpCtsDataLoaded = false;
         
-        // Initialize Cost to Serve when tab is clicked
-        document.addEventListener('DOMContentLoaded', function() {
-            // Function to load CTS data - MUST be defined at module level so it's accessible everywhere
-            async function loadCTSData() {
+        // Function to load CTS data - MUST be globally accessible BEFORE DOMContentLoaded
+        window.loadCTSData = async function() {
                     if (hcpCtsDataLoaded) {
                         console.log('✅ CTS data already loaded, skipping...');
                         return;
@@ -1532,8 +1530,7 @@
                     }
                 }, 500);
                 
-                // Old click handler code removed - now using loadCTSData function above
-                            const loadingDiv = document.getElementById('hcp-cts-loading');
+                // Hook into switchTab function
                             const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
                             const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
                             const loadingText = document.getElementById('hcp-cts-loading-text');

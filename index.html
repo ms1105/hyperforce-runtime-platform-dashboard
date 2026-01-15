@@ -1428,8 +1428,13 @@
                             
                             clearTimeout(loadingTimeout);
                             hcpCtsDataLoaded = true;
-                            console.log('✅ Data loaded successfully, calling renderHCPCTSData...');
-                            // renderHCPCTSData will hide loading elements
+                            console.log('✅ Data loaded successfully, hiding loading elements IMMEDIATELY...');
+                            
+                            // HIDE LOADING ELEMENTS IMMEDIATELY - BEFORE calling renderHCPCTSData
+                            hideLoadingElements();
+                            
+                            console.log('✅ Loading elements hidden, calling renderHCPCTSData...');
+                            // renderHCPCTSData will also hide loading elements (double-check)
                             try {
                                 // Ensure renderHCPCTSData exists
                                 if (typeof renderHCPCTSData === 'function') {
@@ -1437,6 +1442,7 @@
                                     console.log('✅ renderHCPCTSData call completed');
                                 } else {
                                     console.error('❌ renderHCPCTSData is not a function!', typeof renderHCPCTSData);
+                                    // Already hidden above, but ensure it stays hidden
                                     hideLoadingElements();
                                     if (loadingDiv) {
                                         loadingDiv.innerHTML = '<p style="color: #dc2626;">Error: renderHCPCTSData function not found. Check console for details.</p>';
@@ -1446,6 +1452,7 @@
                             } catch (renderError) {
                                 console.error('❌ Error in renderHCPCTSData:', renderError);
                                 console.error('Error stack:', renderError.stack);
+                                // Already hidden above, but ensure it stays hidden
                                 hideLoadingElements();
                                 if (loadingDiv) {
                                     loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${renderError.message}</p><p style="color: #718096; font-size: 0.875rem;">Check console for details</p>`;

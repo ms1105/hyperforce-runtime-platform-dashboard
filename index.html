@@ -1374,15 +1374,28 @@
                         loadingText.style.visibility = 'visible';
                     }
                     
-                    // Set a timeout to hide loading if data doesn't load within 10 seconds (reduced from 30)
+                    // Set a timeout to hide loading if data doesn't load within 5 seconds - AGGRESSIVE TIMEOUT
                     const loadingTimeout = setTimeout(() => {
-                        console.error('⚠️ CTS data loading timeout after 10 seconds - hiding loading elements');
+                        window._ctsDataLoading = false; // Clear loading flag on timeout
+                        console.error('⚠️ CTS data loading timeout after 5 seconds - FORCE hiding loading elements');
+                        // FORCE hide ALL loading elements
                         hideLoadingElements();
+                        // Also use querySelectorAll to find ALL possible loading elements
+                        document.querySelectorAll('[id*="hcp-cts-loading"], [id*="loading-spinner"], [id*="loading-text"]').forEach(el => {
+                            el.style.display = 'none';
+                            el.style.visibility = 'hidden';
+                            el.style.opacity = '0';
+                        });
+                        // Show retry button
+                        const retryBtn = document.getElementById('hcp-cts-retry-btn');
+                        if (retryBtn) {
+                            retryBtn.style.display = 'inline-block';
+                        }
                         if (loadingDiv) {
-                            loadingDiv.innerHTML = '<p style="color: #dc2626;">Loading timed out. Please check console for errors.</p>';
+                            loadingDiv.innerHTML = '<p style="color: #dc2626;">Loading timed out after 5 seconds.</p><button onclick="if(window.loadCTSData){window.loadCTSData();}" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry Loading</button>';
                             loadingDiv.style.display = 'block';
                         }
-                    }, 10000);
+                    }, 5000); // Reduced to 5 seconds
                     
                     // On GitLab Pages, load from static JSON file; on localhost, use API
                     if (isGitLabPages && !isLocalhost) {
@@ -1747,6 +1760,31 @@
                 }, 2000); // Check every 2 seconds as fallback
             }, 1000);
         });
+        
+        // AGGRESSIVE FALLBACK: Force hide loading after 6 seconds if still visible
+        setTimeout(function() {
+            const loadingDiv = document.getElementById('hcp-cts-loading');
+            const tabPane = document.getElementById('cost-to-serve-overview');
+            const isTabVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
+            
+            if (isTabVisible && loadingDiv && loadingDiv.style.display !== 'none' && !hcpCtsDataLoaded) {
+                console.error('🚨 AGGRESSIVE FALLBACK: Force hiding loading div after 6 seconds');
+                loadingDiv.style.display = 'none';
+                loadingDiv.style.visibility = 'hidden';
+                loadingDiv.style.opacity = '0';
+                document.querySelectorAll('[id*="hcp-cts-loading"]').forEach(el => {
+                    el.style.display = 'none';
+                    el.style.visibility = 'hidden';
+                    el.style.opacity = '0';
+                });
+                // Show error message
+                const errorDiv = document.getElementById('hcp-cts-error');
+                if (errorDiv) {
+                    errorDiv.innerHTML = '<p style="color: #dc2626;">Failed to load data. <button onclick="if(window.loadCTSData){window.loadCTSData();}" style="margin-left: 1rem; padding: 0.5rem 1rem; background: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry</button></p>';
+                    errorDiv.style.display = 'block';
+                }
+            }
+        }, 6000);
     </script>
     
     <!-- Cost to Serve JavaScript Functions -->

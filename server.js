@@ -101,19 +101,21 @@ const costToServeProxy = createProxyMiddleware({
 // This must be AFTER API routes
 app.use(express.static(__dirname));
 
-// Proxy Cost to Serve Dashboard - check if request is for Cost to Serve Dashboard
-// If the request path matches Cost to Serve Dashboard routes, proxy it
-app.use((req, res, next) => {
-  // Check if this is a request for Cost to Serve Dashboard
-  // Cost to Serve Dashboard typically serves from root with React Router
-  // We'll proxy all non-API, non-static file requests to the Cost to Serve Dashboard
+// Proxy Cost to Serve Dashboard for root and index.html
+// This makes the Cost to Serve Dashboard accessible at http://localhost:8080/index.html
+app.get(['/', '/index.html'], (req, res, next) => {
+  console.log(`[Cost to Serve] Proxying ${req.url} to Cost to Serve Dashboard`);
+  costToServeProxy(req, res, next);
+});
+
+// Proxy all other non-API routes to Cost to Serve Dashboard (for React Router)
+app.get('*', (req, res, next) => {
+  // Skip API routes (they should have been handled above)
   if (req.path.startsWith('/api/')) {
-    return next(); // Let API routes be handled above
+    return res.status(404).json({ error: 'API endpoint not found' });
   }
-  
-  // Check if it's a static asset request (already served by express.static above)
-  // If express.static didn't handle it, proxy to Cost to Serve Dashboard
-  // This handles React Router routes and other Cost to Serve Dashboard routes
+  // Proxy to Cost to Serve Dashboard for all other routes
+  console.log(`[Cost to Serve] Proxying ${req.url} to Cost to Serve Dashboard`);
   costToServeProxy(req, res, next);
 });
 

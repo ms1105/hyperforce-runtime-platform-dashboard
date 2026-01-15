@@ -1068,7 +1068,7 @@
                             <p>Comprehensive cost analysis and optimization insights for the Hyperforce Runtime Platform.</p>
                         </div>
                         <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div id="hcp-cts-loading" style="display: none; text-align: center; padding: 3rem;">
+                            <div id="hcp-cts-loading" style="display: block; text-align: center; padding: 3rem;">
                                 <div id="hcp-cts-gitlab-message" style="display: none;">
                                     <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; max-width: 600px; margin: 0 auto;">
                                         <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
@@ -1080,8 +1080,8 @@
                                         </ol>
                                     </div>
                                 </div>
-                                <div id="hcp-cts-loading-spinner" style="display: none; inline-block; width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3182ce; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                                <p id="hcp-cts-loading-text" style="display: none; color: #718096; margin-top: 1rem;">Loading HCP Cost Savings Forecast vs Actuals...</p>
+                                <div id="hcp-cts-loading-spinner" style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3182ce; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <p id="hcp-cts-loading-text" style="color: #718096; margin-top: 1rem;">Loading HCP Cost Savings Forecast vs Actuals...</p>
                                 <button id="hcp-cts-retry-btn" onclick="if(window.loadCTSData){window.loadCTSData();}" style="display: none; margin-top: 1rem; padding: 0.5rem 1rem; background: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry Loading</button>
                             </div>
                             <div id="hcp-cts-exec-view" style="display: none;">
@@ -1746,6 +1746,11 @@
                     const isVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
                     if (isVisible && !hcpCtsDataLoaded && !window._ctsDataLoading) {
                         console.log('🔵 Cost to Serve tab visible (interval check #' + intervalCheckCount + '), loading data...');
+                        // Show loading immediately
+                        const loadingDiv = document.getElementById('hcp-cts-loading');
+                        if (loadingDiv) {
+                            loadingDiv.style.display = 'block';
+                        }
                         if (window.loadCTSData) {
                             window.loadCTSData().catch(err => {
                                 console.error('❌ Error in loadCTSData from interval:', err);
@@ -1758,6 +1763,24 @@
                         console.log('✅ Stopped interval check - data loaded or max attempts reached');
                     }
                 }, 2000); // Check every 2 seconds as fallback
+                
+                // IMMEDIATE CHECK: If tab is already visible on page load, load data immediately
+                setTimeout(function() {
+                    const tabPane = document.getElementById('cost-to-serve-overview');
+                    const isVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
+                    if (isVisible && !hcpCtsDataLoaded) {
+                        console.log('🔵 Cost to Serve tab already visible on page load, loading data IMMEDIATELY...');
+                        const loadingDiv = document.getElementById('hcp-cts-loading');
+                        if (loadingDiv) {
+                            loadingDiv.style.display = 'block';
+                        }
+                        if (window.loadCTSData) {
+                            window.loadCTSData().catch(err => {
+                                console.error('❌ Error in loadCTSData from immediate check:', err);
+                            });
+                        }
+                    }
+                }, 100);
             }, 1000);
         });
         

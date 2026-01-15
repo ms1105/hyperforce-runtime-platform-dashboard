@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Content Security Policy: Allow CDN resources for stylesheets and scripts -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' 'unsafe-hashes' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.socket.io https://unpkg.com; script-src-elem 'self' 'unsafe-inline' 'unsafe-hashes' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://cdn.socket.io https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss: http://localhost:3001 https://cdn.jsdelivr.net https://cdn.socket.io;">
     <title>Hyperforce Runtime Platform 360 - FKP Adoption Dashboard</title>
     <!-- Favicon (prevents 404) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
@@ -24,44 +22,20 @@
     <!-- Chart.js for Cost to Serve charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Configure API URL for Cost to Serve (CTS) and Karpenter sections
-        // Use http://localhost:3001 only when accessed from localhost
-        // GitLab Pages users will see error messages directing them to localhost:3001
-        const hostname = window.location.hostname;
-        const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-        
-        if (isLocalhost) {
-            // Running on localhost - use localhost:3001 for API
-            window.CTS_API_URL = 'http://localhost:3001';
-            window.BINPACKING_API_URL = 'http://localhost:3001';
+        // Configure API URL based on environment
+        // For localhost (local development), use localhost:8080
+        // For GitLab Pages and other deployments, use relative URLs (empty string)
+        // This allows the page to work for everyone, not just those with localhost:8080 running
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            window.BINPACKING_API_URL = window.BINPACKING_API_URL || 'http://localhost:8080';
         } else {
-            // GitLab Pages or other remote access - still try localhost:3001
-            // Error messages will guide users to access via localhost:3001
-            window.CTS_API_URL = 'http://localhost:3001';
-            window.BINPACKING_API_URL = 'http://localhost:3001';
+            // GitLab Pages and other deployments - use relative URLs
+            // This works for everyone accessing the main repo
+            window.BINPACKING_API_URL = window.BINPACKING_API_URL || '';
         }
     </script>
 </head>
 <body>
-    <!-- GitLab Pages Warning Banner -->
-    <div id="gitlab-pages-warning" style="display: none; background: #fef3c7; border-bottom: 2px solid #f59e0b; padding: 1rem; text-align: center; position: sticky; top: 0; z-index: 10000;">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <p style="color: #92400e; font-weight: 600; margin: 0; font-size: 0.95rem;">
-                ⚠️ This dashboard requires a local API server. 
-                <strong>Please access it at: <a href="http://localhost:3001/index.html" style="color: #1e40af; text-decoration: underline;">http://localhost:3001/index.html</a></strong>
-                <span style="margin-left: 1rem; font-size: 0.875rem; font-weight: normal;">(Make sure the server is running: <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code>)</span>
-            </p>
-        </div>
-    </div>
-    <script>
-        // Hide banner everywhere - GitLab Pages users will see error messages in the CTS section instead
-        (function() {
-            const warningBanner = document.getElementById('gitlab-pages-warning');
-            if (warningBanner) {
-                warningBanner.style.display = 'none';
-            }
-        })();
-    </script>
     <div class="dashboard-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
@@ -85,9 +59,6 @@
                         </div>
                         <div class="nav-subitem" data-tab="migration-pipeline" data-view="exec">
                             <span class="nav-text">Migration Pipeline</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="projections-roadmap" data-view="exec">
-                            <span class="nav-text">Projections & Roadmap</span>
                         </div>
                         <div class="nav-subitem" data-tab="service-information" data-view="developer">
                             <span class="nav-text">Overview</span>
@@ -534,21 +505,6 @@
                                     <h3>Loading Migration Pipeline...</h3>
                                     <p>Analyzing service migration stages across FKP platform</p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Projections & Roadmap Tab -->
-                    <div class="tab-pane" id="projections-roadmap">
-                        <div class="tab-header">
-                            <h2>📈 Projections & Roadmap</h2>
-                            <p>FKP Adoption Projections by Environment (FY26Q3 → FY27Q4)</p>
-                        </div>
-                        <div id="projections-roadmap-content">
-                            <div class="placeholder-message">
-                                <div class="placeholder-icon">📈</div>
-                                <h3>Loading Projections...</h3>
-                                <p>Analyzing adoption projections and roadmap data</p>
                             </div>
                         </div>
                     </div>
@@ -1068,21 +1024,9 @@
                             <p>Comprehensive cost analysis and optimization insights for the Hyperforce Runtime Platform.</p>
                         </div>
                         <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <div id="hcp-cts-loading" style="display: block; text-align: center; padding: 3rem;">
-                                <div id="hcp-cts-gitlab-message" style="display: none;">
-                                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; max-width: 600px; margin: 0 auto;">
-                                        <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem; font-size: 1rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
-                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">The Cost to Serve section requires access to a local API server at <code style="background: white; padding: 0.25rem 0.5rem; border-radius: 4px;">http://localhost:3001</code>.</p>
-                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem; margin-top: 1rem;"><strong>To view this section, please:</strong></p>
-                                        <ol style="color: #78350f; font-size: 0.875rem; text-align: left; max-width: 500px; margin: 0 auto;">
-                                            <li style="margin-bottom: 0.5rem;">Access the dashboard at: <a href="http://localhost:3001/index.html" style="color: #1e40af; text-decoration: underline;">http://localhost:3001/index.html</a></li>
-                                            <li style="margin-bottom: 0.5rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></li>
-                                        </ol>
-                                    </div>
-                                </div>
-                                <div id="hcp-cts-loading-spinner" style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3182ce; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                                <p id="hcp-cts-loading-text" style="color: #718096; margin-top: 1rem;">Loading HCP Cost Savings Forecast vs Actuals...</p>
-                                <button id="hcp-cts-retry-btn" onclick="if(window.loadCTSData){window.loadCTSData();}" style="display: none; margin-top: 1rem; padding: 0.5rem 1rem; background: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry Loading</button>
+                            <div id="hcp-cts-loading" style="text-align: center; padding: 3rem;">
+                                <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #3182ce; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <p style="color: #718096; margin-top: 1rem;">Loading HCP Cost Savings Forecast vs Actuals...</p>
                             </div>
                             <div id="hcp-cts-exec-view" style="display: none;">
                                 <!-- Exec View content will be populated by JavaScript -->
@@ -1223,45 +1167,9 @@
         // Render HCP CTS Data
         function renderHCPCTSData(data) {
             console.log('Rendering HCP CTS data:', data);
-            
-            // Hide all loading elements immediately - do this FIRST
             const loadingDiv = document.getElementById('hcp-cts-loading');
-            const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
-            const loadingText = document.getElementById('hcp-cts-loading-text');
-            const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
-            
-            console.log('Hiding loading elements...');
-            // Force hide ALL loading elements - use both display and visibility
             if (loadingDiv) {
                 loadingDiv.style.display = 'none';
-                loadingDiv.style.visibility = 'hidden';
-                loadingDiv.style.opacity = '0';
-                console.log('✅ Loading div hidden');
-            }
-            if (loadingSpinner) {
-                loadingSpinner.style.display = 'none';
-                loadingSpinner.style.visibility = 'hidden';
-                console.log('✅ Loading spinner hidden');
-            }
-            if (loadingText) {
-                loadingText.style.display = 'none';
-                loadingText.style.visibility = 'hidden';
-                console.log('✅ Loading text hidden');
-            }
-            if (gitlabMessage) {
-                gitlabMessage.style.display = 'none';
-                gitlabMessage.style.visibility = 'hidden';
-                console.log('✅ GitLab message hidden');
-            }
-            
-            // Also try to hide the parent container if it exists
-            const costToServeSection = document.querySelector('[data-tab-content="cost-to-serve-overview"]');
-            if (costToServeSection) {
-                const allLoadingElements = costToServeSection.querySelectorAll('#hcp-cts-loading, #hcp-cts-loading-spinner, #hcp-cts-loading-text');
-                allLoadingElements.forEach(el => {
-                    el.style.display = 'none';
-                    el.style.visibility = 'hidden';
-                });
             }
             
             if (!data || !data.initiatives) {
@@ -1273,575 +1181,92 @@
                 return;
             }
             
-            // Show exec view
-            const execViewDiv = document.getElementById('hcp-cts-exec-view');
-            if (execViewDiv) {
-                execViewDiv.style.display = 'block';
-                console.log('✅ Exec view shown');
-            }
-            
-            try {
-                console.log('Calling renderExecView...');
-                console.log('renderExecView type:', typeof renderExecView);
-                if (typeof renderExecView === 'function') {
-                    renderExecView(data);
-                    console.log('✅ renderExecView completed');
-                } else {
-                    console.error('❌ renderExecView is not a function. Type:', typeof renderExecView);
-                    console.error('Available functions:', Object.keys(window).filter(k => k.includes('render')));
-                    // Don't fail - just log the error
-                }
-                
-                console.log('Calling renderCostToServeDevelopersView...');
-                console.log('renderCostToServeDevelopersView type:', typeof renderCostToServeDevelopersView);
-                if (typeof renderCostToServeDevelopersView === 'function') {
-                    renderCostToServeDevelopersView(data);
-                    console.log('✅ renderCostToServeDevelopersView completed');
-                } else {
-                    console.error('❌ renderCostToServeDevelopersView is not a function. Type:', typeof renderCostToServeDevelopersView);
-                    // Don't fail - just log the error
-                }
-            } catch (error) {
-                console.error('❌ Error rendering CTS views:', error);
-                console.error('Error stack:', error.stack);
-                // Loading elements are already hidden, so just log the error
-            }
+            renderExecView(data);
+            renderCostToServeDevelopersView(data);
         }
         
         // Global variable to track if data is loaded
         let hcpCtsDataLoaded = false;
         
-        // Function to load CTS data - MUST be globally accessible BEFORE DOMContentLoaded
-        window.loadCTSData = async function() {
-                    console.log('🔵 loadCTSData() called - hcpCtsDataLoaded:', hcpCtsDataLoaded);
-                    if (hcpCtsDataLoaded) {
-                        console.log('✅ CTS data already loaded, skipping...');
-                        return;
-                    }
-                    
-                    // Mark as loading to prevent multiple simultaneous calls
-                    if (window._ctsDataLoading) {
-                        console.log('⚠️ CTS data already loading, skipping duplicate call...');
-                        return;
-                    }
-                    window._ctsDataLoading = true;
-                    
-                    const loadingDiv = document.getElementById('hcp-cts-loading');
-                    const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
-                    const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
-                    const loadingText = document.getElementById('hcp-cts-loading-text');
-                    
-                    // Helper function to ALWAYS hide loading elements
-                    const hideLoadingElements = function() {
-                        console.log('🔴 Hiding all loading elements...');
-                        if (loadingDiv) {
-                            loadingDiv.style.display = 'none';
-                            loadingDiv.style.visibility = 'hidden';
-                            loadingDiv.style.opacity = '0';
-                        }
-                        if (loadingSpinner) {
-                            loadingSpinner.style.display = 'none';
-                            loadingSpinner.style.visibility = 'hidden';
-                        }
-                        if (loadingText) {
-                            loadingText.style.display = 'none';
-                            loadingText.style.visibility = 'hidden';
-                        }
-                        if (gitlabMessage) {
-                            gitlabMessage.style.display = 'none';
-                            gitlabMessage.style.visibility = 'hidden';
-                        }
-                    };
-                    
-                    // Check if on GitLab Pages
-                    const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
-                    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                    
-                    console.log('🔵 Loading CTS data - isGitLabPages:', isGitLabPages, 'isLocalhost:', isLocalhost);
-                    console.log('🔵 window.CTS_API_URL:', window.CTS_API_URL);
-                    
-                    if (loadingDiv) {
-                        loadingDiv.style.display = 'block';
-                        loadingDiv.style.visibility = 'visible';
-                        loadingDiv.style.opacity = '1';
-                    }
-                    if (loadingSpinner) {
-                        loadingSpinner.style.display = 'inline-block';
-                        loadingSpinner.style.visibility = 'visible';
-                    }
-                    if (loadingText) {
-                        loadingText.style.display = 'block';
-                        loadingText.style.visibility = 'visible';
-                    }
-                    
-                    // Set a timeout to hide loading if data doesn't load within 5 seconds - AGGRESSIVE TIMEOUT
-                    const loadingTimeout = setTimeout(() => {
-                        window._ctsDataLoading = false; // Clear loading flag on timeout
-                        console.error('⚠️ CTS data loading timeout after 5 seconds - FORCE hiding loading elements');
-                        // FORCE hide ALL loading elements
-                        hideLoadingElements();
-                        // Also use querySelectorAll to find ALL possible loading elements
-                        document.querySelectorAll('[id*="hcp-cts-loading"], [id*="loading-spinner"], [id*="loading-text"]').forEach(el => {
-                            el.style.display = 'none';
-                            el.style.visibility = 'hidden';
-                            el.style.opacity = '0';
-                        });
-                        // Show retry button
-                        const retryBtn = document.getElementById('hcp-cts-retry-btn');
-                        if (retryBtn) {
-                            retryBtn.style.display = 'inline-block';
-                        }
-                        if (loadingDiv) {
-                            loadingDiv.innerHTML = '<p style="color: #dc2626;">Loading timed out after 5 seconds.</p><button onclick="if(window.loadCTSData){window.loadCTSData();}" style="margin-top: 1rem; padding: 0.5rem 1rem; background: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry Loading</button>';
-                            loadingDiv.style.display = 'block';
-                        }
-                    }, 5000); // Reduced to 5 seconds
-                    
-                    // On GitLab Pages, load from static JSON file; on localhost, use API
-                    if (isGitLabPages && !isLocalhost) {
-                        // GitLab Pages - load from static JSON file
-                        if (gitlabMessage) gitlabMessage.style.display = 'none';
-                        if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
-                        if (loadingText) loadingText.style.display = 'block';
-                        
-                        try {
-                            console.log('Fetching HCP CTS data from static JSON file...');
-                            // Detect base path for GitLab Pages
-                            const basePath = window.location.pathname.split('/').slice(0, -1).join('/') || '';
-                            console.log('Detected base path:', basePath);
-                            
-                            // Try multiple possible paths for GitLab Pages
-                            const jsonPaths = [
-                                basePath + '/assets/data/hcp-cts-forecast-actuals.json',
-                                'assets/data/hcp-cts-forecast-actuals.json',
-                                '/assets/data/hcp-cts-forecast-actuals.json',
-                                './assets/data/hcp-cts-forecast-actuals.json'
-                            ];
-                            
-                            let response = null;
-                            let lastError = null;
-                            
-                            for (const jsonPath of jsonPaths) {
-                                try {
-                                    console.log('Trying path:', jsonPath);
-                                    response = await fetch(jsonPath);
-                                    if (response.ok) {
-                                        console.log('✅ Found JSON file at:', jsonPath);
-                                        break;
-                                    } else {
-                                        console.log('⚠️ Path returned status:', response.status);
-                                    }
-                                } catch (err) {
-                                    lastError = err;
-                                    console.log('⚠️ Failed to load from:', jsonPath, err.message);
-                                }
-                            }
-                            
-                            if (!response || !response.ok) {
-                                throw new Error(`Failed to load JSON file. Status: ${response?.status || 'no response'}. ${lastError?.message || ''}`);
-                            }
-                            
-                            const data = await response.json();
-                            console.log('HCP CTS data loaded from JSON:', data);
-                            
-                            if (!data || !data.initiatives) {
-                                throw new Error('Invalid JSON data structure - missing initiatives');
-                            }
-                            
-                            clearTimeout(loadingTimeout);
-                            hcpCtsDataLoaded = true;
-                            window._ctsDataLoading = false; // Clear loading flag
-                            console.log('✅ Data loaded successfully from JSON, data keys:', Object.keys(data));
-                            console.log('✅ Initiatives count:', data.initiatives?.length);
-                            
-                            // HIDE LOADING ELEMENTS IMMEDIATELY - BEFORE calling renderHCPCTSData
-                            hideLoadingElements();
-                            
-                            console.log('✅ Loading elements hidden, calling renderHCPCTSData...');
-                            // renderHCPCTSData will also hide loading elements (double-check) and SHOW exec view
-                            try {
-                                // Ensure renderHCPCTSData exists
-                                if (typeof renderHCPCTSData === 'function') {
-                                    renderHCPCTSData(data);
-                                    console.log('✅ renderHCPCTSData call completed');
-                                    // Double-check exec view is visible
-                                    setTimeout(function() {
-                                        const execViewDiv = document.getElementById('hcp-cts-exec-view');
-                                        if (execViewDiv) {
-                                            execViewDiv.style.display = 'block';
-                                            execViewDiv.style.visibility = 'visible';
-                                            execViewDiv.style.opacity = '1';
-                                            console.log('✅ Exec view confirmed visible after renderHCPCTSData');
-                                        } else {
-                                            console.error('❌ hcp-cts-exec-view div not found after renderHCPCTSData!');
-                                        }
-                                    }, 100);
-                                } else {
-                                    console.error('❌ renderHCPCTSData is not a function!', typeof renderHCPCTSData);
-                                    // Already hidden above, but ensure it stays hidden
-                                    hideLoadingElements();
-                                    if (loadingDiv) {
-                                        loadingDiv.innerHTML = '<p style="color: #dc2626;">Error: renderHCPCTSData function not found. Check console for details.</p>';
-                                        loadingDiv.style.display = 'block';
-                                    }
-                                }
-                            } catch (renderError) {
-                                console.error('❌ Error in renderHCPCTSData:', renderError);
-                                console.error('Error stack:', renderError.stack);
-                                // Already hidden above, but ensure it stays hidden
-                                hideLoadingElements();
-                                if (loadingDiv) {
-                                    loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${renderError.message}</p><p style="color: #718096; font-size: 0.875rem;">Check console for details</p>`;
-                                    loadingDiv.style.display = 'block';
-                                }
-                            }
-                        } catch (error) {
-                            clearTimeout(loadingTimeout);
-                            console.error('❌ Error loading HCP CTS data from JSON:', error);
-                            console.error('Error stack:', error.stack);
-                            hideLoadingElements();
-                            // Show error message
-                            if (loadingDiv) {
-                                loadingDiv.innerHTML = `
-                                    <div style="text-align: center; padding: 3rem;">
-                                        <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
-                                        <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                                        <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please check browser console (F12) for details.</p>
-                                    </div>
-                                `;
-                                loadingDiv.style.display = 'block';
-                            }
-                        }
-                    } else {
-                        // Localhost - use API server
-                        if (gitlabMessage) gitlabMessage.style.display = 'none';
-                        if (loadingSpinner) loadingSpinner.style.display = 'inline-block';
-                        if (loadingText) loadingText.style.display = 'block';
-                        
-                        try {
-                            console.log('Fetching HCP CTS data from API...');
-                            // CTS API server: http://localhost:3001
-                            const apiUrl = window.CTS_API_URL || 'http://localhost:3001';
-                            console.log('Using API URL:', apiUrl);
-                            const apiEndpoint = `${apiUrl}/api/hcp-cts-forecast-actuals`;
-                            console.log('Fetching from:', apiEndpoint);
-                            
-                            const response = await fetch(apiEndpoint, {
-                                mode: 'cors',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                            
-                            console.log('API Response status:', response.status, response.statusText);
-                            
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
-                            }
-                            const data = await response.json();
-                            console.log('API Response data keys:', Object.keys(data));
-                            console.log('HCP CTS data loaded from API:', data);
-                            
-                            clearTimeout(loadingTimeout);
-                            hcpCtsDataLoaded = true;
-                            window._ctsDataLoading = false; // Clear loading flag
-                            console.log('✅ Data loaded successfully from API, data keys:', Object.keys(data));
-                            console.log('✅ Initiatives count:', data.initiatives?.length);
-                            
-                            // HIDE LOADING ELEMENTS IMMEDIATELY - BEFORE calling renderHCPCTSData
-                            hideLoadingElements();
-                            
-                            console.log('✅ Loading elements hidden, calling renderHCPCTSData...');
-                            // renderHCPCTSData will also hide loading elements (double-check) and SHOW exec view
-                            try {
-                                // Ensure renderHCPCTSData exists
-                                if (typeof renderHCPCTSData === 'function') {
-                                    renderHCPCTSData(data);
-                                    console.log('✅ renderHCPCTSData call completed');
-                                    // Double-check exec view is visible
-                                    const execViewDiv = document.getElementById('hcp-cts-exec-view');
-                                    if (execViewDiv) {
-                                        execViewDiv.style.display = 'block';
-                                        execViewDiv.style.visibility = 'visible';
-                                        console.log('✅ Exec view confirmed visible after renderHCPCTSData');
-                                    } else {
-                                        console.error('❌ hcp-cts-exec-view div not found after renderHCPCTSData!');
-                                    }
-                                } else {
-                                    console.error('❌ renderHCPCTSData is not a function!', typeof renderHCPCTSData);
-                                    // Already hidden above, but ensure it stays hidden
-                                    hideLoadingElements();
-                                    if (loadingDiv) {
-                                        loadingDiv.innerHTML = '<p style="color: #dc2626;">Error: renderHCPCTSData function not found. Check console for details.</p>';
-                                        loadingDiv.style.display = 'block';
-                                    }
-                                }
-                            } catch (renderError) {
-                                console.error('❌ Error in renderHCPCTSData:', renderError);
-                                console.error('Error stack:', renderError.stack);
-                                // Already hidden above, but ensure it stays hidden
-                                hideLoadingElements();
-                                if (loadingDiv) {
-                                    loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${renderError.message}</p><p style="color: #718096; font-size: 0.875rem;">Check console for details</p>`;
-                                    loadingDiv.style.display = 'block';
-                                }
-                            }
-                        } catch (error) {
-                            clearTimeout(loadingTimeout);
-                            window._ctsDataLoading = false; // Clear loading flag on error
-                            console.error('❌ Error loading HCP CTS data from API:', error);
-                            console.error('Error stack:', error.stack);
-                            console.error('API URL was:', apiUrl);
-                            hideLoadingElements();
-                            
-                            const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
-                            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                            
-                            let errorMessage = `
-                                <div style="text-align: center; padding: 3rem;">
-                                    <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
-                                    <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                            `;
-                            
-                            if (isGitLabPages && !isLocalhost) {
-                                errorMessage += `
-                                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 1.5rem; margin-top: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-                                        <p style="color: #92400e; font-weight: 600; margin-bottom: 0.75rem;">⚠️ GitLab Pages Cannot Access Localhost API</p>
-                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.5rem;">This dashboard requires access to a local API server.</p>
-                                        <p style="color: #78350f; font-size: 0.875rem; margin-bottom: 0.75rem;"><strong>Please access the dashboard at:</strong></p>
-                                        <p style="background: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; color: #1e293b; font-weight: 600; margin-bottom: 0.75rem;">http://localhost:3001/index.html</p>
-                                        <p style="color: #78350f; font-size: 0.875rem;">Make sure the server is running: <code style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 4px;">cd "Hyperforce Runtime Platform" && node server.js</code></p>
-                                    </div>
-                                `;
-                            } else {
-                                errorMessage += `
-                                    <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the server is running at http://localhost:3001</p>
-                                    <p style="color: #718096; font-size: 0.875rem;">Check browser console (F12) for detailed error information.</p>
-                                `;
-                            }
-                            
-                            errorMessage += `</div>`;
-                            if (loadingDiv) {
-                                loadingDiv.innerHTML = errorMessage;
-                                loadingDiv.style.display = 'block';
-                            }
-                        }
-                    }
-                }
-                
-                // Hook into the existing tab switching mechanism - use capture phase to intercept early
+        // Initialize Cost to Serve when tab is clicked
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for fkp-dashboard.js to initialize, then hook into tab switching
+            setTimeout(function() {
+                // Hook into the existing tab switching mechanism
                 const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-details"]');
                 costToServeTabs.forEach(tab => {
-                    // Use capture phase to intercept BEFORE other handlers
-                    tab.addEventListener('click', async function(e) {
-                        console.log('🔵 Cost to Serve tab clicked (capture phase)');
+                    tab.addEventListener('click', async function() {
                         // Load data if not already loaded
                         if (!hcpCtsDataLoaded) {
-                            console.log('🔵 Data not loaded yet, calling loadCTSData IMMEDIATELY...');
-                            // Call loadCTSData immediately - don't wait
-                            if (window.loadCTSData) {
-                                // Call immediately, don't await
-                                window.loadCTSData().catch(err => {
-                                    console.error('❌ Error in loadCTSData:', err);
-                                    // Hide loading elements on error
-                                    const loadingDiv = document.getElementById('hcp-cts-loading');
-                                    const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
-                                    const loadingText = document.getElementById('hcp-cts-loading-text');
-                                    if (loadingDiv) loadingDiv.style.display = 'none';
-                                    if (loadingSpinner) loadingSpinner.style.display = 'none';
-                                    if (loadingText) loadingText.style.display = 'none';
-                                });
-                            } else {
-                                console.error('❌ window.loadCTSData is not defined!');
+                            const loadingDiv = document.getElementById('hcp-cts-loading');
+                            if (loadingDiv) {
+                                loadingDiv.style.display = 'block';
                             }
-                        } else {
-                            console.log('✅ Data already loaded');
-                        }
-                    }, true); // Use capture phase
-                });
-                
-                // ALSO: Hook into ALL nav-subitem clicks as a fallback
-                document.addEventListener('click', function(e) {
-                    const clickedTab = e.target.closest('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-details"]');
-                    if (clickedTab && !hcpCtsDataLoaded) {
-                        console.log('🔵 Cost to Serve tab clicked (document-level listener)');
-                        if (window.loadCTSData) {
-                            window.loadCTSData().catch(err => {
-                                console.error('❌ Error in loadCTSData from document listener:', err);
-                            });
-                        }
-                    }
-                }, true); // Use capture phase
-                
-                // Also check immediately if tab is already visible on page load
-                setTimeout(function() {
-                    const tabPane = document.getElementById('cost-to-serve-overview');
-                    if (tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active') && !hcpCtsDataLoaded) {
-                        console.log('🔵 Cost to Serve tab already visible on page load, loading data...');
-                        window.loadCTSData();
-                    }
-                }, 500);
-                
-                // Hook into switchTab function - try multiple times to ensure it works
-                const hookIntoS witchTab = function() {
-                    if (window.switchTab && typeof window.switchTab === 'function') {
-                        const originalSwitchTab = window.switchTab;
-                        window.switchTab = function(tabId) {
-                            const result = originalSwitchTab.apply(this, arguments);
-                            // Check if Cost to Serve tab was switched to
-                            if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-details') {
-                                console.log('🔵 Cost to Serve tab switched via switchTab:', tabId);
-                                // Show loading immediately
+                            
+                            try {
+                                console.log('Fetching HCP CTS data...');
+                                // Use relative URL - proxy at localhost:8080 will handle it
+                                const apiUrl = window.BINPACKING_API_URL || '';
+                                const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
+                                    mode: 'cors',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
+                                });
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                const data = await response.json();
+                                console.log('HCP CTS data loaded:', data);
+                                hcpCtsDataLoaded = true;
+                                renderHCPCTSData(data);
+                            } catch (error) {
+                                console.error('Error loading HCP CTS data:', error);
                                 const loadingDiv = document.getElementById('hcp-cts-loading');
                                 if (loadingDiv) {
-                                    loadingDiv.style.display = 'block';
+                                    loadingDiv.innerHTML = `
+                                        <div style="text-align: center; padding: 3rem;">
+                                            <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
+                                            <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
+                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the API server is accessible</p>
+                                        </div>
+                                    `;
                                 }
-                                // Call loadCTSData IMMEDIATELY - don't wait for visibility check
-                                if (!hcpCtsDataLoaded && window.loadCTSData) {
-                                    console.log('🔵 Calling loadCTSData() IMMEDIATELY from switchTab hook...');
-                                    window.loadCTSData().catch(err => {
-                                        console.error('❌ Error in loadCTSData from switchTab:', err);
-                                    });
-                                } else if (hcpCtsDataLoaded) {
-                                    console.log('✅ CTS data already loaded');
-                                } else {
-                                    console.error('❌ window.loadCTSData is not defined!');
-                                }
-                                // Also use setTimeout as backup
-                                setTimeout(function() {
-                                    const tabPane = document.getElementById('cost-to-serve-overview');
-                                    const isVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
-                                    console.log('🔵 Tab visibility check after switchTab - isVisible:', isVisible, 'hcpCtsDataLoaded:', hcpCtsDataLoaded);
-                                    if (isVisible && !hcpCtsDataLoaded && window.loadCTSData) {
-                                        console.log('🔵 Backup: Calling loadCTSData() from switchTab timeout...');
-                                        window.loadCTSData().catch(err => {
-                                            console.error('❌ Error in loadCTSData from switchTab timeout:', err);
-                                        });
-                                    }
-                                }, 100); // Small delay to ensure DOM is updated by switchTab
                             }
-                            return result;
-                        };
-                        console.log('✅ switchTab hook installed successfully');
-                        return true;
-                    }
-                    return false;
-                };
-                
-                // Try to hook immediately
-                if (!hookIntoS witchTab()) {
-                    // If switchTab doesn't exist yet, try again after delays
-                    setTimeout(function() {
-                        if (!hookIntoS witchTab()) {
-                            setTimeout(function() {
-                                if (!hookIntoS witchTab()) {
-                                    console.warn('⚠️ Could not hook into switchTab after multiple attempts');
-                                }
-                            }, 500);
-                        }
-                    }, 200);
-                }
-                
-                // Also use MutationObserver to detect when tab pane becomes visible
-                const tabPane = document.getElementById('cost-to-serve-overview');
-                if (tabPane) {
-                    let lastVisibilityState = false;
-                    const observer = new MutationObserver(function(mutations) {
-                        const isVisible = tabPane.style.display !== 'none' && tabPane.classList.contains('active');
-                        // Only trigger if visibility changed from hidden to visible
-                        if (isVisible && !lastVisibilityState && !hcpCtsDataLoaded && !window._ctsDataLoading) {
-                            console.log('🔵 Cost to Serve tab pane became visible (MutationObserver), loading data...');
-                            if (window.loadCTSData) {
-                                window.loadCTSData().catch(err => {
-                                    console.error('❌ Error in loadCTSData from MutationObserver:', err);
-                                });
+                        } else {
+                            // Data already loaded, just ensure views are shown correctly
+                            const currentTab = this.getAttribute('data-tab');
+                            if (currentTab === 'cost-to-serve-overview') {
+                                const execView = document.getElementById('hcp-cts-exec-view');
+                                const devView = document.getElementById('cost-to-serve-developers-view');
+                                if (execView) execView.style.display = 'block';
+                                if (devView) devView.style.display = 'none';
+                            } else if (currentTab === 'cost-to-serve-details') {
+                                const execView = document.getElementById('hcp-cts-exec-view');
+                                const devView = document.getElementById('cost-to-serve-developers-view');
+                                if (execView) execView.style.display = 'none';
+                                if (devView) devView.style.display = 'block';
                             }
                         }
-                        lastVisibilityState = isVisible;
                     });
-                    
-                    observer.observe(tabPane, {
-                        attributes: true,
-                        attributeFilter: ['style', 'class'],
-                        childList: false,
-                        subtree: false
-                    });
-                    console.log('✅ MutationObserver installed for cost-to-serve-overview');
-                } else {
-                    console.warn('⚠️ cost-to-serve-overview tab pane not found');
+                });
+                
+                // Also hook into the switchTab function if it exists
+                if (window.switchTab) {
+                    const originalSwitchTab = window.switchTab;
+                    window.switchTab = function(tabId) {
+                        originalSwitchTab(tabId);
+                        // Check if Cost to Serve tab was switched to
+                        if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-details') {
+                            const tabElement = document.querySelector(`[data-tab="${tabId}"]`);
+                            if (tabElement) {
+                                tabElement.click();
+                            }
+                        }
+                    };
                 }
-                
-                // ALSO: Directly check tab visibility periodically as a fallback
-                let intervalCheckCount = 0;
-                const maxIntervalChecks = 30; // Check for 60 seconds max (30 * 2s)
-                const visibilityCheckInterval = setInterval(function() {
-                    intervalCheckCount++;
-                    const tabPane = document.getElementById('cost-to-serve-overview');
-                    const isVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
-                    if (isVisible && !hcpCtsDataLoaded && !window._ctsDataLoading) {
-                        console.log('🔵 Cost to Serve tab visible (interval check #' + intervalCheckCount + '), loading data...');
-                        // Show loading immediately
-                        const loadingDiv = document.getElementById('hcp-cts-loading');
-                        if (loadingDiv) {
-                            loadingDiv.style.display = 'block';
-                        }
-                        if (window.loadCTSData) {
-                            window.loadCTSData().catch(err => {
-                                console.error('❌ Error in loadCTSData from interval:', err);
-                            });
-                        }
-                    }
-                    // Stop checking after max attempts or if data is loaded
-                    if (hcpCtsDataLoaded || intervalCheckCount >= maxIntervalChecks) {
-                        clearInterval(visibilityCheckInterval);
-                        console.log('✅ Stopped interval check - data loaded or max attempts reached');
-                    }
-                }, 2000); // Check every 2 seconds as fallback
-                
-                // IMMEDIATE CHECK: If tab is already visible on page load, load data immediately
-                setTimeout(function() {
-                    const tabPane = document.getElementById('cost-to-serve-overview');
-                    const isVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
-                    if (isVisible && !hcpCtsDataLoaded) {
-                        console.log('🔵 Cost to Serve tab already visible on page load, loading data IMMEDIATELY...');
-                        const loadingDiv = document.getElementById('hcp-cts-loading');
-                        if (loadingDiv) {
-                            loadingDiv.style.display = 'block';
-                        }
-                        if (window.loadCTSData) {
-                            window.loadCTSData().catch(err => {
-                                console.error('❌ Error in loadCTSData from immediate check:', err);
-                            });
-                        }
-                    }
-                }, 100);
             }, 1000);
         });
-        
-        // AGGRESSIVE FALLBACK: Force hide loading after 6 seconds if still visible
-        setTimeout(function() {
-            const loadingDiv = document.getElementById('hcp-cts-loading');
-            const tabPane = document.getElementById('cost-to-serve-overview');
-            const isTabVisible = tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active');
-            
-            if (isTabVisible && loadingDiv && loadingDiv.style.display !== 'none' && !hcpCtsDataLoaded) {
-                console.error('🚨 AGGRESSIVE FALLBACK: Force hiding loading div after 6 seconds');
-                loadingDiv.style.display = 'none';
-                loadingDiv.style.visibility = 'hidden';
-                loadingDiv.style.opacity = '0';
-                document.querySelectorAll('[id*="hcp-cts-loading"]').forEach(el => {
-                    el.style.display = 'none';
-                    el.style.visibility = 'hidden';
-                    el.style.opacity = '0';
-                });
-                // Show error message
-                const errorDiv = document.getElementById('hcp-cts-error');
-                if (errorDiv) {
-                    errorDiv.innerHTML = '<p style="color: #dc2626;">Failed to load data. <button onclick="if(window.loadCTSData){window.loadCTSData();}" style="margin-left: 1rem; padding: 0.5rem 1rem; background: #3182ce; color: white; border: none; border-radius: 4px; cursor: pointer;">Retry</button></p>';
-                    errorDiv.style.display = 'block';
-                }
-            }
-        }, 6000);
     </script>
     
     <!-- Cost to Serve JavaScript Functions -->

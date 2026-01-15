@@ -1312,10 +1312,18 @@
         
         // Function to load CTS data - MUST be globally accessible BEFORE DOMContentLoaded
         window.loadCTSData = async function() {
+                    console.log('🔵 loadCTSData() called - hcpCtsDataLoaded:', hcpCtsDataLoaded);
                     if (hcpCtsDataLoaded) {
                         console.log('✅ CTS data already loaded, skipping...');
                         return;
                     }
+                    
+                    // Mark as loading to prevent multiple simultaneous calls
+                    if (window._ctsDataLoading) {
+                        console.log('⚠️ CTS data already loading, skipping duplicate call...');
+                        return;
+                    }
+                    window._ctsDataLoading = true;
                     
                     const loadingDiv = document.getElementById('hcp-cts-loading');
                     const gitlabMessage = document.getElementById('hcp-cts-gitlab-message');
@@ -1508,6 +1516,7 @@
                             
                             clearTimeout(loadingTimeout);
                             hcpCtsDataLoaded = true;
+                            window._ctsDataLoading = false; // Clear loading flag
                             console.log('✅ Data loaded successfully from API, hiding loading elements IMMEDIATELY...');
                             
                             // HIDE LOADING ELEMENTS IMMEDIATELY - BEFORE calling renderHCPCTSData
@@ -1541,6 +1550,7 @@
                             }
                         } catch (error) {
                             clearTimeout(loadingTimeout);
+                            window._ctsDataLoading = false; // Clear loading flag on error
                             console.error('❌ Error loading HCP CTS data from API:', error);
                             console.error('Error stack:', error.stack);
                             console.error('API URL was:', apiUrl);

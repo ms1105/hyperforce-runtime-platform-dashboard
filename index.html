@@ -1310,10 +1310,8 @@
         
         // Initialize Cost to Serve when tab is clicked
         document.addEventListener('DOMContentLoaded', function() {
-            // Wait for fkp-dashboard.js to initialize, then hook into tab switching
-            setTimeout(function() {
-                // Function to load CTS data - MUST be defined before it's used
-                async function loadCTSData() {
+            // Function to load CTS data - MUST be defined at module level so it's accessible everywhere
+            async function loadCTSData() {
                     if (hcpCtsDataLoaded) {
                         console.log('✅ CTS data already loaded, skipping...');
                         return;

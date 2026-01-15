@@ -1575,11 +1575,27 @@
                 const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-details"]');
                 costToServeTabs.forEach(tab => {
                     tab.addEventListener('click', async function() {
+                        console.log('🔵 Cost to Serve tab clicked');
                         // Load data if not already loaded
                         if (!hcpCtsDataLoaded) {
-                            console.log('🔵 Cost to Serve tab clicked, loading data...');
-                            window.loadCTSData();
-                            return; // Exit early, loadCTSData handles everything
+                            console.log('🔵 Data not loaded yet, calling loadCTSData...');
+                            // Call loadCTSData immediately
+                            if (window.loadCTSData) {
+                                window.loadCTSData().catch(err => {
+                                    console.error('❌ Error in loadCTSData:', err);
+                                    // Hide loading elements on error
+                                    const loadingDiv = document.getElementById('hcp-cts-loading');
+                                    const loadingSpinner = document.getElementById('hcp-cts-loading-spinner');
+                                    const loadingText = document.getElementById('hcp-cts-loading-text');
+                                    if (loadingDiv) loadingDiv.style.display = 'none';
+                                    if (loadingSpinner) loadingSpinner.style.display = 'none';
+                                    if (loadingText) loadingText.style.display = 'none';
+                                });
+                            } else {
+                                console.error('❌ window.loadCTSData is not defined!');
+                            }
+                        } else {
+                            console.log('✅ Data already loaded');
                         }
                     });
                 });
@@ -1619,18 +1635,15 @@
                 if (tabPane) {
                     const observer = new MutationObserver(function(mutations) {
                         mutations.forEach(function(mutation) {
-                            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                            if (mutation.type === 'attributes') {
                                 const isVisible = tabPane.style.display !== 'none' && tabPane.classList.contains('active');
                                 if (isVisible && !hcpCtsDataLoaded) {
-                                    console.log('🔵 Cost to Serve tab pane became visible, loading data...');
-                                    window.loadCTSData();
-                                }
-                            }
-                            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                                const isVisible = tabPane.classList.contains('active') && tabPane.style.display !== 'none';
-                                if (isVisible && !hcpCtsDataLoaded) {
-                                    console.log('🔵 Cost to Serve tab pane became active, loading data...');
-                                    window.loadCTSData();
+                                    console.log('🔵 Cost to Serve tab pane became visible (MutationObserver), loading data...');
+                                    if (window.loadCTSData) {
+                                        window.loadCTSData().catch(err => {
+                                            console.error('❌ Error in loadCTSData from MutationObserver:', err);
+                                        });
+                                    }
                                 }
                             }
                         });
@@ -1640,6 +1653,9 @@
                         attributes: true,
                         attributeFilter: ['style', 'class']
                     });
+                    console.log('✅ MutationObserver installed for cost-to-serve-overview');
+                } else {
+                    console.warn('⚠️ cost-to-serve-overview tab pane not found');
                 }
             }, 1000);
         });

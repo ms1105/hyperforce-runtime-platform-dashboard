@@ -1281,27 +1281,29 @@
             
             try {
                 console.log('Calling renderExecView...');
+                console.log('renderExecView type:', typeof renderExecView);
                 if (typeof renderExecView === 'function') {
-            renderExecView(data);
+                    renderExecView(data);
                     console.log('✅ renderExecView completed');
                 } else {
-                    console.error('renderExecView is not a function');
+                    console.error('❌ renderExecView is not a function. Type:', typeof renderExecView);
+                    console.error('Available functions:', Object.keys(window).filter(k => k.includes('render')));
+                    // Don't fail - just log the error
                 }
                 
                 console.log('Calling renderCostToServeDevelopersView...');
+                console.log('renderCostToServeDevelopersView type:', typeof renderCostToServeDevelopersView);
                 if (typeof renderCostToServeDevelopersView === 'function') {
-            renderCostToServeDevelopersView(data);
+                    renderCostToServeDevelopersView(data);
                     console.log('✅ renderCostToServeDevelopersView completed');
                 } else {
-                    console.error('renderCostToServeDevelopersView is not a function');
+                    console.error('❌ renderCostToServeDevelopersView is not a function. Type:', typeof renderCostToServeDevelopersView);
+                    // Don't fail - just log the error
                 }
             } catch (error) {
-                console.error('Error rendering CTS views:', error);
+                console.error('❌ Error rendering CTS views:', error);
                 console.error('Error stack:', error.stack);
-                if (loadingDiv) {
-                    loadingDiv.innerHTML = `<p style="color: #dc2626;">Error rendering data: ${error.message}</p><p style="color: #718096; font-size: 0.875rem;">Check console for details</p>`;
-                    loadingDiv.style.display = 'block';
-                }
+                // Loading elements are already hidden, so just log the error
             }
         }
         

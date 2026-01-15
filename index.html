@@ -1528,7 +1528,7 @@
                     const tabPane = document.getElementById('cost-to-serve-overview');
                     if (tabPane && tabPane.style.display !== 'none' && tabPane.classList.contains('active') && !hcpCtsDataLoaded) {
                         console.log('🔵 Cost to Serve tab already visible on page load, loading data...');
-                        loadCTSData();
+                        window.loadCTSData();
                     }
                 }, 500);
                 
@@ -1751,7 +1751,11 @@
                             // Load data if not already loaded - call directly, don't rely on click
                             if (!hcpCtsDataLoaded) {
                                 console.log('🔵 Calling loadCTSData() directly from switchTab...');
-                                loadCTSData();
+                                if (window.loadCTSData) {
+                                    window.loadCTSData();
+                                } else {
+                                    console.error('❌ window.loadCTSData is not defined!');
+                                }
                             }
                         }
                     };
@@ -1766,7 +1770,7 @@
                                 const isVisible = tabPane.style.display !== 'none' && tabPane.classList.contains('active');
                                 if (isVisible && !hcpCtsDataLoaded) {
                                     console.log('🔵 Cost to Serve tab pane became visible, loading data...');
-                                    loadCTSData();
+                                    window.loadCTSData();
                                 }
                             }
                             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {

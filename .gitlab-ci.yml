@@ -16,6 +16,14 @@ pages:
     - ls -la public/ || true
     - echo "Assets directory:"
     - ls -la public/assets/ || true
+    - echo "Assets/data directory:"
+    - ls -la public/assets/data/ || true
+    - echo "Verifying Cost to Serve data files exist:"
+    - ls -la public/assets/data/cts-data.json || echo "WARNING: cts-data.json not found!"
+    - ls -la public/assets/data/hcp-cts-forecast-actuals.json || echo "WARNING: hcp-cts-forecast-actuals.json not found!"
+    - echo "Verifying Core CPU CSV files exist:"
+    - ls -la public/assets/data/core-cpu/ || echo "WARNING: core-cpu directory not found!"
+    - ls -lh public/assets/data/core-cpu/*.csv 2>/dev/null | head -10 || echo "WARNING: Core CPU CSV files not found!"
   artifacts:
     paths:
       - public

@@ -1216,22 +1216,59 @@
                             
                             try {
                                 console.log('Fetching HCP CTS data...');
-                                // Try to use the bin-packing server API
-                                // Use relative URL so it goes through the proxy on port 8080
+                                let data = null;
+                                
+                                // Check if we're on GitLab Pages (static hosting) or local development
+                                const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || 
+                                                      window.location.hostname.includes('pages');
                                 const apiUrl = window.BINPACKING_API_URL || '';
-                                const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
-                                    mode: 'cors',
-                                    headers: {
-                                        'Content-Type': 'application/json'
+                                
+                                // On GitLab Pages, skip API and go straight to static file
+                                // On localhost, try API first, then fall back to static file
+                                if (!isGitLabPages && apiUrl) {
+                                    // Try to use the bin-packing server API first (for local development)
+                                    try {
+                                        const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
+                                            mode: 'cors',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            }
+                                        });
+                                        if (response.ok) {
+                                            data = await response.json();
+                                            console.log('✅ HCP CTS data loaded from API:', data);
+                                        } else {
+                                            throw new Error(`API returned ${response.status}`);
+                                        }
+                                    } catch (apiError) {
+                                        console.log('⚠️ API not available, trying static file:', apiError.message);
                                     }
-                                });
-                                if (!response.ok) {
-                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                } else {
+                                    console.log('📄 GitLab Pages detected, loading from static file directly');
                                 }
-                                const data = await response.json();
-                                console.log('HCP CTS data loaded:', data);
-                                hcpCtsDataLoaded = true;
-                                renderHCPCTSData(data);
+                                
+                                // Load from static JSON file (works on both GitLab Pages and as fallback)
+                                if (!data) {
+                                    try {
+                                        const staticResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json');
+                                        if (staticResponse.ok) {
+                                            data = await staticResponse.json();
+                                            console.log('✅ HCP CTS data loaded from static file:', data);
+                                        } else {
+                                            throw new Error(`Static file returned ${staticResponse.status} ${staticResponse.statusText}`);
+                                        }
+                                    } catch (staticError) {
+                                        console.error('❌ Failed to load from static file:', staticError);
+                                        throw new Error(`Failed to load data: ${staticError.message}`);
+                                    }
+                                }
+                                
+                                if (data) {
+                                    hcpCtsDataLoaded = true;
+                                    renderHCPCTSData(data);
+                                } else {
+                                    throw new Error('No data received');
+                                }
                             } catch (error) {
                                 console.error('Error loading HCP CTS data:', error);
                                 const loadingDiv = document.getElementById('hcp-cts-loading');
@@ -1240,7 +1277,7 @@
                                         <div style="text-align: center; padding: 3rem;">
                                             <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
                                             <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please ensure the bin-packing server is running at ${window.BINPACKING_API_URL || 'http://localhost:8080'}</p>
+                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please check that assets/data/hcp-cts-forecast-actuals.json exists and is accessible.</p>
                                         </div>
                                     `;
                                 }

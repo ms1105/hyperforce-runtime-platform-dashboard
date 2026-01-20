@@ -1,0 +1,9 @@
+node_modules
+
+# Large CSV files (exceed GitLab size limits)
+*all_env_monthly_cost_utilization.csv
+.DS_Store
+server.log
+huron-env/
+dist/
+.env

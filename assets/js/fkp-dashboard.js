@@ -1946,6 +1946,11 @@ function renderAvailabilityExecView(container) {
                 </div>
             </div>
             
+            <!-- Disclaimer Banner -->
+            <div class="availability-disclaimer-banner">
+                🚧 <strong>This is under construction.</strong> The data will be updated soon.
+            </div>
+            
             <!-- KPI Cards -->
             <div class="availability-kpi-grid">
                 <div class="availability-kpi-card warning">

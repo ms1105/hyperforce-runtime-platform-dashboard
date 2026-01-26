@@ -140,6 +140,9 @@ function switchViewMode(mode) {
         // Autoscaling: runtime-overview (exec) ↔ runtime-hpa (developer)
         'runtime-overview': 'runtime-hpa',
         'runtime-hpa': 'runtime-overview',
+        // Availability: runtime-availability (exec) ↔ runtime-availability-dev (developer)
+        'runtime-availability': 'runtime-availability-dev',
+        'runtime-availability-dev': 'runtime-availability',
         // Onboarding Overview: executive-overview (exec) ↔ service-information (developer)
         'executive-overview': 'service-information',
         'service-information': 'executive-overview',
@@ -183,6 +186,8 @@ function switchViewMode(mode) {
     // If viewing runtime-availability or runtime-karpenter, refresh to show correct content
     if (fkpDashboard.state.currentTab === 'runtime-availability') {
         renderRuntimeAvailability();
+    } else if (fkpDashboard.state.currentTab === 'runtime-availability-dev') {
+        renderAvailabilityDeveloperView();
     } else if (fkpDashboard.state.currentTab === 'runtime-karpenter') {
         renderKarpenter();
     }
@@ -1472,8 +1477,9 @@ function updateViewButtonStates(tabId) {
     
     // Define view availability per tab
     const viewAvailability = {
-        // Availability: Exec only
-        'runtime-availability': { exec: true, developer: false },
+        // Availability: Exec + Developer
+        'runtime-availability': { exec: true, developer: true },
+        'runtime-availability-dev': { exec: true, developer: true },
         // Autoscaling: Both
         'runtime-overview': { exec: true, developer: true },
         'runtime-hpa': { exec: true, developer: true },
@@ -1685,6 +1691,10 @@ function updatePageHeader(tabId) {
             title: 'Runtime Scale & Availability',
             subtitle: 'Availability'
         },
+        'runtime-availability-dev': {
+            title: 'Runtime Scale & Availability',
+            subtitle: 'Availability'
+        },
         'runtime-karpenter': {
             title: 'Runtime Scale & Availability',
             subtitle: 'Karpenter'
@@ -1748,6 +1758,9 @@ function refreshCurrentTab() {
             break;
         case 'runtime-availability':
             renderRuntimeAvailability();
+            break;
+        case 'runtime-availability-dev':
+            renderAvailabilityDeveloperView();
             break;
         case 'runtime-karpenter':
             renderKarpenter();
@@ -1863,24 +1876,248 @@ function renderAvailabilityExecView(container) {
     const services = availabilityData.services || [];
     const themes = availabilityData.themes || [];
     const slaData = availabilityData.slaData || [];
+    const incidents = availabilityData.incidents || [];
+    const serviceReadiness = availabilityData.serviceReadiness || [];
     
-    // Find metrics from summary_metrics.csv
-    const findMetric = (metricName) => summaryMetrics.find(m => m.metric === metricName);
+    // Calculate KPI metrics from incidents2.csv
+    // Count Sev0 and Sev1 incidents
+    const sev0Incidents = incidents.filter(inc => inc.severity === 'Sev0').length;
+    const sev1Incidents = incidents.filter(inc => inc.severity === 'Sev1').length;
     
-    const sev0Metric = findMetric('sev0_incidents_12mo');
-    const sev1Metric = findMetric('sev1_incidents_12mo');
-    const mttdMetric = findMetric('avg_mttd');
-    const mttrMetric = findMetric('avg_mttr');
-    const coverageMetric = findMetric('observability_coverage');
+    // Get Sev0 incident months for trend text
+    const sev0IncidentMonths = incidents
+        .filter(inc => inc.severity === 'Sev0')
+        .map(inc => {
+            const date = new Date(inc.detected_date);
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        })
+        .join(', ');
     
-    const sev0Incidents = sev0Metric ? parseInt(sev0Metric.value || 0) : 0;
-    const sev1Incidents = sev1Metric ? parseInt(sev1Metric.value || 0) : 0;
-    const avgMttd = mttdMetric ? parseFloat(mttdMetric.value || 0) : 0;
-    const avgMttr = mttrMetric ? parseFloat(mttrMetric.value || 0) : 0;
-    const observabilityCoverage = coverageMetric ? parseInt(coverageMetric.value || 0) : 0;
+    // Count unique services with Sev1 incidents
+    const sev1Services = new Set(incidents.filter(inc => inc.severity === 'Sev1').map(inc => inc.prb_owner)).size;
     
-    const sev0Trend = sev0Metric ? sev0Metric.trend : '';
-    const sev1Trend = sev1Metric ? sev1Metric.trend : '';
+    // Calculate Avg MTTD and MTTR for last 30 days
+    // Get current date and 30 days ago
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    const recentIncidents = incidents.filter(inc => {
+        const incDate = new Date(inc.detected_date);
+        return incDate >= thirtyDaysAgo && incDate <= now;
+    });
+    
+    // Calculate averages for 30-day period
+    let avgMttd = 0;
+    let avgMttr = 0;
+    
+    if (recentIncidents.length > 0) {
+        const validMttd = recentIncidents.filter(inc => parseFloat(inc.ttd_min) > 0);
+        const validMttr = recentIncidents.filter(inc => parseFloat(inc.ttr_min) > 0);
+        
+        if (validMttd.length > 0) {
+            const totalMttd = validMttd.reduce((sum, inc) => sum + parseFloat(inc.ttd_min || 0), 0);
+            avgMttd = Math.round(totalMttd / validMttd.length);
+        }
+        
+        if (validMttr.length > 0) {
+            const totalMttr = validMttr.reduce((sum, inc) => sum + parseFloat(inc.ttr_min || 0), 0);
+            avgMttr = Math.round(totalMttr / validMttr.length);
+        }
+    }
+    
+    // HRP Service Readiness Score - placeholder (will be updated later)
+    const observabilityCoverage = 65;
+    
+    // Build trend text
+    const sev0Trend = sev0IncidentMonths ? `${sev0Incidents} total (${sev0IncidentMonths})` : `${sev0Incidents} total incidents`;
+    const sev1Trend = `${sev1Incidents} total across ${sev1Services} services`;
+    
+    // Legacy metric references for compatibility
+    const mttdMetric = { target: 10 };
+    const mttrMetric = { target: 30 };
+    
+    console.log('🛡️ Calculated from incidents2.csv:', {
+        sev0Incidents,
+        sev1Incidents,
+        avgMttd,
+        avgMttr,
+        recentIncidentsCount: recentIncidents.length
+    });
+    
+    // Calculate monthly MTTD/MTTR for hero cards
+    // Group incidents by month
+    const incidentsByMonth = {};
+    incidents.forEach(inc => {
+        const date = new Date(inc.detected_date);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        if (!incidentsByMonth[monthKey]) {
+            incidentsByMonth[monthKey] = { name: monthName, incidents: [], key: monthKey };
+        }
+        incidentsByMonth[monthKey].incidents.push(inc);
+    });
+    
+    // Sort months and get current and last month
+    const sortedMonths = Object.keys(incidentsByMonth).sort().reverse();
+    const currentMonthKey = sortedMonths[0];
+    const lastMonthKey = sortedMonths[1];
+    
+    const currentMonthData = incidentsByMonth[currentMonthKey] || { name: 'N/A', incidents: [] };
+    const lastMonthData = incidentsByMonth[lastMonthKey] || { name: 'N/A', incidents: [] };
+    
+    // Calculate current month metrics
+    const calcMonthMetrics = (monthData) => {
+        const incs = monthData.incidents;
+        if (incs.length === 0) return { mttd: 0, mttr: 0, count: 0 };
+        
+        const validMttd = incs.filter(i => parseFloat(i.ttd_min) > 0);
+        const validMttr = incs.filter(i => parseFloat(i.ttr_min) > 0);
+        
+        const mttd = validMttd.length > 0 
+            ? Math.round(validMttd.reduce((sum, i) => sum + parseFloat(i.ttd_min), 0) / validMttd.length) 
+            : 0;
+        const mttr = validMttr.length > 0 
+            ? Math.round(validMttr.reduce((sum, i) => sum + parseFloat(i.ttr_min), 0) / validMttr.length) 
+            : 0;
+        
+        return { mttd, mttr, count: incs.length };
+    };
+    
+    const currentMonth = { ...calcMonthMetrics(currentMonthData), name: currentMonthData.name };
+    const lastMonth = { ...calcMonthMetrics(lastMonthData), name: lastMonthData.name };
+    
+    // Calculate 11-month weighted average (total sum / total incidents)
+    const allValidMttd = incidents.filter(i => parseFloat(i.ttd_min) > 0);
+    const allValidMttr = incidents.filter(i => parseFloat(i.ttr_min) > 0);
+    
+    const yearAverage = {
+        mttd: allValidMttd.length > 0 
+            ? Math.round(allValidMttd.reduce((sum, i) => sum + parseFloat(i.ttd_min), 0) / allValidMttd.length) 
+            : 0,
+        mttr: allValidMttr.length > 0 
+            ? Math.round(allValidMttr.reduce((sum, i) => sum + parseFloat(i.ttr_min), 0) / allValidMttr.length) 
+            : 0
+    };
+    
+    // SLA Targets
+    const slaTargets = { mttd: 10, mttr: 60 };
+    
+    // Calculate trend indicators
+    const mttdVsLast = currentMonth.mttd - lastMonth.mttd;
+    const mttrVsLast = currentMonth.mttr - lastMonth.mttr;
+    const mttdVsAvg = currentMonth.mttd - yearAverage.mttd;
+    const mttrVsAvg = currentMonth.mttr - yearAverage.mttr;
+    
+    // SLA Status
+    const mttdSlaMet = currentMonth.mttd <= slaTargets.mttd;
+    const mttrSlaMet = currentMonth.mttr <= slaTargets.mttr;
+    
+    console.log('🛡️ SLA Compliance metrics:', {
+        currentMonth,
+        lastMonth,
+        yearAverage,
+        mttdVsLast,
+        mttrVsLast,
+        mttdVsAvg,
+        mttrVsAvg,
+        mttdSlaMet,
+        mttrSlaMet
+    });
+    
+    // Calculate monthly MTTD/MTTR for trend chart
+    const monthOrder = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01'];
+    const monthLabels = ["Mar '25", "Apr '25", "May '25", "Jun '25", "Jul '25", "Aug '25", "Sep '25", "Oct '25", "Nov '25", "Dec '25", "Jan '26"];
+    
+    const monthlyChartData = {
+        labels: monthLabels,
+        mttd: [],
+        mttr: [],
+        incidents: []
+    };
+    
+    monthOrder.forEach(monthKey => {
+        const monthData = incidentsByMonth[monthKey];
+        if (monthData && monthData.incidents.length > 0) {
+            const incs = monthData.incidents;
+            const validMttd = incs.filter(i => parseFloat(i.ttd_min) > 0);
+            const validMttr = incs.filter(i => parseFloat(i.ttr_min) > 0);
+            
+            const avgMttdMonth = validMttd.length > 0 
+                ? Math.round(validMttd.reduce((sum, i) => sum + parseFloat(i.ttd_min), 0) / validMttd.length) 
+                : 0;
+            const avgMttrMonth = validMttr.length > 0 
+                ? Math.round(validMttr.reduce((sum, i) => sum + parseFloat(i.ttr_min), 0) / validMttr.length) 
+                : 0;
+            
+            monthlyChartData.mttd.push(avgMttdMonth);
+            monthlyChartData.mttr.push(avgMttrMonth);
+            monthlyChartData.incidents.push(incs.length);
+        } else {
+            monthlyChartData.mttd.push(0);
+            monthlyChartData.mttr.push(0);
+            monthlyChartData.incidents.push(0);
+        }
+    });
+    
+    console.log('🛡️ Monthly chart data:', monthlyChartData);
+    
+    const readinessTableRows = buildReadinessTableRows(serviceReadiness);
+    const readinessSectionHtml = `
+            <div class="readiness-section">
+                <div class="readiness-section-header">
+                    <div class="readiness-section-title">
+                        <span class="readiness-section-icon">🧪</span>
+                        <h3>HRP Test Readiness (Preventive)</h3>
+                    </div>
+                </div>
+                <div class="readiness-card">
+                    <div class="readiness-card-header">
+                        <span>📊 E2E Testing Matrix</span>
+                        <button class="btn-secondary readiness-dev-btn" onclick="openAvailabilityReadinessDeveloperView()">Developer View</button>
+                    </div>
+                    <div class="readiness-table-wrapper">
+                        <table class="readiness-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">HRP Service</th>
+                                    <th>Pre-Release FIT</th>
+                                    <th>Post-Release FIT</th>
+                                    <th>E2E Critical FIT</th>
+                                    <th>Scale Tests</th>
+                                    <th>Perf Tests</th>
+                                    <th>Chaos Tests</th>
+                                    <th>Overall Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${readinessTableRows || `<tr><td colspan="8" class="readiness-empty">No readiness data available</td></tr>`}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="readiness-legend">
+                        <div class="readiness-legend-items">
+                            <div class="readiness-legend-item">
+                                <span class="readiness-legend-dot complete"></span>
+                                <span>Complete = 2</span>
+                            </div>
+                            <div class="readiness-legend-item">
+                                <span class="readiness-legend-dot partial"></span>
+                                <span>Partial = 1</span>
+                            </div>
+                            <div class="readiness-legend-item">
+                                <span class="readiness-legend-dot missing"></span>
+                                <span>Missing = 0</span>
+                            </div>
+                            <div class="readiness-legend-item">
+                                <span class="readiness-legend-dot planned"></span>
+                                <span>Planned = 0.5</span>
+                            </div>
+                        </div>
+                        <div class="readiness-legend-note">Overall Score = Total Points out of Max Possible Points</div>
+                    </div>
+                </div>
+            </div>
+    `;
     
     // Map services data for MTTD/MTTR charts
     const serviceMetrics = services.map(row => {
@@ -1911,10 +2148,10 @@ function renderAvailabilityExecView(container) {
                (tracer === 'complete' && alerts === 'partial');
     }).length;
     
-    // Build HTML
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const formattedTime = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    // Build HTML - use renderNow for timestamp (now is already used for 30-day calculation)
+    const renderNow = new Date();
+    const formattedDate = renderNow.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const formattedTime = renderNow.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     
     console.log('🛡️ About to set innerHTML, variables:', {
         sev0Incidents,
@@ -1930,134 +2167,247 @@ function renderAvailabilityExecView(container) {
     container.innerHTML = `
         <div class="availability-exec-scrollable">
             <!-- Header -->
-            <div class="tab-header">
-                <div class="availability-header">
-                    <div class="availability-title-section">
-                        <div class="availability-icon">🛡️</div>
-                        <div>
-                            <h2>HRP Availability Dashboard</h2>
-                            <p>Comprehensive platform availability metrics and SLA performance</p>
+            <div class="availability-dashboard-header">
+                <div class="availability-dashboard-brand">
+                    <div class="availability-dashboard-logo">⚡</div>
+                    <div class="availability-dashboard-text">
+                        <h1 class="availability-dashboard-title">HRP Availability Scorecard - Exec View</h1>
+                        <div class="availability-dashboard-subtitle">Hyperforce Runtime Platform • Data: Mar 2025 - Jan 2026 (11 months)</div>
+                    </div>
+                </div>
+                <div class="availability-header-badges">
+                    <span class="last-updated">Last Updated: ${formattedDate} @ ${formattedTime}</span>
+                </div>
+            </div>
+            <hr class="availability-header-divider">
+            
+            <!-- Exec KPI Summary Cards -->
+            <div class="avail-summary-grid">
+                <div class="avail-summary-card critical">
+                    <div class="avail-card-label">Sev0 Incidents (11mo)</div>
+                    <div class="avail-card-value critical">${sev0Incidents}</div>
+                    <div class="avail-card-trend">${sev0Trend}</div>
+                </div>
+                <div class="avail-summary-card warning">
+                    <div class="avail-card-label">Sev1 Incidents (11mo)</div>
+                    <div class="avail-card-value warning">${sev1Incidents}</div>
+                    <div class="avail-card-trend">${sev1Trend}</div>
+                </div>
+                <div class="avail-summary-card">
+                    <div class="avail-card-label">Avg MTTD (30d)</div>
+                    <div class="avail-card-value info">${avgMttd}<span class="avail-unit">min</span></div>
+                    <div class="avail-card-trend positive">SLA Target &lt;${mttdMetric.target} min</div>
+                </div>
+                <div class="avail-summary-card">
+                    <div class="avail-card-label">Avg MTTR (30d)</div>
+                    <div class="avail-card-value info">${avgMttr}<span class="avail-unit">min</span></div>
+                    <div class="avail-card-trend positive">SLA Target &lt;${mttrMetric.target} min</div>
+                </div>
+                <div class="avail-summary-card success">
+                    <div class="avail-card-label">HRP Service<br>Readiness Score</div>
+                    <div class="avail-card-value success">${observabilityCoverage}<span class="avail-unit">%</span></div>
+                    <div class="avail-card-trend"></div>
+                </div>
+            </div>
+            
+            <!-- SLA Compliance Section -->
+            <div class="sla-compliance-header">
+                <div class="sla-header-brand">
+                    <div class="sla-header-logo">📋</div>
+                    <div class="sla-header-text">
+                        <h2>SLA Compliance</h2>
+                    </div>
+                </div>
+                <div class="sla-header-meta">
+                    <span class="sla-period-label">Current Period:</span>
+                    <span class="sla-period-value">${currentMonth.name}</span>
+                </div>
+            </div>
+            
+            <!-- MTTD/MTTR Trend Section Title -->
+            <div class="sla-section-title">
+                <h3>📈 MTTD / MTTR Trend</h3>
+                <span class="sla-badge sla-badge-positive">This Month vs Last Month vs Average</span>
+            </div>
+            
+            <!-- MTTD/MTTR Hero Cards -->
+            <div class="sla-hero-grid">
+                <!-- MTTD Hero -->
+                <div class="sla-metric-hero mttd">
+                    <div class="sla-metric-name">MTTD</div>
+                    
+                    <div class="sla-metric-comparison">
+                        <div class="sla-comparison-card ${!mttdSlaMet ? 'highlight-missed' : 'highlight'}">
+                            <div class="sla-comparison-label">This Month</div>
+                            <div class="sla-comparison-value ${!mttdSlaMet ? 'missed' : ''}">
+                                ${!mttdSlaMet ? '<span class="sla-miss-icon">✗</span>' : ''}
+                                <span>${currentMonth.mttd}<span class="sla-unit"> min</span></span>
+                                ${!mttdSlaMet ? '<span class="sla-miss-text">SLA MISSED</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="sla-comparison-card">
+                            <div class="sla-comparison-label">Last Month</div>
+                            <div class="sla-comparison-value">${lastMonth.mttd}<span class="sla-unit"> min</span></div>
+                        </div>
+                        <div class="sla-comparison-card">
+                            <div class="sla-comparison-label">11mo Average</div>
+                            <div class="sla-comparison-value">${yearAverage.mttd}<span class="sla-unit"> min</span></div>
                         </div>
                     </div>
-                    <div class="availability-header-badges">
-                        <span class="data-range-badge">📅 Jan 2025 - Dec 2025 (12 months)</span>
-                        <span class="last-updated">Last Updated: ${formattedDate} @ ${formattedTime}</span>
+
+                    <div class="sla-trend-row">
+                        <div class="sla-trend-item">
+                            <span class="sla-trend-label">vs Last Month</span>
+                            <span class="sla-trend-indicator ${mttdVsLast > 0 ? 'negative' : 'positive'}">
+                                <span class="sla-trend-arrow">${mttdVsLast > 0 ? '↑' : '↓'}</span>
+                                <span>${mttdVsLast > 0 ? '+' : ''}${mttdVsLast} min</span>
+                            </span>
+                        </div>
+                        <div class="sla-trend-item">
+                            <span class="sla-trend-label">vs Average</span>
+                            <span class="sla-trend-indicator ${mttdVsAvg > 0 ? 'negative' : 'positive'}">
+                                <span class="sla-trend-arrow">${mttdVsAvg > 0 ? '↑' : '↓'}</span>
+                                <span>${mttdVsAvg > 0 ? '+' : ''}${mttdVsAvg} min</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="sla-target-legend">
+                        <span class="sla-target-icon">✓</span>
+                        <span>SLA Target &lt;${slaTargets.mttd} min</span>
+                    </div>
+                </div>
+
+                <!-- MTTR Hero -->
+                <div class="sla-metric-hero mttr">
+                    <div class="sla-metric-name">MTTR</div>
+                    
+                    <div class="sla-metric-comparison">
+                        <div class="sla-comparison-card ${!mttrSlaMet ? 'highlight-missed' : 'highlight'}">
+                            <div class="sla-comparison-label">This Month</div>
+                            <div class="sla-comparison-value ${!mttrSlaMet ? 'missed' : ''}">
+                                ${!mttrSlaMet ? '<span class="sla-miss-icon">✗</span>' : ''}
+                                <span>${currentMonth.mttr}<span class="sla-unit"> min</span></span>
+                                ${!mttrSlaMet ? '<span class="sla-miss-text">SLA MISSED</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="sla-comparison-card">
+                            <div class="sla-comparison-label">Last Month</div>
+                            <div class="sla-comparison-value">${lastMonth.mttr}<span class="sla-unit"> min</span></div>
+                        </div>
+                        <div class="sla-comparison-card">
+                            <div class="sla-comparison-label">11mo Average</div>
+                            <div class="sla-comparison-value">${yearAverage.mttr}<span class="sla-unit"> min</span></div>
+                        </div>
+                    </div>
+
+                    <div class="sla-trend-row">
+                        <div class="sla-trend-item">
+                            <span class="sla-trend-label">vs Last Month</span>
+                            <span class="sla-trend-indicator ${mttrVsLast > 0 ? 'negative' : 'positive'}">
+                                <span class="sla-trend-arrow">${mttrVsLast > 0 ? '↑' : '↓'}</span>
+                                <span>${mttrVsLast > 0 ? '+' : ''}${mttrVsLast} min</span>
+                            </span>
+                        </div>
+                        <div class="sla-trend-item">
+                            <span class="sla-trend-label">vs Average</span>
+                            <span class="sla-trend-indicator ${mttrVsAvg > 0 ? 'negative' : 'positive'}">
+                                <span class="sla-trend-arrow">${mttrVsAvg > 0 ? '↑' : '↓'}</span>
+                                <span>${mttrVsAvg > 0 ? '+' : ''}${mttrVsAvg} min</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="sla-target-legend">
+                        <span class="sla-target-icon">✓</span>
+                        <span>SLA Target &lt;${slaTargets.mttr} min</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Disclaimer Banner -->
-            <div class="availability-disclaimer-banner">
-                🚧 <strong>This is under construction.</strong> The data will be updated soon.
-            </div>
-            
-            <!-- KPI Cards -->
-            <div class="availability-kpi-grid">
-                <div class="availability-kpi-card warning">
-                    <div class="kpi-header">
-                        <span class="kpi-icon">⚠️</span>
-                        <span class="kpi-label">SEV0 INCIDENTS (12MO)</span>
+            <!-- MTTD/MTTR Trend Chart -->
+            <div class="sla-chart-section">
+                <div class="sla-chart-header">
+                    <div class="sla-chart-title">📉 11-Month Trend (Mar 2025 - Jan 2026)</div>
+                    <div class="sla-chart-tabs">
+                        <button class="sla-chart-tab active" data-metric="both">Both</button>
+                        <button class="sla-chart-tab" data-metric="mttd">MTTD Only</button>
+                        <button class="sla-chart-tab" data-metric="mttr">MTTR Only</button>
                     </div>
-                    <div class="kpi-value">${sev0Incidents}</div>
-                    <div class="kpi-trend trend-up">↑ ${sev0Trend || 'vs prior 12mo'}</div>
                 </div>
-                
-                <div class="availability-kpi-card warning">
-                    <div class="kpi-header">
-                        <span class="kpi-icon">⚠️</span>
-                        <span class="kpi-label">SEV1 INCIDENTS (12MO)</span>
+                <div class="sla-chart-body">
+                    <div class="sla-chart-container">
+                        <canvas id="mttdMttrTrendChart"></canvas>
                     </div>
-                    <div class="kpi-value">${sev1Incidents}</div>
-                    <div class="kpi-trend trend-up">↑ 12 vs prior 12mo</div>
                 </div>
-                
-                <div class="availability-kpi-card success">
-                    <div class="kpi-header">
-                        <span class="kpi-icon">⏱️</span>
-                        <span class="kpi-label">AVG MTTD</span>
+                <div class="sla-chart-legend">
+                    <div class="sla-legend-item">
+                        <span class="sla-legend-dot" style="background: #0176d3"></span>
+                        <span>MTTD (min)</span>
                     </div>
-                    <div class="kpi-value">${avgMttd} min</div>
-                    <div class="kpi-target">${mttdMetric && mttdMetric.target ? `Target: <strong>&lt;${mttdMetric.target} min</strong>` : 'Target: <strong>&lt;10 min</strong>'}</div>
-                </div>
-                
-                <div class="availability-kpi-card success">
-                    <div class="kpi-header">
-                        <span class="kpi-icon">🔧</span>
-                        <span class="kpi-label">AVG MTTR</span>
+                    <div class="sla-legend-item">
+                        <span class="sla-legend-dot" style="background: #ec6a6a"></span>
+                        <span>MTTR (min)</span>
                     </div>
-                    <div class="kpi-value">${avgMttr} min</div>
-                    <div class="kpi-target">${mttrMetric && mttrMetric.target ? `Target: <strong>&lt;${mttrMetric.target} min</strong>` : 'Target: <strong>&lt;60 min</strong>'}</div>
-                </div>
-                
-                <div class="availability-kpi-card success">
-                    <div class="kpi-header">
-                        <span class="kpi-icon">📊</span>
-                        <span class="kpi-label">OBSERVABILITY COVERAGE</span>
-                    </div>
-                    <div class="kpi-value">${observabilityCoverage}%</div>
-                    <div class="kpi-target">Alerts + Tracing</div>
                 </div>
             </div>
             
-            <!-- Incident Trend Chart -->
-            <div class="availability-section-card">
-                <div class="section-header">
-                    <h3>Sev0/Sev1 Incident Trend</h3>
-                    <div class="chart-controls">
-                        <button class="chart-btn active" data-mode="monthly">Monthly</button>
-                        <button class="chart-btn" data-mode="cumulative">Annual Cumulative</button>
-                    </div>
-                </div>
-                <div id="availability-incident-trend-chart" class="availability-chart-container"></div>
-            </div>
+            ${readinessSectionHtml}
             
-            <!-- MTTD and MTTR by Service -->
-            <div class="availability-metrics-row">
-                <div class="availability-section-card">
-                    <div class="section-header">
-                        <h3>⏱️ MTTD by Service</h3>
-                        <p class="section-subtitle">Mean Time to Detect</p>
+            <!-- Service Impact Analysis Section -->
+            <div class="sla-section-divider"></div>
+            
+            <div class="sla-impact-header">
+                <div class="sla-impact-brand">
+                    <div class="sla-impact-logo">🔍</div>
+                    <div class="sla-impact-text">
+                        <h2>Service Impact Analysis (Root Cause)</h2>
                     </div>
-                    <div class="sla-baseline">SLA Target: &lt;10 min (Sev1) • &lt;5 min (Sev0)</div>
-                    <div id="availability-mttd-chart" class="service-metrics-chart"></div>
-                </div>
-                
-                <div class="availability-section-card">
-                    <div class="section-header">
-                        <h3>🔧 MTTR by Service</h3>
-                        <p class="section-subtitle">Mean Time to Recover</p>
-                    </div>
-                    <div class="sla-baseline">SLA Target: &lt;60 min (Sev1) • &lt;30 min (Sev0)</div>
-                    <div id="availability-mttr-chart" class="service-metrics-chart"></div>
                 </div>
             </div>
             
-            <!-- Observability Coverage and Investment Themes -->
-            <div class="availability-metrics-row">
-                <div class="availability-section-card">
-                    <div class="section-header">
-                        <h3>🛡️ Observability Coverage Matrix</h3>
-                        <span class="coverage-badge">${completeCount}/${services.length} Services</span>
-                    </div>
-                    <div id="availability-coverage-matrix" class="coverage-matrix"></div>
+            <!-- Service Impact Breakdown Table -->
+            <div class="sla-coverage-section">
+                <div class="sla-coverage-header">
+                    <div class="sla-coverage-title">📊 Service Impact Breakdown (Mar 2025 - Jan 2026)</div>
                 </div>
-                
-                <div class="availability-section-card">
-                    <div class="section-header">
-                        <h3>💡 Top Investment Themes</h3>
-                        <span class="action-badge">Action Required</span>
-                    </div>
-                    <div id="availability-investment-themes" class="investment-themes-list"></div>
-                </div>
+                <table class="sla-coverage-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 200px;">Service Impact Category</th>
+                            <th>Incidents</th>
+                            <th>% of Total</th>
+                            <th>Avg MTTD</th>
+                            <th>Avg MTTR</th>
+                            <th>Repeat Incidents</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rootCauseTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
             </div>
             
-            <!-- SLA Goals Table -->
-            <div class="availability-section-card">
-                <div class="section-header">
-                    <h3>📊 SLA Goals - Met vs Missed</h3>
-                    <button class="btn-secondary">By Service</button>
+            <!-- Service Impact by Service Table -->
+            <div class="sla-coverage-section" style="margin-top: 1.5rem;">
+                <div class="sla-coverage-header">
+                    <div class="sla-coverage-title">🔧 Customer Impact by Service</div>
                 </div>
-                <div id="availability-sla-table" class="sla-table-container"></div>
+                <table class="sla-coverage-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 120px;">Service</th>
+                            <th>Total Incidents</th>
+                            <th>Customer Impact Severity</th>
+                            <th>Customer Experience Impact</th>
+                            <th>Average Duration</th>
+                            <th>Repeat Incidents</th>
+                        </tr>
+                    </thead>
+                    <tbody id="serviceRootCauseTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
             </div>
         </div>
     `;
@@ -2088,39 +2438,28 @@ function renderAvailabilityExecView(container) {
     
     // Render charts and tables
     console.log('🛡️ Rendering charts and tables...');
+    
+    // Initialize MTTD/MTTR Trend Chart (Chart.js)
     try {
-        renderAvailabilityIncidentTrend();
-        console.log('✅ Incident trend rendered');
+        initMttdMttrTrendChart(monthlyChartData);
+        console.log('✅ MTTD/MTTR trend chart rendered');
     } catch (e) {
-        console.error('❌ Error rendering incident trend:', e);
+        console.error('❌ Error rendering MTTD/MTTR trend chart:', e);
+    }
+    
+    // Render Service Impact Analysis tables
+    try {
+        renderServiceImpactBreakdown(incidents);
+        console.log('✅ Service Impact Breakdown rendered');
+    } catch (e) {
+        console.error('❌ Error rendering Service Impact Breakdown:', e);
     }
     
     try {
-        renderAvailabilityServiceMetrics(serviceMetrics);
-        console.log('✅ Service metrics rendered');
+        renderServiceImpactByService(incidents);
+        console.log('✅ Service Impact by Service rendered');
     } catch (e) {
-        console.error('❌ Error rendering service metrics:', e);
-    }
-    
-    try {
-        renderAvailabilityCoverageMatrix();
-        console.log('✅ Coverage matrix rendered');
-    } catch (e) {
-        console.error('❌ Error rendering coverage matrix:', e);
-    }
-    
-    try {
-        renderAvailabilityInvestmentThemes();
-        console.log('✅ Investment themes rendered');
-    } catch (e) {
-        console.error('❌ Error rendering investment themes:', e);
-    }
-    
-    try {
-        renderAvailabilitySLATable(slaData);
-        console.log('✅ SLA table rendered');
-    } catch (e) {
-        console.error('❌ Error rendering SLA table:', e);
+        console.error('❌ Error rendering Service Impact by Service:', e);
     }
     
     console.log('✅ Availability Exec View rendered');
@@ -2134,6 +2473,639 @@ function renderAvailabilityExecView(container) {
             </div>
         `;
     }
+}
+
+function normalizeReadinessStatus(value) {
+    const normalized = (value || '').toString().trim().toLowerCase();
+    if (normalized === 'yes' || normalized === 'complete') return 'complete';
+    if (normalized === 'partial') return 'partial';
+    if (normalized === 'planned') return 'planned';
+    if (normalized === 'no' || normalized === 'missing' || normalized === '') return 'missing';
+    return 'missing';
+}
+
+function getReadinessScoreFromStatus(status) {
+    switch (status) {
+        case 'complete':
+            return 2;
+        case 'partial':
+            return 1;
+        case 'planned':
+            return 0.5;
+        default:
+            return 0;
+    }
+}
+
+function formatReadinessScore(value) {
+    if (typeof value !== 'number' || Number.isNaN(value)) return '0';
+    if (Number.isInteger(value)) return String(value);
+    const rounded = Math.round(value * 10) / 10;
+    return rounded.toFixed(1).replace(/\.0$/, '');
+}
+
+function getReadinessOverallClass(percent) {
+    if (typeof percent !== 'number' || Number.isNaN(percent)) return 'medium';
+    if (percent >= 75) return 'high';
+    if (percent >= 60) return 'medium';
+    return 'low';
+}
+
+function buildReadinessTableRows(data) {
+    if (!Array.isArray(data) || data.length === 0) {
+        return '';
+    }
+    
+    const serviceColorMap = {
+        Mesh: '#1b96ff',
+        Ingress: '#2e844a',
+        FKP: '#0176d3',
+        Vegacache: '#c23934',
+        MQ: '#fe9339',
+        MAPS: '#2e844a'
+    };
+    
+    const columns = [
+        { statusKey: 'Pre-Release FIT', scoreKey: 'Pre-Release FIT Score' },
+        { statusKey: 'Post-Release FIT', scoreKey: 'Post-Release FIT Score' },
+        { statusKey: 'E2E Critical FIT', scoreKey: 'E2E Critical FIT Score' },
+        { statusKey: 'Scale Tests', scoreKey: 'Scale Tests Score' },
+        { statusKey: 'Perf Tests', scoreKey: 'Perf Tests Score' },
+        { statusKey: 'Chaos Tests', scoreKey: 'Chaos Tests Score' }
+    ];
+    
+    return data
+        .filter(row => (row.Service || row.service || '').toLowerCase() !== 'total')
+        .map(row => {
+            const serviceName = row.Service || row.service || 'Unknown';
+            const serviceColor = serviceColorMap[serviceName] || '#706e6b';
+            const cellsHtml = columns.map(column => {
+                const status = normalizeReadinessStatus(row[column.statusKey]);
+                const scoreValue = parseFloat(row[column.scoreKey]);
+                const score = Number.isNaN(scoreValue) ? getReadinessScoreFromStatus(status) : scoreValue;
+                return `<td class="readiness-score ${status}">${formatReadinessScore(score)}</td>`;
+            }).join('');
+            
+            const totalPointsValue = parseFloat(row['Total Points']);
+            const maxPointsValue = parseFloat(row['Max Possible Points']);
+            const totalPoints = Number.isNaN(totalPointsValue) ? 0 : totalPointsValue;
+            const maxPoints = Number.isNaN(maxPointsValue) ? 0 : maxPointsValue;
+            
+            const percentValue = parseFloat((row['Service Score Percentage'] || '').replace('%', ''));
+            const derivedPercent = maxPoints > 0 ? (totalPoints / maxPoints) * 100 : percentValue;
+            const overallClass = getReadinessOverallClass(Number.isNaN(percentValue) ? derivedPercent : percentValue);
+            
+            return `
+                <tr>
+                    <td class="readiness-service">
+                        <span class="readiness-service-dot" style="background: ${serviceColor};"></span>
+                        ${serviceName}
+                    </td>
+                    ${cellsHtml}
+                    <td class="readiness-overall-score ${overallClass}">
+                        ${formatReadinessScore(totalPoints)}/${formatReadinessScore(maxPoints || 12)}
+                    </td>
+                </tr>
+            `;
+        })
+        .join('');
+}
+
+/**
+ * Render Availability Developer View (HRP Service Readiness)
+ */
+async function renderAvailabilityDeveloperView() {
+    console.log('🧪 Rendering Availability Developer View...');
+    
+    const container = document.getElementById('runtime-availability-dev-content');
+    if (!container) {
+        console.error('❌ Container runtime-availability-dev-content not found');
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="placeholder-message" style="text-align: center; padding: 40px;">
+            <div class="placeholder-icon">🧪</div>
+            <h3>Loading Service Readiness...</h3>
+        </div>
+    `;
+    
+    try {
+        await loadAllAvailabilityData();
+        
+        const readinessRows = availabilityData.serviceReadiness || [];
+        const serviceRows = readinessRows.filter(row => (row.Service || '').toLowerCase() !== 'total');
+        const totalServices = serviceRows.length || 0;
+        
+        const criticalCount = serviceRows.filter(row => {
+            const status = normalizeReadinessStatus(row['E2E Critical FIT']);
+            return status === 'complete' || status === 'partial';
+        }).length;
+        
+        const chaosCount = serviceRows.filter(row => {
+            const status = normalizeReadinessStatus(row['Chaos Tests']);
+            return status === 'complete' || status === 'partial';
+        }).length;
+        
+        const criticalPct = totalServices ? Math.round((criticalCount / totalServices) * 100) : 0;
+        const chaosPct = totalServices ? Math.round((chaosCount / totalServices) * 100) : 0;
+        
+        container.innerHTML = `
+            <div class="availability-dev">
+                <div class="availability-dev-container">
+                    <header class="header preventive-header">
+                        <div class="header-brand">
+                            <div class="logo">🧪</div>
+                            <div class="header-text">
+                                <h1>HRP Test Readiness (Preventive) - Developer View</h1>
+                            </div>
+                        </div>
+                        <button class="back-link" onclick="openAvailabilityReadinessExecView()">
+                            <span>←</span>
+                            <span>Back to Exec View</span>
+                        </button>
+                    </header>
+
+                    <div class="kpi-grid">
+                        <div class="kpi-card" onclick="showCardDetail('criticalCoverage')">
+                            <div class="kpi-label">Critical Test Coverage</div>
+                            <div class="kpi-value" style="color: var(--warning);">${criticalPct}<span class="unit">%</span></div>
+                            <div class="kpi-trend neutral">${criticalCount}/${totalServices} services with E2E critical</div>
+                        </div>
+                        <div class="kpi-card" onclick="showCardDetail('fitSuccess')">
+                            <div class="kpi-label">FIT Success Rate (30d)</div>
+                            <div class="kpi-value" style="color: var(--positive);">94.2<span class="unit">%</span></div>
+                            <div class="kpi-trend positive">↑ 2.1% from last month</div>
+                        </div>
+                        <div class="kpi-card" onclick="showCardDetail('chaosAdoption')">
+                            <div class="kpi-label">Chaos Test Adoption</div>
+                            <div class="kpi-value" style="color: var(--positive);">${chaosPct}<span class="unit">%</span></div>
+                            <div class="kpi-trend positive">${chaosCount}/${totalServices} services active</div>
+                        </div>
+                        <div class="kpi-card" onclick="showCardDetail('incidentsAvoided')">
+                            <div class="kpi-label">Incidents Avoided</div>
+                            <div class="kpi-value" style="color: var(--info);">3</div>
+                            <div class="kpi-trend positive">↓ 12% incident rate</div>
+                        </div>
+                        <div class="kpi-card" onclick="showCardDetail('testMTTR')">
+                            <div class="kpi-label">Test MTTR</div>
+                            <div class="kpi-value" style="color: var(--accent);">4.2<span class="unit">hrs</span></div>
+                            <div class="kpi-trend positive">↓ 1.3 hrs improvement</div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <div class="chart-header clickable-header" onclick="openFitSuccessMonthlyModal()">
+                                <div class="chart-title">📈 FIT Success Rate Trend (6 Months)</div>
+                                <span class="section-badge badge-positive">Improving</span>
+                            </div>
+                            <div class="chart-body">
+                                <div class="chart-container">
+                                    <canvas id="fitTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-header clickable-header" onclick="openChaosExecutionMonthlyModal()">
+                                <div class="chart-title">🔥 Chaos Test Execution (Last 6 Months)</div>
+                                <span class="section-badge badge-info">6 tests this month</span>
+                            </div>
+                            <div class="chart-body">
+                                <div class="chart-container">
+                                    <canvas id="chaosChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="business-impact">
+                        <div class="section-header-dev">
+                            <h2 class="section-title-dev">💰 Business Impact</h2>
+                            <span class="section-badge badge-positive">Positive ROI</span>
+                        </div>
+                        <div class="impact-grid">
+                            <div class="impact-card" onclick="showCardDetail('incidentsAvoidedImpact')">
+                                <div class="impact-icon green">🛡️</div>
+                                <div class="impact-value green">3</div>
+                                <div class="impact-label">Sev0/Sev1 Incidents Avoided</div>
+                            </div>
+                            <div class="impact-card" onclick="showCardDetail('serviceHealth')">
+                                <div class="impact-icon blue">🏥</div>
+                                <div class="impact-value blue">92%</div>
+                                <div class="impact-label">Service Health Score</div>
+                            </div>
+                            <div class="impact-card" onclick="showCardDetail('customerImpact')">
+                                <div class="impact-icon orange">⏱️</div>
+                                <div class="impact-value orange">127</div>
+                                <div class="impact-label">Customer Impact Hours Avoided</div>
+                            </div>
+                            <div class="impact-card" onclick="showCardDetail('releaseConfidence')">
+                                <div class="impact-icon purple">📊</div>
+                                <div class="impact-value purple">89%</div>
+                                <div class="impact-label">Release Confidence Score</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="priority-actions">
+                        <div class="section-header-dev">
+                            <h2 class="section-title-dev">🎯 Priority Actions</h2>
+                        </div>
+                        <div class="coverage-section">
+                            <table class="coverage-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:50px;">#</th>
+                                        <th style="text-align:left;">Action Item</th>
+                                        <th style="width:120px;">Service</th>
+                                        <th style="width:100px;">Priority</th>
+                                        <th style="width:100px;">ETA</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td style="text-align:left;">Enable Pre-Release FIT for Mesh</td>
+                                        <td>Mesh</td>
+                                        <td><span class="section-badge badge-negative">High</span></td>
+                                        <td>Q1 FY27</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td style="text-align:left;">Define E2E Critical Scenarios for MQ</td>
+                                        <td>MQ</td>
+                                        <td><span class="section-badge badge-negative">High</span></td>
+                                        <td>Feb 2027</td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td style="text-align:left;">Complete Scale Test Documentation for MAPS</td>
+                                        <td>MAPS</td>
+                                        <td><span class="section-badge badge-warning">Medium</span></td>
+                                        <td>Mar 2027</td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td style="text-align:left;">Document Vegacache Perf Test Limits</td>
+                                        <td>Vegacache</td>
+                                        <td><span class="section-badge badge-warning">Medium</span></td>
+                                        <td>Q2 FY27</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal" id="availability-readiness-modal" onclick="closeAvailabilityReadinessModal(event)">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3 id="availability-readiness-modal-title">Card Details</h3>
+                        <button class="modal-close" onclick="closeAvailabilityReadinessModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="availability-readiness-modal-body">
+                        <div class="modal-text">Select a card to view details.</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        initFitTrendChart();
+        initChaosExecutionChart();
+        
+        console.log('✅ Availability Developer View rendered');
+    } catch (error) {
+        console.error('❌ Error rendering Availability Developer View:', error);
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">❌</div>
+                <h3>Error Loading Developer View</h3>
+                <p>${error.message || 'An error occurred while rendering'}</p>
+            </div>
+        `;
+    }
+}
+
+// Global reference for MTTD/MTTR chart
+let mttdMttrTrendChart = null;
+let fitTrendChart = null;
+let chaosExecutionChart = null;
+
+/**
+ * Initialize MTTD/MTTR Trend Chart using Chart.js
+ */
+function initMttdMttrTrendChart(monthlyData) {
+    const canvas = document.getElementById('mttdMttrTrendChart');
+    if (!canvas) {
+        console.warn('⚠️ MTTD/MTTR chart canvas not found');
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (mttdMttrTrendChart) {
+        mttdMttrTrendChart.destroy();
+    }
+    
+    mttdMttrTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: monthlyData.labels,
+            datasets: [
+                {
+                    label: 'MTTD (min)',
+                    data: monthlyData.mttd,
+                    borderColor: '#0176d3',
+                    backgroundColor: 'rgba(1, 118, 211, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#0176d3',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8
+                },
+                {
+                    label: 'MTTR (min)',
+                    data: monthlyData.mttr,
+                    borderColor: '#ec6a6a',
+                    backgroundColor: 'rgba(236, 106, 106, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#ec6a6a',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#16325c',
+                    titleColor: '#ffffff',
+                    bodyColor: '#d8dde6',
+                    borderColor: '#0176d3',
+                    borderWidth: 1,
+                    padding: 12,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + ' min';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(221, 219, 218, 0.6)', drawBorder: false },
+                    ticks: { color: '#706e6b', font: { family: "'JetBrains Mono', monospace", size: 11 } }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(221, 219, 218, 0.6)', drawBorder: false },
+                    ticks: { 
+                        color: '#706e6b', 
+                        font: { family: "'JetBrains Mono', monospace", size: 11 },
+                        callback: function(value) { return value + ' min'; }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Add tab switching functionality
+    const tabButtons = document.querySelectorAll('.sla-chart-tab');
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active class from all tabs
+            tabButtons.forEach(t => t.classList.remove('active'));
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            const metric = this.dataset.metric;
+            const datasets = mttdMttrTrendChart.data.datasets;
+            
+            if (metric === 'both') {
+                datasets[0].hidden = false;
+                datasets[1].hidden = false;
+            } else if (metric === 'mttd') {
+                datasets[0].hidden = false;
+                datasets[1].hidden = true;
+            } else if (metric === 'mttr') {
+                datasets[0].hidden = true;
+                datasets[1].hidden = false;
+            }
+            
+            mttdMttrTrendChart.update();
+        });
+    });
+    
+    console.log('📊 MTTD/MTTR trend chart initialized');
+}
+
+/**
+ * Render Service Impact Breakdown Table (Root Cause Analysis)
+ */
+function renderServiceImpactBreakdown(incidents) {
+    const tbody = document.getElementById('rootCauseTableBody');
+    if (!tbody) {
+        console.warn('⚠️ rootCauseTableBody not found');
+        return;
+    }
+    
+    // Group incidents by impact category
+    const impactGroups = {};
+    incidents.forEach(inc => {
+        const impact = inc.impact || 'Unknown';
+        if (!impactGroups[impact]) {
+            impactGroups[impact] = {
+                category: impact,
+                incidents: [],
+                ttdSum: 0,
+                ttrSum: 0,
+                ttdCount: 0,
+                ttrCount: 0,
+                repeatCount: 0
+            };
+        }
+        impactGroups[impact].incidents.push(inc);
+        
+        const ttd = parseFloat(inc.ttd_min) || 0;
+        const ttr = parseFloat(inc.ttr_min) || 0;
+        
+        if (ttd > 0) {
+            impactGroups[impact].ttdSum += ttd;
+            impactGroups[impact].ttdCount++;
+        }
+        if (ttr > 0) {
+            impactGroups[impact].ttrSum += ttr;
+            impactGroups[impact].ttrCount++;
+        }
+        if (inc.repeat && inc.repeat.toLowerCase() === 'yes') {
+            impactGroups[impact].repeatCount++;
+        }
+    });
+    
+    // Calculate averages and sort by count
+    const totalIncidents = incidents.length;
+    const rootCauseData = Object.values(impactGroups).map(g => ({
+        category: g.category,
+        count: g.incidents.length,
+        pct: Math.round((g.incidents.length / totalIncidents) * 100),
+        avgMttd: g.ttdCount > 0 ? Math.round(g.ttdSum / g.ttdCount) : 0,
+        avgMttr: g.ttrCount > 0 ? Math.round(g.ttrSum / g.ttrCount) : 0,
+        repeat: g.repeatCount
+    })).sort((a, b) => b.count - a.count);
+    
+    tbody.innerHTML = rootCauseData.map(rc => {
+        const repeatPct = rc.count > 0 ? Math.round((rc.repeat / rc.count) * 100) : 0;
+        const repeatColor = repeatPct > 20 ? '#c23934' : repeatPct > 10 ? '#fe9339' : '#2e844a';
+        return `<tr>
+            <td style="font-weight: 600;">${rc.category}</td>
+            <td class="mono align-center">${rc.count}</td>
+            <td class="mono align-center">${rc.pct}%</td>
+            <td class="mono align-center">${rc.avgMttd}<span style="font-size:11px;color:#706e6b;"> min</span></td>
+            <td class="mono align-center">${rc.avgMttr}<span style="font-size:11px;color:#706e6b;"> min</span></td>
+            <td class="mono align-center" style="color:${repeatColor};">${rc.repeat} <span style="font-size:11px;color:#706e6b;">(${repeatPct}%)</span></td>
+        </tr>`;
+    }).join('');
+    
+    console.log('✅ Service Impact Breakdown table rendered');
+}
+
+/**
+ * Render Service Impact by Service Table
+ */
+function renderServiceImpactByService(incidents) {
+    const tbody = document.getElementById('serviceRootCauseTableBody');
+    if (!tbody) {
+        console.warn('⚠️ serviceRootCauseTableBody not found');
+        return;
+    }
+    
+    // Define service colors
+    const serviceColors = {
+        'Vegacache': '#c23934',
+        'MQ': '#fe9339',
+        'Ingress': '#2e844a',
+        'Mesh': '#1b96ff',
+        'FKP': '#0176d3',
+        'KRE-US': '#9050e9',
+        'KRE-HYD': '#9050e9',
+        'STRIDE': '#706e6b'
+    };
+    
+    // Group incidents by service (prb_owner)
+    const serviceGroups = {};
+    incidents.forEach(inc => {
+        const service = inc.prb_owner || 'Unknown';
+        if (!serviceGroups[service]) {
+            serviceGroups[service] = {
+                name: service,
+                incidents: [],
+                ttdSum: 0,
+                ttrSum: 0,
+                ttdCount: 0,
+                ttrCount: 0,
+                repeatCount: 0,
+                impacts: new Set()
+            };
+        }
+        serviceGroups[service].incidents.push(inc);
+        
+        const ttd = parseFloat(inc.ttd_min) || 0;
+        const ttr = parseFloat(inc.ttr_min) || 0;
+        
+        if (ttd > 0) {
+            serviceGroups[service].ttdSum += ttd;
+            serviceGroups[service].ttdCount++;
+        }
+        if (ttr > 0) {
+            serviceGroups[service].ttrSum += ttr;
+            serviceGroups[service].ttrCount++;
+        }
+        if (inc.repeat && inc.repeat.toLowerCase() === 'yes') {
+            serviceGroups[service].repeatCount++;
+        }
+        
+        // Categorize impact
+        const impact = (inc.impact || '').toLowerCase();
+        if (impact.includes('performance')) serviceGroups[service].impacts.add('Latency');
+        if (impact.includes('disruption')) serviceGroups[service].impacts.add('Availability');
+        if (impact.includes('feature') || impact.includes('degradation')) serviceGroups[service].impacts.add('Feature');
+    });
+    
+    // Calculate metrics and determine severity
+    const serviceData = Object.values(serviceGroups).map(g => {
+        const avgDuration = g.ttdCount > 0 && g.ttrCount > 0 
+            ? Math.round((g.ttdSum + g.ttrSum) / g.incidents.length) 
+            : 0;
+        
+        // Determine severity
+        let severity = 'Low';
+        let severityColor = '#2e844a';
+        if (g.incidents.length >= 15 || avgDuration > 1000) {
+            severity = 'High';
+            severityColor = '#c23934';
+        } else if (g.incidents.length >= 10 || avgDuration > 500) {
+            severity = 'Medium';
+            severityColor = '#fe9339';
+        }
+        
+        return {
+            name: g.name,
+            color: serviceColors[g.name] || '#706e6b',
+            total: g.incidents.length,
+            severity,
+            severityColor,
+            customerImpact: Array.from(g.impacts),
+            avgDuration,
+            repeat: g.repeatCount
+        };
+    }).sort((a, b) => b.total - a.total);
+    
+    const formatDuration = (minutes) => {
+        const hours = Math.round(minutes / 60 * 10) / 10;
+        return `${hours} hr`;
+    };
+    
+    tbody.innerHTML = serviceData.map(s => {
+        const repeatPct = s.total > 0 ? Math.round((s.repeat / s.total) * 100) : 0;
+        const repeatColor = repeatPct > 20 ? '#c23934' : repeatPct > 10 ? '#fe9339' : '#2e844a';
+        const customerImpactText = s.customerImpact.length > 0 ? s.customerImpact.join(' · ') : '-';
+        const durationColor = s.avgDuration > 1000 ? '#c23934' : s.avgDuration > 500 ? '#fe9339' : '#3e3e3c';
+        
+        return `<tr>
+            <td>
+                <div class="sla-service-name">
+                    <span class="sla-service-dot" style="background:${s.color}"></span>
+                    ${s.name}
+                </div>
+            </td>
+            <td class="mono align-center">${s.total}</td>
+            <td class="align-center">
+                <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.severityColor};"></span>
+                    <span style="font-weight:500;">${s.severity}</span>
+                </div>
+            </td>
+            <td style="color:#3e3e3c;font-size:13px;text-align:left;">${customerImpactText}</td>
+            <td class="mono align-center" style="color:${durationColor};font-weight:500;">${formatDuration(s.avgDuration)}</td>
+            <td class="mono align-center" style="color:${repeatColor};">${s.repeat}${repeatPct > 0 ? ` <span style="font-size:11px;color:#706e6b;">(${repeatPct}%)</span>` : ''}</td>
+        </tr>`;
+    }).join('');
+    
+    console.log('✅ Service Impact by Service table rendered');
 }
 
 /**
@@ -2379,6 +3351,829 @@ function renderAvailabilityIncidentTrend() {
             const mode = btn.getAttribute('data-mode');
             renderChart(mode);
         });
+    });
+}
+
+function openAvailabilityReadinessDeveloperView() {
+    switchViewMode('developer');
+    switchTab('runtime-availability-dev');
+}
+
+function openAvailabilityReadinessExecView() {
+    switchViewMode('exec');
+    switchTab('runtime-availability');
+}
+
+function showCardDetail(cardKey) {
+    const modal = document.getElementById('availability-readiness-modal');
+    const titleEl = document.getElementById('availability-readiness-modal-title');
+    const bodyEl = document.getElementById('availability-readiness-modal-body');
+    if (!modal || !titleEl || !bodyEl) return;
+    
+    if (cardKey === 'criticalCoverage') {
+        const coverageContent = buildCriticalCoverageModal();
+        titleEl.textContent = coverageContent.title;
+        bodyEl.innerHTML = coverageContent.body;
+    } else if (cardKey === 'fitSuccess') {
+        const fitContent = buildFitSuccessInventoryModal();
+        titleEl.textContent = fitContent.title;
+        bodyEl.innerHTML = fitContent.body;
+    } else {
+        const details = {
+            chaosAdoption: {
+                title: 'Chaos Test Adoption',
+                body: 'Percentage of services with Chaos Tests enabled (yes or partial).'
+            },
+            incidentsAvoided: {
+                title: 'Incidents Avoided',
+                body: 'Hardcoded placeholder until incident avoidance calculation is defined.'
+            },
+            testMTTR: {
+                title: 'Test MTTR',
+                body: 'Hardcoded placeholder until test MTTR calculation is defined.'
+            },
+            incidentsAvoidedImpact: {
+                title: 'Sev0/Sev1 Incidents Avoided',
+                body: 'Business impact of preventive testing on Sev0/Sev1 incidents.'
+            },
+            serviceHealth: {
+                title: 'Service Health Score',
+                body: 'Composite readiness score for preventive coverage.'
+            },
+            customerImpact: {
+                title: 'Customer Impact Hours Avoided',
+                body: 'Estimated customer impact hours avoided through preventive testing.'
+            },
+            releaseConfidence: {
+                title: 'Release Confidence Score',
+                body: 'Confidence score derived from preventive test coverage.'
+            }
+        };
+        
+        if (cardKey === 'chaosAdoption') {
+            const chaosContent = buildChaosAdoptionModal();
+            titleEl.textContent = chaosContent.title;
+            bodyEl.innerHTML = chaosContent.body;
+        } else if (cardKey === 'incidentsAvoided') {
+            const avoidedContent = buildIncidentsAvoidedModal();
+            titleEl.textContent = avoidedContent.title;
+            bodyEl.innerHTML = avoidedContent.body;
+        } else if (cardKey === 'testMTTR') {
+            const mttrContent = buildTestMttrModal();
+            titleEl.textContent = mttrContent.title;
+            bodyEl.innerHTML = mttrContent.body;
+        } else if (cardKey === 'serviceHealth') {
+            const healthContent = buildServiceHealthModal();
+            titleEl.textContent = healthContent.title;
+            bodyEl.innerHTML = healthContent.body;
+        } else if (cardKey === 'customerImpact') {
+            const impactContent = buildCustomerImpactModal();
+            titleEl.textContent = impactContent.title;
+            bodyEl.innerHTML = impactContent.body;
+        } else if (cardKey === 'releaseConfidence') {
+            const releaseContent = buildReleaseConfidenceModal();
+            titleEl.textContent = releaseContent.title;
+            bodyEl.innerHTML = releaseContent.body;
+        } else {
+            const detail = details[cardKey] || { title: 'Card Details', body: 'Details not available.' };
+            titleEl.textContent = detail.title;
+            bodyEl.innerHTML = `<div class="modal-text">${detail.body}</div>`;
+        }
+    }
+    
+    modal.style.display = 'block';
+}
+
+function closeAvailabilityReadinessModal(event) {
+    const modal = document.getElementById('availability-readiness-modal');
+    if (!modal) return;
+    if (event && event.target && event.target !== modal) {
+        return;
+    }
+    modal.style.display = 'none';
+}
+
+function openFitSuccessMonthlyModal() {
+    const modal = document.getElementById('availability-readiness-modal');
+    const titleEl = document.getElementById('availability-readiness-modal-title');
+    const bodyEl = document.getElementById('availability-readiness-modal-body');
+    if (!modal || !titleEl || !bodyEl) return;
+    
+    const monthlyContent = buildFitSuccessMonthlyModal();
+    titleEl.textContent = monthlyContent.title;
+    bodyEl.innerHTML = monthlyContent.body;
+    modal.style.display = 'block';
+}
+
+function openChaosExecutionMonthlyModal() {
+    const modal = document.getElementById('availability-readiness-modal');
+    const titleEl = document.getElementById('availability-readiness-modal-title');
+    const bodyEl = document.getElementById('availability-readiness-modal-body');
+    if (!modal || !titleEl || !bodyEl) return;
+    
+    const chaosContent = buildChaosExecutionMonthlyModal();
+    titleEl.textContent = chaosContent.title;
+    bodyEl.innerHTML = chaosContent.body;
+    modal.style.display = 'block';
+}
+
+function buildCriticalCoverageModal() {
+    const rows = availabilityData.serviceReadiness || [];
+    const serviceRows = rows.filter(row => (row.Service || '').toLowerCase() !== 'total');
+    const totalServices = serviceRows.length || 0;
+    
+    const tableRows = serviceRows.map(row => {
+        const service = row.Service || 'Unknown';
+        const statusRaw = row['E2E Critical FIT'] || '';
+        const status = normalizeReadinessStatus(statusRaw);
+        const isCounted = status === 'complete' || status === 'partial';
+        const countedLabel = isCounted ? 'Yes (1)' : 'No (0)';
+        const countedClass = isCounted ? 'counted-yes' : 'counted-no';
+        
+        const notesByStatus = {
+            planned: 'Planned but not yet implemented',
+            complete: 'E2E Critical FIT implemented',
+            missing: 'No E2E Critical FIT',
+            partial: 'Partial E2E Critical FIT implementation'
+        };
+        
+        const notes = notesByStatus[status] || 'Status not available';
+        const statusLabel = statusRaw ? statusRaw.charAt(0).toUpperCase() + statusRaw.slice(1) : 'N/A';
+        
+        return `
+            <tr>
+                <td>${service}</td>
+                <td><span class="status-pill ${status}">${statusLabel}</span></td>
+                <td><span class="counted-pill ${countedClass}">${countedLabel}</span></td>
+                <td>${notes}</td>
+            </tr>
+        `;
+    }).join('');
+    
+    const countedTotal = serviceRows.filter(row => {
+        const status = normalizeReadinessStatus(row['E2E Critical FIT']);
+        return status === 'complete' || status === 'partial';
+    }).length;
+    
+    const percent = totalServices ? (countedTotal / totalServices) * 100 : 0;
+    const percentRounded = Math.round(percent);
+    const percentDisplay = percent.toFixed(2);
+    
+    return {
+        title: 'Critical Test Coverage Details',
+        body: `
+            <div class="critical-coverage-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>E2E Critical FIT Status</th>
+                            <th>Counted</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows || `<tr><td colspan="4" class="empty-state">No readiness data available</td></tr>`}
+                    </tbody>
+                </table>
+                <div class="modal-summary">
+                    Calculation: ${countedTotal} out of ${totalServices} services = ${percentDisplay}% ≈ ${percentRounded}%
+                </div>
+            </div>
+        `
+    };
+}
+
+function buildFitSuccessInventoryModal() {
+    return {
+        title: 'FIT Success Rate — Service Inventory (Last 30 Days)',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Pre-Release FIT</th>
+                            <th>Post-Release FIT</th>
+                            <th>Total Tests (30d)</th>
+                            <th>Successful</th>
+                            <th>Failed</th>
+                            <th>Success Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>FKP</td>
+                            <td><span class="fit-status complete">✓ Yes</span></td>
+                            <td><span class="fit-status complete">✓ Yes</span></td>
+                            <td>28</td>
+                            <td>27</td>
+                            <td>1</td>
+                            <td class="fit-rate">96.4%</td>
+                        </tr>
+                        <tr>
+                            <td>Vegacache</td>
+                            <td><span class="fit-status partial">◑ Partial</span></td>
+                            <td><span class="fit-status complete">✓ Yes</span></td>
+                            <td>25</td>
+                            <td>24</td>
+                            <td>1</td>
+                            <td class="fit-rate">96.0%</td>
+                        </tr>
+                        <tr>
+                            <td>MQ</td>
+                            <td><span class="fit-status partial">◑ Partial</span></td>
+                            <td><span class="fit-status complete">✓ Yes</span></td>
+                            <td>22</td>
+                            <td>21</td>
+                            <td>1</td>
+                            <td class="fit-rate">95.5%</td>
+                        </tr>
+                        <tr>
+                            <td>MAPS</td>
+                            <td><span class="fit-status partial">◑ Partial</span></td>
+                            <td><span class="fit-status complete">✓ Yes</span></td>
+                            <td>20</td>
+                            <td>19</td>
+                            <td>1</td>
+                            <td class="fit-rate">95.0%</td>
+                        </tr>
+                        <tr>
+                            <td>Ingress</td>
+                            <td><span class="fit-status missing">✕ No</span></td>
+                            <td><span class="fit-status complete">✓ Yes</span></td>
+                            <td>18</td>
+                            <td>17</td>
+                            <td>1</td>
+                            <td class="fit-rate">94.4%</td>
+                        </tr>
+                        <tr>
+                            <td>Mesh</td>
+                            <td><span class="fit-status missing">✕ No</span></td>
+                            <td><span class="fit-status complete">✓ Yes</span></td>
+                            <td>12</td>
+                            <td>10</td>
+                            <td>2</td>
+                            <td class="fit-rate low">83.3%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal-summary">
+                    Total (All Services): 125 tests, 118 successful, 7 failed = 94.2% success rate
+                </div>
+            </div>
+        `
+    };
+}
+
+function buildFitSuccessMonthlyModal() {
+    return {
+        title: 'FIT Success Rate — Monthly Breakdown (Last 6 Months)',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Success Rate</th>
+                            <th>Total Tests</th>
+                            <th>Successful</th>
+                            <th>Failed</th>
+                            <th>Target</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>August 2025</td>
+                            <td class="fit-rate low">87.5%</td>
+                            <td>100</td>
+                            <td>87</td>
+                            <td>13</td>
+                            <td>95%</td>
+                        </tr>
+                        <tr>
+                            <td>September 2025</td>
+                            <td class="fit-rate">89.2%</td>
+                            <td>105</td>
+                            <td>94</td>
+                            <td>11</td>
+                            <td>95%</td>
+                        </tr>
+                        <tr>
+                            <td>October 2025</td>
+                            <td class="fit-rate">91.0%</td>
+                            <td>110</td>
+                            <td>100</td>
+                            <td>10</td>
+                            <td>95%</td>
+                        </tr>
+                        <tr>
+                            <td>November 2025</td>
+                            <td class="fit-rate">92.1%</td>
+                            <td>115</td>
+                            <td>106</td>
+                            <td>9</td>
+                            <td>95%</td>
+                        </tr>
+                        <tr>
+                            <td>December 2025</td>
+                            <td class="fit-rate">93.8%</td>
+                            <td>120</td>
+                            <td>113</td>
+                            <td>7</td>
+                            <td>95%</td>
+                        </tr>
+                        <tr>
+                            <td>January 2026</td>
+                            <td class="fit-rate">94.2%</td>
+                            <td>125</td>
+                            <td>118</td>
+                            <td>7</td>
+                            <td>95%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function buildChaosAdoptionModal() {
+    return {
+        title: 'Chaos Test Adoption — Service Breakdown',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Chaos Tests Status</th>
+                            <th>Value</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Mesh</td>
+                            <td><span class="fit-status complete">Yes</span></td>
+                            <td>1</td>
+                            <td>Chaos tests active</td>
+                        </tr>
+                        <tr>
+                            <td>Ingress</td>
+                            <td><span class="fit-status complete">Yes</span></td>
+                            <td>1</td>
+                            <td>Chaos tests active</td>
+                        </tr>
+                        <tr>
+                            <td>FKP</td>
+                            <td><span class="fit-status complete">Yes</span></td>
+                            <td>1</td>
+                            <td>Chaos tests active</td>
+                        </tr>
+                        <tr>
+                            <td>Vegacache</td>
+                            <td><span class="fit-status complete">Yes</span></td>
+                            <td>1</td>
+                            <td>Chaos tests active</td>
+                        </tr>
+                        <tr>
+                            <td>MQ</td>
+                            <td><span class="fit-status complete">Yes</span></td>
+                            <td>1</td>
+                            <td>Chaos tests active</td>
+                        </tr>
+                        <tr>
+                            <td>MAPS</td>
+                            <td><span class="fit-status complete">Yes</span></td>
+                            <td>1</td>
+                            <td>Chaos tests active</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal-summary">
+                    Result: 6 out of 6 services = 100%
+                </div>
+            </div>
+        `
+    };
+}
+
+function buildChaosExecutionMonthlyModal() {
+    return {
+        title: 'Chaos Test Execution - Monthly Breakdown (Last 6 Months)',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Tests Executed</th>
+                            <th>Findings/Issues</th>
+                            <th>Total Services Tested</th>
+                            <th>Success Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>August 2025</td>
+                            <td>3</td>
+                            <td>1</td>
+                            <td>6</td>
+                            <td class="fit-rate low">66.7%</td>
+                        </tr>
+                        <tr>
+                            <td>September 2025</td>
+                            <td>4</td>
+                            <td>2</td>
+                            <td>6</td>
+                            <td class="fit-rate low">50.0%</td>
+                        </tr>
+                        <tr>
+                            <td>October 2025</td>
+                            <td>5</td>
+                            <td>1</td>
+                            <td>6</td>
+                            <td class="fit-rate">80.0%</td>
+                        </tr>
+                        <tr>
+                            <td>November 2025</td>
+                            <td>4</td>
+                            <td>0</td>
+                            <td>6</td>
+                            <td class="fit-rate">100.0%</td>
+                        </tr>
+                        <tr>
+                            <td>December 2025</td>
+                            <td>5</td>
+                            <td>2</td>
+                            <td>6</td>
+                            <td class="fit-rate">60.0%</td>
+                        </tr>
+                        <tr>
+                            <td>January 2026</td>
+                            <td>6</td>
+                            <td>1</td>
+                            <td>6</td>
+                            <td class="fit-rate">83.3%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function buildIncidentsAvoidedModal() {
+    return {
+        title: 'Incidents Avoided — Summary (11 Months)',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Total Estimated Avoided</td>
+                            <td>3 incidents</td>
+                        </tr>
+                        <tr>
+                            <td>Sev0 Avoided</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td>Sev1 Avoided</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td>Incident Rate Reduction</td>
+                            <td>12%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal-summary">
+                    Period: 11 months (Mar 2025 - Jan 2026)
+                </div>
+            </div>
+        `
+    };
+}
+
+function buildTestMttrModal() {
+    return {
+        title: 'Test MTTR — Monthly Breakdown (Last 6 Months)',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Test MTTR (Hours)</th>
+                            <th>Test MTTR (Minutes)</th>
+                            <th>Total Failures</th>
+                            <th>Avg Recovery (min)</th>
+                            <th>Improvement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>August 2025</td>
+                            <td>5.5</td>
+                            <td>330</td>
+                            <td>10</td>
+                            <td>33.0</td>
+                            <td>Baseline</td>
+                        </tr>
+                        <tr>
+                            <td>September 2025</td>
+                            <td>5.2</td>
+                            <td>312</td>
+                            <td>8</td>
+                            <td>39.0</td>
+                            <td>-0.3 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>October 2025</td>
+                            <td>4.8</td>
+                            <td>288</td>
+                            <td>6</td>
+                            <td>48.0</td>
+                            <td>-0.7 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>November 2025</td>
+                            <td>4.6</td>
+                            <td>276</td>
+                            <td>5</td>
+                            <td>55.2</td>
+                            <td>-0.9 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>December 2025</td>
+                            <td>4.4</td>
+                            <td>264</td>
+                            <td>4</td>
+                            <td>66.0</td>
+                            <td>-1.1 hrs</td>
+                        </tr>
+                        <tr>
+                            <td>January 2026</td>
+                            <td>4.2</td>
+                            <td>252</td>
+                            <td>3</td>
+                            <td>84.0</td>
+                            <td>-1.3 hrs</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal-summary">
+                    Calculation: Test MTTR (Hours) = Test MTTR (Minutes) / 60<br>
+                    Avg Recovery Calculation: Test MTTR (Minutes) / Total Failures
+                </div>
+            </div>
+        `
+    };
+}
+
+function buildServiceHealthModal() {
+    return {
+        title: 'Service Health Score — Components',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Weight</th>
+                            <th>Score</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Test Coverage</td>
+                            <td>30%</td>
+                            <td>67%</td>
+                            <td>20.1%</td>
+                        </tr>
+                        <tr>
+                            <td>Incident Rate</td>
+                            <td>25%</td>
+                            <td>88%</td>
+                            <td>22.0%</td>
+                        </tr>
+                        <tr>
+                            <td>MTTD Performance</td>
+                            <td>20%</td>
+                            <td>95%</td>
+                            <td>19.0%</td>
+                        </tr>
+                        <tr>
+                            <td>MTTR Performance</td>
+                            <td>15%</td>
+                            <td>90%</td>
+                            <td>13.5%</td>
+                        </tr>
+                        <tr>
+                            <td>Service Reliability</td>
+                            <td>10%</td>
+                            <td>95%</td>
+                            <td>9.5%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function buildCustomerImpactModal() {
+    return {
+        title: 'Customer Impact Hours Avoided — Breakdown',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Incidents Avoided</th>
+                            <th>Avg Impact Hours</th>
+                            <th>Total Hours Avoided</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sev0 Incidents</td>
+                            <td>1</td>
+                            <td>42</td>
+                            <td>42</td>
+                        </tr>
+                        <tr>
+                            <td>Sev1 Incidents</td>
+                            <td>2</td>
+                            <td>42.5</td>
+                            <td>85</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal-summary">
+                    Total: 42 + 85 = 127 customer impact hours avoided
+                </div>
+            </div>
+        `
+    };
+}
+
+function buildReleaseConfidenceModal() {
+    return {
+        title: 'Release Confidence Score — Components',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Weight</th>
+                            <th>Score</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Pre-Release FIT Coverage</td>
+                            <td>35%</td>
+                            <td>83%</td>
+                            <td>29.1%</td>
+                        </tr>
+                        <tr>
+                            <td>FIT Success Rate</td>
+                            <td>30%</td>
+                            <td>94%</td>
+                            <td>28.2%</td>
+                        </tr>
+                        <tr>
+                            <td>E2E Test Coverage</td>
+                            <td>20%</td>
+                            <td>67%</td>
+                            <td>13.4%</td>
+                        </tr>
+                        <tr>
+                            <td>Historical Release Success</td>
+                            <td>15%</td>
+                            <td>95%</td>
+                            <td>14.3%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function initFitTrendChart() {
+    const canvas = document.getElementById('fitTrendChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const ctx = canvas.getContext('2d');
+    
+    if (fitTrendChart) {
+        fitTrendChart.destroy();
+    }
+    
+    fitTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+            datasets: [
+                {
+                    label: 'FIT Success Rate',
+                    data: [87.5, 89.2, 91.0, 92.1, 93.8, 94.2],
+                    borderColor: '#2e844a',
+                    backgroundColor: 'rgba(46, 132, 74, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#2e844a',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                },
+                {
+                    label: 'Target (95%)',
+                    data: [95, 95, 95, 95, 95, 95],
+                    borderColor: '#c23934',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'top' }
+            },
+            scales: {
+                y: {
+                    min: 80,
+                    max: 100,
+                    ticks: { callback: v => v + '%' }
+                }
+            }
+        }
+    });
+}
+
+function initChaosExecutionChart() {
+    const canvas = document.getElementById('chaosChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const ctx = canvas.getContext('2d');
+    
+    if (chaosExecutionChart) {
+        chaosExecutionChart.destroy();
+    }
+    
+    chaosExecutionChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'],
+            datasets: [
+                {
+                    label: 'Chaos Tests Executed',
+                    data: [3, 4, 5, 4, 5, 6],
+                    backgroundColor: 'rgba(1, 118, 211, 0.7)',
+                    borderColor: '#0176d3',
+                    borderWidth: 1,
+                    borderRadius: 6
+                },
+                {
+                    label: 'Findings/Issues',
+                    data: [1, 2, 1, 0, 2, 1],
+                    backgroundColor: 'rgba(254, 147, 57, 0.7)',
+                    borderColor: '#fe9339',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'top' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            }
+        }
     });
 }
 
@@ -8216,6 +10011,8 @@ let availabilityData = {
     services: [],          // services.csv - MTTD/MTTR by service, coverage matrix
     themes: [],            // themes.csv - Investment themes
     slaData: [],           // sla_data.csv - SLA goals table
+    incidents: [],         // incidents2.csv - Raw incident data for KPI calculations
+    serviceReadiness: [],  // hrp_service_readiness_score_data.csv - Readiness score table
     loaded: false
 };
 
@@ -8261,14 +10058,16 @@ async function loadAllAvailabilityData() {
     const startTime = performance.now();
     
     try {
-        // Load all 5 CSV files in parallel - URL encode filenames to handle spaces
+        // Load all 6 CSV files in parallel - URL encode filenames to handle spaces
         const basePath = 'assets/data/availability/';
         const files = [
             'Csv Tables - summary_metrics.csv',
             'Csv Tables - monthly_trend.csv',
             'Csv Tables - services.csv',
             'Csv Tables - themes.csv',
-            'Csv Tables - sla_data.csv'
+            'Csv Tables - sla_data.csv',
+            'incidents2.csv',
+            'hrp_service_readiness_score_data.csv'
         ];
         
         const encodedPaths = files.map(file => {
@@ -8298,6 +10097,8 @@ async function loadAllAvailabilityData() {
         availabilityData.services = parseCSV(csvTexts[2], true);
         availabilityData.themes = parseCSV(csvTexts[3], true);
         availabilityData.slaData = parseCSV(csvTexts[4], true);
+        availabilityData.incidents = parseCSV(csvTexts[5], true);
+        availabilityData.serviceReadiness = parseCSV(csvTexts[6], true);
         
         availabilityData.loaded = true;
         
@@ -8308,6 +10109,8 @@ async function loadAllAvailabilityData() {
         console.log(`   - Services: ${availabilityData.services.length} services`);
         console.log(`   - Themes: ${availabilityData.themes.length} themes`);
         console.log(`   - SLA Data: ${availabilityData.slaData.length} services`);
+        console.log(`   - Incidents: ${availabilityData.incidents.length} incidents`);
+        console.log(`   - Service Readiness: ${availabilityData.serviceReadiness.length} rows`);
         
     } catch (error) {
         console.error('❌ Error loading availability data:', error);
@@ -8317,6 +10120,7 @@ async function loadAllAvailabilityData() {
         availabilityData.services = [];
         availabilityData.themes = [];
         availabilityData.slaData = [];
+        availabilityData.serviceReadiness = [];
         availabilityData.loaded = true;
     }
 }

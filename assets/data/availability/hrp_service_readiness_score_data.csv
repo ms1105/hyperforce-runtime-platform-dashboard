@@ -1,0 +1,8 @@
+Service,Pre-Release FIT,Post-Release FIT,E2E Critical FIT,Scale Tests,Perf Tests,Chaos Tests,Pre-Release FIT Score,Post-Release FIT Score,E2E Critical FIT Score,Scale Tests Score,Perf Tests Score,Chaos Tests Score,Total Points,Max Possible Points,Service Score Percentage,Service Score Rounded
+Mesh,no,yes,planned,yes,partial,yes,0,2,0.5,2,1,2,7.5,12,62.5%,63%
+Ingress,no,yes,yes,partial,partial,yes,0,2,2,1,1,2,8,12,66.67%,67%
+FKP,yes,yes,no,yes,partial,yes,2,2,0,2,1,2,9,12,75.00%,75%
+Vegacache,partial,yes,partial,partial,yes,yes,1,2,1,1,2,2,9,12,75.00%,75%
+MQ,partial,yes,partial,partial,partial,yes,1,2,1,1,1,2,8,12,66.67%,67%
+MAPS,partial,yes,partial,partial,partial,yes,1,2,1,1,1,2,8,12,66.67%,67%
+Total,,,,,,,,,,,49.5,72,68.75%,69%

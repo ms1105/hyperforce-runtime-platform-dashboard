@@ -1,0 +1,66 @@
+incident_id,detected_date,severity,impact,repeat,incident_subject,environments,instances,prb_owner_original,prb_owner,detected_by_monitoring,customer_cases,instances_impacted,ttd_min,ttr_min,manager_name
+86792148,1/5/26 5:21,Sev1,Performance Degradation,No,EKS cluster in prod3/sam,HYPERFORCE - AWS,DEU132,KRE-US,FKP,No,17,2,11,308,Leonard Gestrin
+86935995,1/8/26 19:32,Sev1,Service Disruption,No,Raphty Outage Impacting C,HYPERFORCE,AWS-ESV,Ingress Gateway Control Plane,Ingress,Yes,0,1,40,152,Leonard Gestrin
+85777722,12/6/25 22:43,Sev1,Service Disruption,No,swe46 Single Org activities,HYPERFORCE - AWS,SWE46,Message Queue,MQ,Yes,0,1,6,23,Amit Kumar
+85307964,11/25/25 6:46,Sev2,Asynchronous processing degradation,No,JPN136 Message Queue Degradation,HYPERFORCE - AWS,JPN136,Message Queue,MQ,No,9,1,1866,2130,Amit Kumar
+85425909,11/29/25 10:48,Sev2,Service Disruption,No,COREAPP_SERVICE,HYPERFORCE - AWS,SWE26,Ingress Gateway,Ingress,Yes,0,1,8,8,Leonard Gestrin
+83033425,10/22/25 17:33,Sev2,Asynchronous processing degradation,Yes,(Warden AIOps) High DB CPU,HYPERFORCE - AWS,USA1,Message Queue,MQ,Yes,0,1,6,35,Amit Kumar
+83320333,10/23/25 21:30,Sev2,Asynchronous processing degradation,Yes,ASYNC - MEMSTORE_FULLN,HYPERFORCE - AWS,USA672S,Message Queue,MQ,No,0,1,0,28,Amit Kumar
+84115380,11/2/25 9:16,Sev2,Performance Degradation,No,usa302 Connection Pool Burst,HYPERFORCE - AWS,USA302,Message Queue,MQ,Yes,0,1,5,15,Amit Kumar
+84361195,11/6/25 9:33,Sev2,Performance Degradation,No,USA372 and USA794 release,HYPERFORCE - AWS,USA372,Caching Services,Vegacache,Yes,0,2,11,11,Amit Kumar
+84767348,11/13/25 22:13,Sev2,Service Degradation,No,deu14s Single App Server is,HYPERFORCE - AWS,DEU14S,Message Queue,MQ,Yes,0,1,5,5,Amit Kumar
+84960265,11/18/25 3:50,Sev2,Performance Degradation,No,usa658s Single App Server is,HYPERFORCE - AWS,USA658S,Message Queue,MQ,Yes,0,1,2,6,Amit Kumar
+84885857,11/16/25 9:01,Sev0,Feature disruption,No,SLO based search indexing delay,HYPERFORCE - AWS,USA454,Mesh Integrations,Mesh,No,23,180,75,272,Leonard Gestrin
+84983802,11/18/25 18:02,Sev1,Feature disruption,No,CRM Search Availability degradation,HYPERFORCE - AWS,USA454,Mesh Integrations,Mesh,Yes,35,180,204,252,Leonard Gestrin
+83164778,10/23/25 5:29,Sev2,Performance Degradation,No,GovCloud DNS issue affecting,HYPERFORCE - AWS,USA9010S,Ingress Gateway,Ingress,No,0,1,3374,3443,Leonard Gestrin
+84455156,11/8/25 1:17,Sev2,Service Disruption,No,istio-proxy crashing,N/A,N/A,Mesh Availability And Scale,Mesh,No,0,0,60,60,Leonard Gestrin
+81346120,9/25/25 11:00,Sev2,Service Disruption,No,No data alerts for firebom-sy,N/A,N/A,Mesh Control Plane,Mesh,Yes,0,0,15,15,Leonard Gestrin
+79525567,8/20/25 12:15,Sev1,Feature degradation,No,Field Service impacted,SFDC-1P HYPERFORCE,USA242S,Caching Services,Vegacache,No,17,91,45,130,Amit Kumar
+79755066,8/25/25 6:41,Sev1,Performance Degradation,No,Sherlock_APT Degradation,HYPERFORCE - AWS,JPN134,Caching Services,Vegacache,Yes,1,4,8,107,Amit Kumar
+80982466,9/19/25 9:53,Sev1,Feature degradation,No,Elevated number of not found,HYPERFORCE - AWS,IND86,Caching Services,Vegacache,No,3,3,353,375,Amit Kumar
+79732642,8/24/25 2:18,Sev2,Performance Degradation,Yes,CAN34 Intermittent MQ impact,HYPERFORCE,CAN34,Message Queue,MQ,No,0,1,1980,2265,Amit Kumar
+80400705,9/9/25 18:27,Sev2,Performance Degradation,No,Surge in APEX_QUEUEABLE,N/A,N/A,Message Queue,MQ,Yes,0,0,0,50,Amit Kumar
+80604517,9/12/25 19:46,Sev1,Performance Degradation,No,[Prod5] api.einstein.ai is unavailable,N/A,N/A,Ingress Gateway Control Plane,Ingress,No,2,0,1086,1245,Leonard Gestrin
+79804910,8/26/25 10:03,Sev2,Performance Degradation,No,CUJ failing on JPN168 - LiveAge,HYPERFORCE - AWS,JPN168,Ingress Gateway,Ingress,No,2,1,2028,2125,Leonard Gestrin
+80209203,9/5/25 20:46,Sev2,Service Degradation,No,GovCloud Private Connect Inbound,HYPERFORCE - AWS,USA9006S,Ingress Gateway,Ingress,No,0,1,247,861,Leonard Gestrin
+81003928,9/19/25 18:58,Sev2,Service Disruption,No,FBOT is failing to generate,N/A,N/A,FKP V2,FKP,No,0,0,0,2762,Leonard Gestrin
+79222033,8/13/25 9:06,Sev1,Feature disruption,No,SWE Instances are impacted,HYPERFORCE - AWS,SWE120S,Caching Services,Vegacache,No,0,61,160,253,Amit Kumar
+78689435,7/31/25 8:16,Sev2,Performance Degradation,No,Sherlock_APT Degradation,N/A,N/A,Caching Services,Vegacache,Yes,0,0,48,55,Amit Kumar
+78885586,8/5/25 14:54,Sev2,Performance Degradation,No,GBR58 high APT,HYPERFORCE - AWS,GBR58,Caching Services,Vegacache,Yes,0,1,7,7,Amit Kumar
+79259734,8/14/25 2:18,Sev2,Performance Degradation,Yes,USA268S- High sdb memstore,HYPERFORCE - AWS,USA268S,Message Queue,MQ,Yes,0,1,2,261,Amit Kumar
+78339844,7/22/25 3:09,Sev0,Feature disruption,No,Multiple customers from multiple,SFDC-1P HYPERFORCE,AP59 CS3,Ingress Gateway,Ingress,Yes,70,289,22,368,Leonard Gestrin
+78408639,7/23/25 20:54,Sev1,Performance Degradation,No,Sherlock_APT Degradation,HYPERFORCE - AWS,CAN4S,KRE-US,KRE-US,Yes,0,24,12,149,Leonard Gestrin
+78422435,7/24/25 2:11,Sev1,Performance Degradation,No,[RETRO] Sherlock_APT Degradation,HYPERFORCE - AWS,CAN28,KRE-US,KRE-US,Yes,0,3,7,7,Leonard Gestrin
+78440861,7/24/25 11:47,Sev1,Performance Degradation,No,Sherlock_APT Degradation,HYPERFORCE - AWS,CAN28,KRE-US,KRE-US,Yes,1,6,7,107,Leonard Gestrin
+78460395,7/24/25 21:12,Sev1,Performance Degradation,No,Sherlock_APT Degradation,N/A,N/A,KRE-US,KRE-US,Yes,1,0,2,79,Leonard Gestrin
+78770601,8/2/25 6:52,Sev1,Performance Degradation,No,Sherlock_APT Degradation,HYPERFORCE - AWS,USA376,KRE-US,KRE-US,Yes,0,6,9,16,Leonard Gestrin
+78488088,7/23/25 21:11,Sev2,Feature disruption,No,GovCloud Failures in Core MTA,HYPERFORCE - AWS,USA9026,Service Mesh,Mesh,No,11,14,27,675,Leonard Gestrin
+78711526,7/30/25 3:00,Sev2,Feature disruption,No,istiod in primary cluster star,N/A,N/A,KRE-HYD,KRE-HYD,Yes,0,0,0,1380,Leonard Gestrin
+79275383,8/14/25 13:55,Sev2,Performance Degradation,No,AAG - IAC is down in CPROD,N/A,N/A,STRIDE,STRIDE,Yes,0,0,2738,2791,Leonard Gestrin
+79337907,8/15/25 21:09,Sev2,None,No,IPAM Configuration for aw,N/A,N/A,KRE-US,KRE-US,No,0,0,180,180,Leonard Gestrin
+77669397,7/4/25 15:01,Sev1,Performance Degradation,No,Multiple cells impacted on aw,HYPERFORCE - AWS,CAN4S,Caching Services,Vegacache,Yes,0,15,21,97,Amit Kumar
+77122199,6/22/25 10:38,Sev2,Performance Degradation,Yes,Sherlock_APT Degradation,HYPERFORCE - AWS,DEU124,Caching Services,Vegacache,Yes,0,1,9,14,Amit Kumar
+77122496,6/22/25 10:50,Sev2,Performance Degradation,Yes,Sherlock_APT Degradation,HYPERFORCE - AWS,DEU92,Caching Services,Vegacache,Yes,0,1,9,9,Amit Kumar
+77380693,6/27/25 10:57,Sev2,Performance Degradation,No,bra14 Single App Server is,HYPERFORCE - AWS,BRA14,Caching Services,Vegacache,Yes,0,1,17,47,Amit Kumar
+78187763,7/17/25 15:41,Sev2,Performance Degradation,No,Multiple APT degradation ale,HYPERFORCE - AWS,USA330,Caching Services,Vegacache,Yes,0,6,8,8,Amit Kumar
+77999921,7/12/25 7:46,Sev1,Performance Degradation,No,Sherlock_APT Degradation,HYPERFORCE - AWS,USA924,KRE-US,FKP,Yes,0,8,7,25,Leonard Gestrin
+78241631,7/19/25 0:53,Sev1,Service Disruption,No,COREAPP_SERVICE,HYPERFORCE - AWS,USA1018,Ingress Gateway,Ingress,Yes,1,2,9,123,Leonard Gestrin
+77496925,7/1/25 1:00,Sev2,Feature degradation,No,E360 WhatsApp Endpoint,N/A,N/A,Ingress Gateway Control Plane,Ingress,No,0,0,840,1320,Leonard Gestrin
+76676921,6/12/25 10:55,Sev1,Performance Degradation,No,multiple customers reporting,SFDC-1P SFD,NA225 CS,Caching Services,Vegacache,Yes,5,9,245,330,Amit Kumar
+76383796,6/4/25 17:47,Sev2,Performance Degradation,No,usa898s experiencing high m,HYPERFORCE - AWS,USA898S,Message Queue,MQ,No,0,1,27,90,Amit Kumar
+76627148,6/11/25 4:57,Sev2,Performance Degradation,No,CAN26 - MQ Degradation,HYPERFORCE - AWS,CAN26,Message Queue,MQ,No,0,1,16,16,Amit Kumar
+76202262,5/30/25 23:47,Sev2,Performance Degradation,No,GovCloud Env: GIA2H SCRT2,N/A,N/A,Ingress Gateway,Ingress,Yes,0,0,15,63,Leonard Gestrin
+74542866,4/21/25 0:23,Sev1,Performance Degradation,No,Core DNS degradation in prod,N/A,N/A,KRE-US,KRE-US,No,0,0,156,156,Leonard Gestrin
+75362766,5/8/25 6:34,Sev2,Performance Degradation,No,Performance Degradation,N/A,N/A,Service Mesh,Mesh,No,0,0,19,20,Leonard Gestrin
+75603326,5/15/25 3:45,Sev2,Performance Degradation,No,GovCloud Env: GIA2H sdb,HYPERFORCE - AWS,USA9902,FKP Control Plane,FKP,Yes,0,18,7,156,Leonard Gestrin
+75719318,5/17/25 22:29,Sev2,Feature degradation,No,FKP issue causing release failure,HYPERFORCE,IND86 US,FKP Data Plane,FKP,Yes,0,2,0,240,Leonard Gestrin
+74395344,4/17/25 7:18,Sev1,Performance Degradation,No,Asynchronous impact,HYPERFORCE - AWS,USA222S,Message Queue,MQ,Yes,0,6,13758,14400,Amit Kumar
+73264839,3/22/25 2:59,Sev2,Performance Degradation,No,Sherlock_APT Degradation,HYPERFORCE - AWS,USA300,Caching Services,Vegacache,Yes,0,2,9,37,Amit Kumar
+73726488,4/3/25 14:00,Sev2,Performance Degradation,No,USA658s Message Queue lag,HYPERFORCE - AWS,USA658S,Message Queue,MQ,No,0,1,12,25,Amit Kumar
+73960236,4/9/25 19:22,Sev2,Feature degradation,No,Incident: (Warden AIOps) Sea,N/A,N/A,Message Queue,MQ,Yes,0,0,140,144,Amit Kumar
+73964694,4/9/25 21:30,Sev2,Performance Degradation,No,Warden AIOps SLO based Se,N/A,N/A,Message Queue,MQ,No,0,0,0,28,Amit Kumar
+72880940,3/10/25 17:43,Sev1,Performance Degradation,No,High APTs in CAN26 CAN28 C,HYPERFORCE - AWS,CAN52,Caching Services,Vegacache,Yes,7,12,17,198,Amit Kumar
+72893085,3/11/25 2:31,Sev1,Performance Degradation,No,Performance Degradation,HYPERFORCE - AWS,JPN134,Caching Services,Vegacache,Yes,0,4,8,20,Amit Kumar
+73149292,3/18/25 18:45,Sev1,Performance Degradation,No,Multiple cell APT alerts AWS,HYPERFORCE - AWS,USA292,Caching Services,Vegacache,Yes,0,5,9,25,Amit Kumar
+73152204,3/18/25 20:46,Sev1,Performance Degradation,No,CG Cloud Degradation in Prod4,HYPERFORCE,INDUSTRI,KRE-US,KRE-US,No,0,3,1630,1873,Leonard Gestrin
+72615376,3/2/25 3:01,Sev2,Feature degradation,No,Ingress Gateway certificate,HYPERFORCE - AWS,GBR4S,Ingress Gateway Control Plane,Ingress,Yes,0,51,166,477,Leonard Gestrin

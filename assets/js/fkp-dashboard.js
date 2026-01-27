@@ -2183,28 +2183,28 @@ function renderAvailabilityExecView(container) {
             
             <!-- Exec KPI Summary Cards -->
             <div class="avail-summary-grid">
-                <div class="avail-summary-card critical">
+                <div class="avail-summary-card critical" onclick="openAvailabilityExecModal('sev0')">
                     <div class="avail-card-label">Sev0 Incidents (11mo)</div>
                     <div class="avail-card-value critical">${sev0Incidents}</div>
                     <div class="avail-card-trend">${sev0Trend}</div>
                 </div>
-                <div class="avail-summary-card warning">
+                <div class="avail-summary-card warning" onclick="openAvailabilityExecModal('sev1')">
                     <div class="avail-card-label">Sev1 Incidents (11mo)</div>
                     <div class="avail-card-value warning">${sev1Incidents}</div>
                     <div class="avail-card-trend">${sev1Trend}</div>
                 </div>
-                <div class="avail-summary-card">
+                <div class="avail-summary-card" onclick="openAvailabilityExecModal('mttd')">
                     <div class="avail-card-label">Avg MTTD (30d)</div>
-                    <div class="avail-card-value info">${avgMttd}<span class="avail-unit">min</span></div>
+                    <div class="avail-card-value ${avgMttd > mttdMetric.target ? 'critical' : 'info'}">${avgMttd}<span class="avail-unit">min</span></div>
                     <div class="avail-card-trend positive">SLA Target &lt;${mttdMetric.target} min</div>
                 </div>
-                <div class="avail-summary-card">
+                <div class="avail-summary-card" onclick="openAvailabilityExecModal('mttr')">
                     <div class="avail-card-label">Avg MTTR (30d)</div>
-                    <div class="avail-card-value info">${avgMttr}<span class="avail-unit">min</span></div>
+                    <div class="avail-card-value ${avgMttr > mttrMetric.target ? 'critical' : 'info'}">${avgMttr}<span class="avail-unit">min</span></div>
                     <div class="avail-card-trend positive">SLA Target &lt;${mttrMetric.target} min</div>
                 </div>
-                <div class="avail-summary-card success">
-                    <div class="avail-card-label">HRP Service<br>Readiness Score</div>
+                <div class="avail-summary-card success" onclick="openAvailabilityExecModal('readiness')">
+                    <div class="avail-card-label">HRP Test<br>Readiness Score</div>
                     <div class="avail-card-value success">${observabilityCoverage}<span class="avail-unit">%</span></div>
                     <div class="avail-card-trend"></div>
                 </div>
@@ -2408,6 +2408,16 @@ function renderAvailabilityExecView(container) {
                         <!-- Populated by JS -->
                     </tbody>
                 </table>
+            </div>
+            
+            <div class="modal" id="availability-exec-modal" onclick="closeAvailabilityExecModal(event)">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3 id="availability-exec-modal-title">Details</h3>
+                        <button class="modal-close" onclick="closeAvailabilityExecModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="availability-exec-modal-body"></div>
+                </div>
             </div>
         </div>
     `;
@@ -4067,6 +4077,243 @@ function buildReleaseConfidenceModal() {
                             <td>95%</td>
                             <td>14.3%</td>
                         </tr>
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function openAvailabilityExecModal(type) {
+    const modal = document.getElementById('availability-exec-modal');
+    const titleEl = document.getElementById('availability-exec-modal-title');
+    const bodyEl = document.getElementById('availability-exec-modal-body');
+    if (!modal || !titleEl || !bodyEl) return;
+    
+    const builders = {
+        sev0: buildExecSev0Modal,
+        sev1: buildExecSev1Modal,
+        mttd: buildExecMttdModal,
+        mttr: buildExecMttrModal,
+        readiness: buildExecReadinessModal
+    };
+    
+    const builder = builders[type];
+    if (!builder) return;
+    
+    const content = builder();
+    titleEl.textContent = content.title;
+    bodyEl.innerHTML = content.body;
+    modal.style.display = 'block';
+}
+
+function closeAvailabilityExecModal(event) {
+    const modal = document.getElementById('availability-exec-modal');
+    if (!modal) return;
+    if (event && event.target && event.target !== modal) {
+        return;
+    }
+    modal.style.display = 'none';
+}
+
+function getLatestIncidentDate(incidents) {
+    let latest = null;
+    incidents.forEach(inc => {
+        const date = new Date(inc.detected_date);
+        if (!Number.isNaN(date.getTime())) {
+            if (!latest || date > latest) {
+                latest = date;
+            }
+        }
+    });
+    return latest || new Date();
+}
+
+function formatDetectedMonth(date) {
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function formatDetectedDate(date) {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function buildExecReadinessModal() {
+    const rows = availabilityData.serviceReadiness || [];
+    const serviceRows = rows.filter(row => (row.Service || '').toLowerCase() !== 'total');
+    const tableRows = serviceRows.map(row => {
+        const service = row.Service || 'Unknown';
+        const totalPoints = row['Total Points'] || '0';
+        const maxPoints = row['Max Possible Points'] || '12';
+        const percent = row['Service Score Rounded'] || '';
+        const score = `${totalPoints}/${maxPoints}${percent ? ` (${percent})` : ''}`;
+        return `<tr><td>${service}</td><td class="mono align-center">${score}</td></tr>`;
+    }).join('');
+    
+    return {
+        title: 'HRP Test Readiness Score — Service Scores',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Test Readiness Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows || `<tr><td colspan="2" class="empty-state">No readiness data available</td></tr>`}
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function buildExecSev0Modal() {
+    const incidents = availabilityData.incidents || [];
+    const latest = getLatestIncidentDate(incidents);
+    const start = new Date(latest);
+    start.setMonth(start.getMonth() - 10);
+    
+    const rows = incidents.filter(inc => {
+        const date = new Date(inc.detected_date);
+        return inc.severity === 'Sev0' && date >= start && date <= latest;
+    });
+    
+    const tableRows = rows.map(inc => {
+        const date = new Date(inc.detected_date);
+        const month = formatDetectedMonth(date);
+        const incidentId = inc['Incident ID'] || inc.incident_id || '';
+        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${incidentId}</td><td class="align-center">${month}</td></tr>`;
+    }).join('');
+    
+    return {
+        title: 'Sev0 Incidents — Last 11 Months',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Incident ID</th>
+                            <th>Detected Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows || `<tr><td colspan="3" class="empty-state">No Sev0 incidents found</td></tr>`}
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function buildExecSev1Modal() {
+    const incidents = availabilityData.incidents || [];
+    const latest = getLatestIncidentDate(incidents);
+    const start = new Date(latest);
+    start.setMonth(start.getMonth() - 10);
+    
+    const counts = {};
+    incidents.forEach(inc => {
+        const date = new Date(inc.detected_date);
+        if (inc.severity !== 'Sev1' || date < start || date > latest) return;
+        const service = inc.prb_owner || 'Unknown';
+        counts[service] = (counts[service] || 0) + 1;
+    });
+    
+    const tableRows = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([service, count]) => `<tr><td>${service}</td><td class="mono align-center">${count}</td></tr>`)
+        .join('');
+    
+    return {
+        title: 'Sev1 Incidents — By Service (Last 11 Months)',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Number of Sev1 Incidents</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows || `<tr><td colspan="2" class="empty-state">No Sev1 incidents found</td></tr>`}
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function buildExecMttdModal() {
+    const incidents = availabilityData.incidents || [];
+    const latest = getLatestIncidentDate(incidents);
+    const start = new Date(latest);
+    start.setDate(start.getDate() - 30);
+    
+    const rows = incidents.filter(inc => {
+        const date = new Date(inc.detected_date);
+        return date >= start && date <= latest && parseFloat(inc.ttd_min) > 0;
+    });
+    
+    const tableRows = rows.map(inc => {
+        const date = formatDetectedDate(new Date(inc.detected_date));
+        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${Math.round(parseFloat(inc.ttd_min))}</td><td class="align-center">${date}</td></tr>`;
+    }).join('');
+    
+    return {
+        title: 'Avg MTTD (30d) — Incident Detail',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>MTTD (min)</th>
+                            <th>Detected Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows || `<tr><td colspan="3" class="empty-state">No incidents found in last 30 days</td></tr>`}
+                    </tbody>
+                </table>
+            </div>
+        `
+    };
+}
+
+function buildExecMttrModal() {
+    const incidents = availabilityData.incidents || [];
+    const latest = getLatestIncidentDate(incidents);
+    const start = new Date(latest);
+    start.setDate(start.getDate() - 30);
+    
+    const rows = incidents.filter(inc => {
+        const date = new Date(inc.detected_date);
+        return date >= start && date <= latest && parseFloat(inc.ttr_min) > 0;
+    });
+    
+    const tableRows = rows.map(inc => {
+        const date = formatDetectedDate(new Date(inc.detected_date));
+        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${Math.round(parseFloat(inc.ttr_min))}</td><td class="align-center">${date}</td></tr>`;
+    }).join('');
+    
+    return {
+        title: 'Avg MTTR (30d) — Incident Detail',
+        body: `
+            <div class="fit-modal">
+                <table class="availability-modal-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>MTTR (min)</th>
+                            <th>Detected Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows || `<tr><td colspan="3" class="empty-state">No incidents found in last 30 days</td></tr>`}
                     </tbody>
                 </table>
             </div>

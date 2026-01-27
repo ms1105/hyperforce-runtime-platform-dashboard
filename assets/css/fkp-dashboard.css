@@ -3606,9 +3606,12 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
 }
 
 .sla-badge-positive {
-    background: #c9f0d6;
-    color: #0f3d25;
-    border: 1px solid #7fd4a3;
+    background: #ffffff;
+    color: #1f5f3b !important;
+    -webkit-text-fill-color: #1f5f3b;
+    border: 1px solid #5cc98a;
+    display: inline-flex;
+    align-items: center;
 }
 
 /* SLA Hero Grid */
@@ -4473,6 +4476,11 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     vertical-align: middle;
 }
 
+.availability-modal-table th:nth-child(n + 2),
+.availability-modal-table td:nth-child(n + 2) {
+    text-align: center;
+}
+
 .availability-modal-table tr:last-child td {
     border-bottom: none;
 }
@@ -4662,6 +4670,11 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     font-size: 14px;
     border-bottom: 1px solid #e5e5e5;
     vertical-align: middle;
+}
+
+.sla-coverage-table thead th:nth-child(n + 2),
+.sla-coverage-table tbody td:nth-child(n + 2) {
+    text-align: center;
 }
 
 .sla-coverage-table tbody tr:last-child td {

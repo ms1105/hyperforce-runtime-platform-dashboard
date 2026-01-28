@@ -1,0 +1,11 @@
+Pre-Post Release,Purpose,Test Name,Test Description,Status
+Post Deploy Validation,Service Val. - Dialtone,testIsServiceUp,Validates RCM service health by fetching Kubernetes leader lease,Enabled
+Post Deploy Validation,Service Val. - Environment,leaseRenewalTest,Validates Kubernetes leader election lease renewal mechanism,Enabled
+Post Deploy Validation,Service Val. - Environment,validateNonMonitoringClustersTest,Validates RCM does NOT monitor unexpected clusters by comparing actual managed clusters (from /admin/clusters),Enabled
+Post Deploy Validation,Service Val. - Environment,validateMonitoringClustersTest,Validates RCM monitors ALL expected clusters by comparing expected clusters (from K8s CRDs) against actual managed,Enabled
+Post Deploy Validation,Health - Positive Signal Presence,validateMonitoringClustersTest,Validates RCM service instances are monitoring ALL expected VegaCache clusters by querying Argus for assigned,Enabled
+Post Deploy Validation,Health - Negative Signal Absence,validateNonMonitoringClustersTest,Validates RCM service instances are NOT monitoring unexpected VegaCache clusters by comparing actual managed,Enabled
+Post Deploy Validation,Health - Negative Signal Absence,testStateMachineTransitions,Validates RCM cluster state machine transitions to CLUSTER_HEALTHY never exceed 1 per monitoring period,Enabled
+Post Deploy Validation,Health - Negative Signal Absence,testLastClusterScanTime,Validates RCM's last cluster scan timestamp metric is monotonically increasing over the lookback period,Enabled
+Post Deploy Validation,Service Val. - Dialtone,vegaCacheDialToneTest,Connects to VegaCache Redis cluster and executes 1000 concurrent async SETEX/GET operations with random keys,Enabled
+Post Deploy Validation,Service Val. - Environment,vegaCacheEnvironmentValidationTest,"Connects to each Redis cluster node individually, executes PING (verify alive), CLUSTER INFO (verify state=ok), and",Enabled

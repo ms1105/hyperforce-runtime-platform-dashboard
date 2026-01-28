@@ -1,0 +1,19 @@
+Incident_ID,Date,Message,Is_Ingress_Issue?,Reason
+,"Oct 11th, 2025 at 4:57 PM","Ingress Gateway paged by Chatbot Runtime, AI Cloud. They plan to upgrade from sev4 -> sev2. Issue in prod",No,"AI Cloud issue, not Ingress"
+,"Dec 26th, 2025 at 3:29 PM","KMS paged IG for a dev1/crypto issue. Need help from FKP. Related to Active Active, OCM.",No,"KMS/crypto issue, not Ingress"
+,"Dec 26th, 2025",Ingress Gateway is looking into a dev1/crypto issue. IG VIPs in this FD are unavailable. We're paging FKP for support.,No,"Crypto/KMS issue, VIPs unavailable due to upstream"
+,"Jan 9th, 2026 at 6:21 PM","IG was paged for a dev2/crypto issue by KMS. Prelim investigation, we see 5xx from upstream service. KMS is unavailable now to confirm. Not a formal incident",No,"KMS/crypto issue, 5xx from upstream, NOT A FORMAL INCIDENT"
+,"Oct 11th, 2025 at 2:50 PM",Ingress Gateway paged for sev1 against 12 sign-up cells in core. - Malicious event - We've worked with NetSec,No,"Security/DDoS - malicious event, NetSec involvement"
+SEV-471689927,"Oct 10th, 2025 at 11:17 PM",Ingress Gateway was paged for a single customer sev1. They requested if we can block requests from malicious IPs.,No,"Security/DDoS - customer malicious IPs, not Ingress issue"
+W-19842374,"Oct 7th, 2025 at 5:46 PM",Ingress Gateway was paged for a Sev1 in test1/core4 at 3pm today. Availability of few cells went down,Yes,Infrastructure issue - cell availability
+ICC-82010107,"Oct 6th, 2025 at 3:13 PM",Ingress Gateway is looking into a sev1 incident impacting KMS in dev.,No,"KMS issue in dev, not Ingress"
+,"Aug 28th, 2025 at 8:33 AM",Sev1 | Session expired errors for USA724 | We are asked to perform packet capture at the ingress gateway,No,"Session errors - troubleshooting only, not Ingress root cause"
+,"Oct 20th, 2025 at 8:29 AM",Ingress Gateway's Kaiju synthetics were impacted briefly ~10 minutes from latest issue.,Yes,Actual IG monitoring impact
+,"Aug 25th, 2025 at 6:19 PM","Sev1 Investigation | GIA2H | Mesh, IGW : Intermittent Omnichannel (SCRT1). Investigation Summary: This doesn't look like a Mesh or Ingress issue",No,Explicitly stated NOT Mesh or Ingress issue
+,"Jan 8th, 2026 at 12:28 PM",Mesh and ingress are investigating the issue,Yes,Active investigation - needs further analysis
+,"Sep 9th, 2025 at 12:04 PM",IngressGateway team was paged for an incident in GovCloud where Private Connect Inbound was failing in GIA2H,Yes,Actual IG Private Connect issue in GovCloud
+,"Aug 28th, 2025 at 9:23 AM",Single-customer sev1 investigation - Requesting VP/SVP approval to enable VPC flow logs for GNO/IG to investigate,No,"Network investigation, not IG root cause"
+,"Jul 21st, 2025 at 11:58 PM",ingress/sfap are on sev0 bridge with agentforce - might be a similar issue we experienced Friday night with vault,No,"Vault/Agentforce issue, not Ingress"
+,"Aug 18th, 2025 at 5:36 PM",this might be the reason for Funnel paging Ingress this weekend,No,"Funnel issue, investigating Ingress incorrectly"
+W-19442989,"Aug 27th, 2025 at 5:35 PM",IG was paged earlier for sev1 investigation. We submitted 3 EBFs to increase min replicas from 2 -> 8,Yes,Actual IG scaling issue - submitted EBFs
+SEV-471689927,"Oct 10th, 2025 at 11:35 PM",We've disengaged from the bridge and requested they contact NetSec DDoS. They are working on a different swimlane with Apex team.,No,"DDoS issue - disengaged, referred to NetSec"

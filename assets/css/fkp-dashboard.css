@@ -30,8 +30,8 @@ body {
    ====================== */
 .sidebar {
     width: 280px;
-    background-color: #ffffff;
-    border-right: 1px solid #e2e8f0;
+    background-color: #0b1d3a;
+    border-right: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     position: fixed;
     height: 100vh;
@@ -41,19 +41,19 @@ body {
 
 .sidebar-header {
     padding: 1.5rem 1.5rem 1rem;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-header h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1e293b;
+    color: #ffffff;
     margin-bottom: 0.25rem;
 }
 
 .sidebar-subtitle {
     font-size: 0.875rem;
-    color: #64748b;
+    color: #cbd5e1;
     font-weight: 400;
 }
 
@@ -71,19 +71,19 @@ body {
     padding: 0.75rem 1.5rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #475569;
+    color: #e2e8f0;
     font-weight: 500;
 }
 
 .nav-item:hover {
-    background-color: #f1f5f9;
-    color: #334155;
+    background-color: #142a52;
+    color: #ffffff;
 }
 
 .nav-item.active {
-    background-color: #eff6ff;
-    color: #2563eb;
-    border-right: 3px solid #2563eb;
+    background-color: #3b4cca;
+    color: #ffffff;
+    border-right: none;
 }
 
 .nav-icon {
@@ -108,9 +108,9 @@ body {
 
 .nav-subitems {
     display: none;
-    background-color: #f8fafc;
-    border-top: 1px solid #e2e8f0;
-    border-bottom: 1px solid #e2e8f0;
+    background-color: #0f2346;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .nav-subitems.active {
@@ -121,21 +121,21 @@ body {
     padding: 0.625rem 3rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    color: #64748b;
+    color: #cbd5e1;
     font-size: 0.8125rem;
     font-weight: 400;
     border-left: 3px solid transparent;
 }
 
 .nav-subitem:hover {
-    background-color: #e2e8f0;
-    color: #475569;
+    background-color: #1a3560;
+    color: #ffffff;
 }
 
 .nav-subitem.active {
-    background-color: #dbeafe;
-    color: #2563eb;
-    border-left-color: #2563eb;
+    background-color: #2d4b86;
+    color: #ffffff;
+    border-left-color: #60a5fa;
     font-weight: 500;
 }
 
@@ -268,8 +268,8 @@ body {
 
 .view-toggle-btn.active,
 .view-mode-btn.active {
-    background-color: #ffffff;
-    color: #2563eb;
+    background-color: #0b1d3a;
+    color: #ffffff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
@@ -1472,6 +1472,37 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
 
 .tab-header {
     margin-bottom: 1.5rem;
+}
+
+.tab-header.with-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.tab-header-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.exec-back-btn {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    align-self: flex-start;
+}
+
+.exec-back-btn:hover {
+    border-color: #0b1d3a;
+    color: #0b1d3a;
 }
 
 .tab-header h2 {
@@ -4361,6 +4392,274 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     font-size: 12px;
     color: #706e6b;
     margin-top: 0.5rem;
+}
+
+.inventory-subtitle {
+    font-size: 13px;
+    color: #706e6b;
+    font-style: italic;
+    margin-top: 4px;
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.inventory-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border: 2px solid rgba(0,0,0,0.04);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: 170px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+}
+
+.inventory-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+
+.inventory-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 18px 0 0 18px;
+}
+
+.inventory-card-green::before { background: #2e844a; }
+.inventory-card-blue::before { background: #0176d3; }
+.inventory-card-orange::before { background: #fe9339; }
+.inventory-card-red::before { background: #c23934; }
+
+.inventory-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    background: #f5f5f5;
+}
+
+.inventory-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #080707;
+}
+
+.inventory-count {
+    font-size: 14px;
+    color: #706e6b;
+}
+
+.inventory-count span {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0176d3;
+    margin-right: 4px;
+}
+
+.modal-table-scroll {
+    overflow-x: auto;
+}
+
+@media (max-width: 900px) {
+    .inventory-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ingress-header .header-text h1 {
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.ingress-logo {
+    background: linear-gradient(135deg, #c23934 0%, #ff5252 100%);
+}
+
+.ingress-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.ingress-kpi-card {
+    background: #ffffff;
+    border: 1px solid #dddbda;
+    border-radius: 14px;
+    padding: 1rem;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.ingress-kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 14px 14px 0 0;
+}
+
+.ingress-kpi-card.accent-blue::before { background: #0176d3; }
+.ingress-kpi-card.accent-green::before { background: #2e844a; }
+.ingress-kpi-card.accent-red::before { background: #c23934; }
+
+.ingress-kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #706e6b;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.ingress-kpi-value {
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.ingress-kpi-sub {
+    font-size: 14px;
+    color: #706e6b;
+    margin-left: 4px;
+}
+
+.ingress-kpi-value-green {
+    color: #2e844a;
+}
+
+.ingress-kpi-value-red {
+    color: #c23934;
+}
+
+.ingress-callout {
+    background: #ffffff;
+    border: 1px solid #dddbda;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    color: #3e3e3c;
+    margin-bottom: 1.5rem;
+}
+
+.ingress-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.ingress-card {
+    background: #ffffff;
+    border: 1px solid #dddbda;
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.ingress-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.ingress-chart-container {
+    height: 220px;
+}
+
+.ingress-donut-row {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.ingress-donut-row .ingress-chart-container {
+    flex: 0 0 220px;
+}
+
+.ingress-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    font-size: 12px;
+    color: #3e3e3c;
+}
+
+.ingress-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ingress-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+
+.ingress-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.ingress-table th {
+    text-align: left;
+    padding: 0.5rem;
+    background: #f5f5f5;
+    border-bottom: 1px solid #dddbda;
+}
+
+.ingress-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.ingress-impact {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.ingress-impact-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #f5f5f5;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.ingress-impact-row strong {
+    font-size: 24px;
+}
+
+@media (max-width: 1100px) {
+    .ingress-kpi-grid,
+    .ingress-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .availability-dev .section-header-dev {

@@ -1,0 +1,11 @@
+Product,Available Test in Chaos platform,Configure?,Risk level,Purpose,Comment,Frequency
+Managed Mesh,Terminate EC2 node of the parent FKP cluster in 1AZ,No,High,TBD,Too chaotic to do in a shared environment,Not Enabled
+Managed Mesh,Container Graceful Stop (SIGTERM) - 1AZ (aka application containers in 1AZ),Yes,Low,Partial test of Static stability. TopologySpreadConstraint,The other two AZs should be able to handle the load.,Weekly
+Managed Mesh,Container Ungraceful Stop (SIGKILL) - 1AZ,Yes,Med,Resiliency,Injection or xds requests should get retried and succeed eventually,Weekly
+Managed Mesh,Add HIGH network latency to application pods in 1AZ,Yes,High,SLO - Convergence time,Config push is expected to be delayed. Do our alerts catch it?,Weekly
+Managed Mesh,Add LOW network latency to application pods in 1AZ,Yes,Low,SLO - Convergence time,Config push is expected to be delayed. Do our alerts catch it?,Weekly
+Managed Mesh,Add CPU stress to discovery - 50% of containers to run at 80% CPU for 15 mins,Yes,Low,Autoscaling,HPA should autoscale,Weekly
+Managed Mesh,Add Mem stress to discovery - 60% of containers to run at 80% of mem,Yes,Low,Overload protection + Autoscaling,Overload protection should kick in + HPA should scale up,Weekly
+Managed Mesh,CPU stress istio-proxy container,Yes,Low,Autoscaling,Pods should scale up. Convergence time impact to be observed,Weekly
+Managed Mesh,Mem stress istio-proxy container,Yes,Low,Autoscaling,Pods should scale up. OOMKill of container should have no visible,Weekly
+Managed Mesh,Network latency between k8s api-server and Istiod,Yes,High,Convergence time + mesh resiliency,Config push is delayed. Customers can expect to see some 5xx during this,Weekly

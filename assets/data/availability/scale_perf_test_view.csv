@@ -1,0 +1,26 @@
+Service,Type,Tier,Test Available,Frequency
+hypercomputeapi,FKP Integration,1,Warning,Not Applicable
+ingressassistant,FKP Integration,1,Warning,Not Applicable
+ingressconfig,FKP Integration,1,Warning,Not Applicable
+ingressgateway,FKP Integration,0,Warning,Not Applicable
+istio-components,FKP Integration,3,Warning,Not Applicable
+istio-copilot,FKP Integration,1,Warning,Not Applicable
+istio-mesh-config,FKP Integration,3,Warning,Not Applicable
+istio-metrics-service,FKP Integration,1,Warning,Not Applicable
+istio-namespaces,FKP Integration,3,Warning,Not Applicable
+istio-operator,FKP Integration,2,Warning,Not Applicable
+istio-ordering,FKP Integration,3,Warning,Not Applicable
+istio-route-update-service,FKP Integration,2,Warning,Not Applicable
+istio-shipping,FKP Integration,3,Warning,Not Applicable
+istiod,FKP Integration,1,Warning,Not Applicable
+kmmapp,FKP Integration,2,Warning,Not Applicable
+kre-3pp-orchestrator,FKP Integration,2,Warning,Not Applicable
+kreglue,FKP Integration,2,Warning,Not Applicable
+mesh-operator,FKP Integration,1,Warning,Not Applicable
+policy-distribution,FKP Integration,1,Warning,Not Applicable
+sam,FKP Integration,1,Warning,Not Applicable
+servicemesh,FKP Integration,3,Warning,Not Applicable
+strauz,FKP Integration,1,Warning,Not Applicable
+traffic-policy-operator,FKP Integration,2,Warning,Not Applicable
+visibility-pipeline,FKP Integration,2,Warning,Not Applicable
+workload-identity,FKP Integration,1,Warning,Not Applicable

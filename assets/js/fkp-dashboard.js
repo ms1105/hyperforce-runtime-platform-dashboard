@@ -140,9 +140,11 @@ function switchViewMode(mode) {
         // Autoscaling: runtime-overview (exec) ↔ runtime-hpa (developer)
         'runtime-overview': 'runtime-hpa',
         'runtime-hpa': 'runtime-overview',
-        // Availability: runtime-availability (exec) ↔ runtime-availability-dev (developer)
-        'runtime-availability': 'runtime-availability-dev',
-        'runtime-availability-dev': 'runtime-availability',
+        // Availability: runtime-availability (exec) ↔ runtime-availability-readiness (developer)
+        'runtime-availability': 'runtime-availability-readiness',
+        'runtime-availability-readiness': 'runtime-availability',
+        'runtime-availability-inventory': 'runtime-availability',
+        'runtime-availability-ingress': 'runtime-availability',
         // Onboarding Overview: executive-overview (exec) ↔ service-information (developer)
         'executive-overview': 'service-information',
         'service-information': 'executive-overview',
@@ -186,8 +188,12 @@ function switchViewMode(mode) {
     // If viewing runtime-availability or runtime-karpenter, refresh to show correct content
     if (fkpDashboard.state.currentTab === 'runtime-availability') {
         renderRuntimeAvailability();
-    } else if (fkpDashboard.state.currentTab === 'runtime-availability-dev') {
-        renderAvailabilityDeveloperView();
+    } else if (fkpDashboard.state.currentTab === 'runtime-availability-readiness') {
+        renderAvailabilityReadinessView();
+    } else if (fkpDashboard.state.currentTab === 'runtime-availability-inventory') {
+        renderAvailabilityInventoryView();
+    } else if (fkpDashboard.state.currentTab === 'runtime-availability-ingress') {
+        renderAvailabilityIngressView();
     } else if (fkpDashboard.state.currentTab === 'runtime-karpenter') {
         renderKarpenter();
     }
@@ -1479,7 +1485,9 @@ function updateViewButtonStates(tabId) {
     const viewAvailability = {
         // Availability: Exec + Developer
         'runtime-availability': { exec: true, developer: true },
-        'runtime-availability-dev': { exec: true, developer: true },
+        'runtime-availability-readiness': { exec: true, developer: true },
+        'runtime-availability-inventory': { exec: true, developer: true },
+        'runtime-availability-ingress': { exec: true, developer: true },
         // Autoscaling: Both
         'runtime-overview': { exec: true, developer: true },
         'runtime-hpa': { exec: true, developer: true },
@@ -1680,24 +1688,32 @@ function updatePageHeader(tabId) {
         },
         // React tabs
         'runtime-overview': {
-            title: 'Runtime Scale & Availability',
+            title: 'Runtime Scale',
             subtitle: 'Autoscaling'
         },
         'runtime-hpa': {
-            title: 'Runtime Scale & Availability',
+            title: 'Runtime Scale',
             subtitle: 'Autoscaling'
         },
-        'runtime-availability': {
-            title: 'Runtime Scale & Availability',
-            subtitle: 'Availability'
-        },
-        'runtime-availability-dev': {
-            title: 'Runtime Scale & Availability',
-            subtitle: 'Availability'
-        },
         'runtime-karpenter': {
-            title: 'Runtime Scale & Availability',
+            title: 'Runtime Scale',
             subtitle: 'Karpenter'
+        },
+        'runtime-availability': {
+            title: 'Runtime Availability',
+            subtitle: 'Exec Overview'
+        },
+        'runtime-availability-readiness': {
+            title: 'Runtime Availability',
+            subtitle: 'HRP Test Readiness (Preventive)'
+        },
+        'runtime-availability-inventory': {
+            title: 'Runtime Availability',
+            subtitle: 'HRP Test Inventory'
+        },
+        'runtime-availability-ingress': {
+            title: 'Runtime Availability',
+            subtitle: 'Ingress Alert Quality'
         },
         'cost-overview': {
             title: 'Cost to Serve',
@@ -1759,8 +1775,14 @@ function refreshCurrentTab() {
         case 'runtime-availability':
             renderRuntimeAvailability();
             break;
-        case 'runtime-availability-dev':
-            renderAvailabilityDeveloperView();
+        case 'runtime-availability-readiness':
+            renderAvailabilityReadinessView();
+            break;
+        case 'runtime-availability-inventory':
+            renderAvailabilityInventoryView();
+            break;
+        case 'runtime-availability-ingress':
+            renderAvailabilityIngressView();
             break;
         case 'runtime-karpenter':
             renderKarpenter();
@@ -2073,7 +2095,6 @@ function renderAvailabilityExecView(container) {
                 <div class="readiness-card">
                     <div class="readiness-card-header">
                         <span>📊 E2E Testing Matrix</span>
-                        <button class="btn-secondary readiness-dev-btn" onclick="openAvailabilityReadinessDeveloperView()">Developer View</button>
                     </div>
                     <div class="readiness-table-wrapper">
                         <table class="readiness-table">
@@ -2582,14 +2603,14 @@ function buildReadinessTableRows(data) {
 }
 
 /**
- * Render Availability Developer View (HRP Service Readiness)
+ * Render Availability Developer View (HRP Test Readiness)
  */
-async function renderAvailabilityDeveloperView() {
-    console.log('🧪 Rendering Availability Developer View...');
+async function renderAvailabilityReadinessView() {
+    console.log('🧪 Rendering Availability Readiness View...');
     
-    const container = document.getElementById('runtime-availability-dev-content');
+    const container = document.getElementById('runtime-availability-readiness-content');
     if (!container) {
-        console.error('❌ Container runtime-availability-dev-content not found');
+        console.error('❌ Container runtime-availability-readiness-content not found');
         return;
     }
     
@@ -2796,6 +2817,407 @@ async function renderAvailabilityDeveloperView() {
             </div>
         `;
     }
+}
+
+function renderAvailabilityInventoryView() {
+    const container = document.getElementById('runtime-availability-inventory-content');
+    if (!container) {
+        console.error('❌ Container runtime-availability-inventory-content not found');
+        return;
+    }
+    
+    if (!availabilityData.loaded) {
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">🧪</div>
+                <h3>Loading Test Inventory...</h3>
+            </div>
+        `;
+        loadAllAvailabilityData().then(renderAvailabilityInventoryView);
+        return;
+    }
+    
+    const inventory = availabilityData.testInventory;
+    const customerCount = inventory.customerScenario.rows.length;
+    const integrationCount = inventory.integration.rows.length;
+    const scalePerfCount = inventory.scalePerf.rows.length;
+    const chaosCount = inventory.chaos.rows.length;
+    
+    container.innerHTML = `
+        <div class="availability-dev">
+            <div class="availability-dev-container">
+                <header class="header preventive-header">
+                    <div class="header-brand">
+                        <div class="logo">🧪</div>
+                        <div class="header-text">
+                            <h1>Customer & Platform Test Inventory</h1>
+                            <div class="inventory-subtitle">HRP Test Coverage Overview · Click cards to view details</div>
+                        </div>
+                    </div>
+                    <button class="back-link" onclick="openAvailabilityReadinessExecView()">
+                        <span>←</span>
+                        <span>Back to Exec View</span>
+                    </button>
+                </header>
+                
+                <div class="inventory-grid">
+                    <div class="inventory-card inventory-card-green" onclick="openInventoryModal('customerScenario')">
+                        <div class="inventory-icon">✅</div>
+                        <div class="inventory-title">Customer Scenario Test View</div>
+                        <div class="inventory-count"><span>${customerCount}</span> tests</div>
+                    </div>
+                    <div class="inventory-card inventory-card-blue" onclick="openInventoryModal('integration')">
+                        <div class="inventory-icon">✅</div>
+                        <div class="inventory-title">Integration Test View</div>
+                        <div class="inventory-count"><span>${integrationCount}</span> tests</div>
+                    </div>
+                    <div class="inventory-card inventory-card-orange" onclick="openInventoryModal('scalePerf')">
+                        <div class="inventory-icon">✅</div>
+                        <div class="inventory-title">Scale & Perf Test View</div>
+                        <div class="inventory-count"><span>${scalePerfCount}</span> tests</div>
+                    </div>
+                    <div class="inventory-card inventory-card-red" onclick="openInventoryModal('chaos')">
+                        <div class="inventory-icon">✅</div>
+                        <div class="inventory-title">Chaos Test View</div>
+                        <div class="inventory-count"><span>${chaosCount}</span> tests</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const modalId = 'availability-inventory-modal';
+    if (!document.getElementById(modalId)) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal" id="${modalId}" onclick="closeInventoryModal(event)">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3 id="availability-inventory-modal-title">Details</h3>
+                        <button class="modal-close" onclick="closeInventoryModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="availability-inventory-modal-body"></div>
+                </div>
+            </div>
+        `);
+    }
+}
+
+function renderAvailabilityIngressView() {
+    const container = document.getElementById('runtime-availability-ingress-content');
+    if (!container) {
+        console.error('❌ Container runtime-availability-ingress-content not found');
+        return;
+    }
+    
+    if (!availabilityData.loaded) {
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">🧪</div>
+                <h3>Loading Ingress Alert Quality...</h3>
+            </div>
+        `;
+        loadAllAvailabilityData().then(renderAvailabilityIngressView);
+        return;
+    }
+    
+    const alerts = availabilityData.ingressAlerts.rows || [];
+    const totalPages = alerts.length;
+    const confirmedIssues = alerts.filter(row => (row['Is_Ingress_Issue?'] || '').toLowerCase() === 'yes').length;
+    const falsePositives = alerts.filter(row => (row['Is_Ingress_Issue?'] || '').toLowerCase() === 'no').length;
+    const noiseRatio = confirmedIssues > 0 ? (totalPages / confirmedIssues) : 0;
+    const falsePositivePct = totalPages > 0 ? Math.round((falsePositives / totalPages) * 100) : 0;
+    
+    const onCallImpact = falsePositivePct > 50 ? 'High' : falsePositivePct < 20 ? 'Low' : 'Medium';
+    
+    const reasons = alerts
+        .filter(row => (row['Is_Ingress_Issue?'] || '').toLowerCase() === 'no')
+        .map(row => `${row.Reason || ''} ${row.Message || ''}`.toLowerCase());
+    
+    const reasonCounts = {};
+    const categoryMap = (reason) => {
+        if (reason.includes('kms') || reason.includes('crypto') || reason.includes('vault')) {
+            return 'KMS / Crypto / Vault';
+        }
+        if (reason.includes('security') || reason.includes('ddos')) {
+            return 'Security / DDoS';
+        }
+        if (reason.includes('platform') || reason.includes('infra') || reason.includes('network') || reason.includes('funnel') || reason.includes('cloud') || reason.includes('scrt')) {
+            return 'Platform / Infra';
+        }
+        if (reason.includes('dependency') || reason.includes('upstream')) {
+            return 'Upstream Dependencies';
+        }
+        return 'Platform / Infra';
+    };
+    
+    reasons.forEach(reason => {
+        const category = categoryMap(reason);
+        reasonCounts[category] = (reasonCounts[category] || 0) + 1;
+    });
+    
+    const topCauses = Object.entries(reasonCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([cause, count]) => {
+            const pct = falsePositives > 0 ? Math.round((count / falsePositives) * 100) : 0;
+            return { cause, count, pct };
+        });
+    
+    const distribution = availabilityData.ingressDistribution.rows || [];
+    const accuracyTrend = availabilityData.ingressAccuracy.rows || [];
+    
+    container.innerHTML = `
+        <div class="availability-dev">
+            <div class="availability-dev-container">
+                <header class="header preventive-header ingress-header">
+                    <div class="header-brand">
+                        <div class="logo ingress-logo">🔍</div>
+                        <div class="header-text">
+                            <h1>Ingress Alert Quality Dashboard</h1>
+                            <div class="inventory-subtitle">Tracking False Positives in the Last 90 Days</div>
+                        </div>
+                    </div>
+                    <button class="back-link" onclick="openAvailabilityReadinessExecView()">
+                        <span>←</span>
+                        <span>Back to Exec View</span>
+                    </button>
+                </header>
+                
+                <div class="ingress-kpi-grid">
+                    <div class="ingress-kpi-card accent-blue">
+                        <div class="ingress-kpi-label">Total Pages to Ingress</div>
+                        <div class="ingress-kpi-value">${totalPages}</div>
+                    </div>
+                    <div class="ingress-kpi-card accent-green">
+                        <div class="ingress-kpi-label">Confirmed Ingress Issues</div>
+                        <div class="ingress-kpi-value ingress-kpi-value-green">${confirmedIssues} <span class="ingress-kpi-sub">(${Math.round((confirmedIssues / (totalPages || 1)) * 100)}%)</span></div>
+                    </div>
+                    <div class="ingress-kpi-card accent-red">
+                        <div class="ingress-kpi-label">False Positives</div>
+                        <div class="ingress-kpi-value ingress-kpi-value-red">${falsePositives} <span class="ingress-kpi-sub">(${falsePositivePct}%)</span></div>
+                    </div>
+                    <div class="ingress-kpi-card accent-blue">
+                        <div class="ingress-kpi-label">Noise Ratio</div>
+                        <div class="ingress-kpi-value">${noiseRatio.toFixed(1)}<span class="ingress-kpi-sub">x</span></div>
+                    </div>
+                </div>
+                
+                <div class="ingress-callout">⚠️ Nearly 3 out of 4 Ingress pages were caused by upstream or adjacent systems.</div>
+                
+                <div class="ingress-grid">
+                    <div class="ingress-card">
+                        <div class="ingress-card-title">📊 Alert Attribution Breakdown</div>
+                        <div class="ingress-donut-row">
+                            <div class="ingress-chart-container">
+                                <canvas id="ingress-alert-donut"></canvas>
+                            </div>
+                            <div class="ingress-legend" id="ingress-alert-legend"></div>
+                        </div>
+                    </div>
+                    <div class="ingress-card">
+                        <div class="ingress-card-title">🧭 Top False Positive Causes</div>
+                        <table class="ingress-table">
+                            <thead>
+                                <tr><th>Cause</th><th>Count</th><th>%</th></tr>
+                            </thead>
+                            <tbody>
+                                ${topCauses.map(cause => `
+                                    <tr>
+                                        <td>${cause.cause}</td>
+                                        <td class="align-center">${cause.count}</td>
+                                        <td class="align-center">${cause.pct}%</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="ingress-grid">
+                    <div class="ingress-card">
+                        <div class="ingress-card-title">📉 Ingress Page Accuracy (Last 12 Weeks)</div>
+                        <div class="ingress-chart-container">
+                            <canvas id="ingress-accuracy-line"></canvas>
+                        </div>
+                    </div>
+                    <div class="ingress-card">
+                        <div class="ingress-card-title">⚡ Operational Impact of False Positives</div>
+                        <div class="ingress-impact">
+                            <div class="ingress-impact-row">
+                                <span>Unnecessary IG Pages</span>
+                                <strong>${falsePositives}</strong>
+                            </div>
+                            <div class="ingress-impact-row">
+                                <span>Avoidable Escalations</span>
+                                <strong>${falsePositivePct}%</strong>
+                            </div>
+                            <div class="ingress-impact-row">
+                                <span>On-Call Time Wasted</span>
+                                <strong>${onCallImpact}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    initIngressDonut(distribution);
+    initIngressAccuracyLine(accuracyTrend);
+}
+
+function openInventoryModal(type) {
+    const modal = document.getElementById('availability-inventory-modal');
+    const titleEl = document.getElementById('availability-inventory-modal-title');
+    const bodyEl = document.getElementById('availability-inventory-modal-body');
+    if (!modal || !titleEl || !bodyEl) return;
+    
+    const inventory = availabilityData.testInventory;
+    const modalMap = {
+        customerScenario: {
+            title: 'Customer Scenario Test View',
+            data: inventory.customerScenario
+        },
+        integration: {
+            title: 'Integration Test View',
+            data: inventory.integration
+        },
+        scalePerf: {
+            title: 'Scale & Perf Test View',
+            data: inventory.scalePerf
+        },
+        chaos: {
+            title: 'Chaos Test View',
+            data: inventory.chaos
+        }
+    };
+    
+    const selected = modalMap[type];
+    if (!selected) return;
+    
+    titleEl.textContent = selected.title;
+    bodyEl.innerHTML = buildInventoryTable(selected.data.headers, selected.data.rows);
+    modal.style.display = 'block';
+}
+
+function closeInventoryModal(event) {
+    const modal = document.getElementById('availability-inventory-modal');
+    if (!modal) return;
+    if (event && event.target && event.target !== modal) {
+        return;
+    }
+    modal.style.display = 'none';
+}
+
+function buildInventoryTable(headers, rows) {
+    if (!headers.length) {
+        return `<div class="modal-text">No data available.</div>`;
+    }
+    
+    const headerRow = headers.map(h => `<th>${h}</th>`).join('');
+    const bodyRows = rows.map(row => {
+        const cells = headers.map(h => `<td>${row[h] || ''}</td>`).join('');
+        return `<tr>${cells}</tr>`;
+    }).join('');
+    
+    return `
+        <div class="modal-table-scroll">
+            <table class="availability-modal-table">
+                <thead><tr>${headerRow}</tr></thead>
+                <tbody>${bodyRows || `<tr><td colspan="${headers.length}" class="empty-state">No rows</td></tr>`}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+let ingressDonutChart = null;
+let ingressAccuracyChart = null;
+
+function initIngressDonut(distributionRows) {
+    const canvas = document.getElementById('ingress-alert-donut');
+    const legend = document.getElementById('ingress-alert-legend');
+    if (!canvas || !distributionRows.length || typeof Chart === 'undefined') return;
+    
+    const labels = distributionRows.map(row => row.Category);
+    const values = distributionRows.map(row => parseFloat(row.Percentage || row.Count || 0));
+    const colors = ['#0176d3', '#fe9339', '#c23934', '#706e6b'];
+    
+    if (ingressDonutChart) ingressDonutChart.destroy();
+    ingressDonutChart = new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, values.length),
+                borderWidth: 0
+            }]
+        },
+        options: {
+            cutout: '65%',
+            plugins: { legend: { display: false } },
+            maintainAspectRatio: false
+        }
+    });
+    
+    if (legend) {
+        legend.innerHTML = labels.map((label, idx) => `
+            <div class="ingress-legend-item">
+                <span class="ingress-legend-dot" style="background:${colors[idx]}"></span>
+                <span>${label} ${values[idx]}%</span>
+            </div>
+        `).join('');
+    }
+}
+
+function initIngressAccuracyLine(rows) {
+    const canvas = document.getElementById('ingress-accuracy-line');
+    if (!canvas || !rows.length || typeof Chart === 'undefined') return;
+    
+    const labels = rows.map(row => row.Week);
+    const accuracy = rows.map(row => parseFloat(row.Accuracy || 0));
+    const targets = rows.map(row => parseFloat(row.Target || 0));
+    
+    if (ingressAccuracyChart) ingressAccuracyChart.destroy();
+    ingressAccuracyChart = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Accuracy',
+                    data: accuracy,
+                    borderColor: '#c23934',
+                    backgroundColor: 'rgba(194, 57, 52, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#c23934',
+                    fill: true
+                },
+                {
+                    label: 'Threshold',
+                    data: targets,
+                    borderColor: '#2e844a',
+                    borderDash: [5, 5],
+                    borderWidth: 2,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    ticks: { callback: v => v + '%' }
+                }
+            }
+        }
+    });
 }
 
 // Global reference for MTTD/MTTR chart
@@ -3366,7 +3788,7 @@ function renderAvailabilityIncidentTrend() {
 
 function openAvailabilityReadinessDeveloperView() {
     switchViewMode('developer');
-    switchTab('runtime-availability-dev');
+    switchTab('runtime-availability-readiness');
 }
 
 function openAvailabilityReadinessExecView() {
@@ -10260,6 +10682,15 @@ let availabilityData = {
     slaData: [],           // sla_data.csv - SLA goals table
     incidents: [],         // incidents2.csv - Raw incident data for KPI calculations
     serviceReadiness: [],  // hrp_service_readiness_score_data.csv - Readiness score table
+    ingressAlerts: { headers: [], rows: [] },
+    ingressDistribution: { headers: [], rows: [] },
+    ingressAccuracy: { headers: [], rows: [] },
+    testInventory: {
+        customerScenario: { headers: [], rows: [] },
+        integration: { headers: [], rows: [] },
+        scalePerf: { headers: [], rows: [] },
+        chaos: { headers: [], rows: [] }
+    },
     loaded: false
 };
 
@@ -10292,6 +10723,61 @@ function parseCSVData(csvText) {
     });
 }
 
+function parseCSVWithHeaders(csvText) {
+    const lines = csvText.trim().split('\n');
+    if (lines.length < 2) return { headers: [], rows: [] };
+    const headers = lines[0].split(',').map(header => header.trim());
+    const rows = lines.slice(1).filter(line => line.trim()).map(line => {
+        const values = line.split(',');
+        const row = {};
+        headers.forEach((header, index) => {
+            row[header] = values[index]?.trim() || '';
+        });
+        return row;
+    });
+    return { headers, rows };
+}
+
+function parseCSVLineRespectQuotes(line) {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+            const nextChar = line[i + 1];
+            if (inQuotes && nextChar === '"') {
+                current += '"';
+                i += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            values.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    values.push(current);
+    return values;
+}
+
+function parseCSVWithHeadersRobust(csvText) {
+    const lines = csvText.trim().split('\n');
+    if (lines.length < 2) return { headers: [], rows: [] };
+    const headers = parseCSVLineRespectQuotes(lines[0]).map(header => header.trim());
+    const rows = lines.slice(1).filter(line => line.trim()).map(line => {
+        const values = parseCSVLineRespectQuotes(line);
+        const row = {};
+        headers.forEach((header, index) => {
+            row[header] = values[index]?.trim() || '';
+        });
+        return row;
+    });
+    return { headers, rows };
+}
+
 /**
  * Load ALL Availability Data in Parallel (optimized)
  */
@@ -10314,7 +10800,14 @@ async function loadAllAvailabilityData() {
             'Csv Tables - themes.csv',
             'Csv Tables - sla_data.csv',
             'incidents2.csv',
-            'hrp_service_readiness_score_data.csv'
+            'hrp_service_readiness_score_data.csv',
+            'Ingress incidents - False Positive Analysis - slack.csv',
+            'ingress_alert_distribution.csv',
+            'ingress_alert_accuracy_trend.csv',
+            'customer_test_scenario_view.csv',
+            'integration_test_view.csv',
+            'scale_perf_test_view.csv',
+            'chaos_tests_view.csv'
         ];
         
         const encodedPaths = files.map(file => {
@@ -10347,6 +10840,15 @@ async function loadAllAvailabilityData() {
         availabilityData.incidents = parseCSV(csvTexts[5], true);
         availabilityData.serviceReadiness = parseCSV(csvTexts[6], true);
         
+        availabilityData.ingressAlerts = parseCSVWithHeadersRobust(csvTexts[7]);
+        availabilityData.ingressDistribution = parseCSVWithHeadersRobust(csvTexts[8]);
+        availabilityData.ingressAccuracy = parseCSVWithHeadersRobust(csvTexts[9]);
+        
+        availabilityData.testInventory.customerScenario = parseCSVWithHeadersRobust(csvTexts[10]);
+        availabilityData.testInventory.integration = parseCSVWithHeadersRobust(csvTexts[11]);
+        availabilityData.testInventory.scalePerf = parseCSVWithHeadersRobust(csvTexts[12]);
+        availabilityData.testInventory.chaos = parseCSVWithHeadersRobust(csvTexts[13]);
+        
         availabilityData.loaded = true;
         
         const elapsed = (performance.now() - startTime).toFixed(0);
@@ -10358,6 +10860,13 @@ async function loadAllAvailabilityData() {
         console.log(`   - SLA Data: ${availabilityData.slaData.length} services`);
         console.log(`   - Incidents: ${availabilityData.incidents.length} incidents`);
         console.log(`   - Service Readiness: ${availabilityData.serviceReadiness.length} rows`);
+        console.log(`   - Ingress Alerts: ${availabilityData.ingressAlerts.rows.length} rows`);
+        console.log(`   - Ingress Distribution: ${availabilityData.ingressDistribution.rows.length} rows`);
+        console.log(`   - Ingress Accuracy: ${availabilityData.ingressAccuracy.rows.length} rows`);
+        console.log(`   - Test Inventory (Customer): ${availabilityData.testInventory.customerScenario.rows.length} rows`);
+        console.log(`   - Test Inventory (Integration): ${availabilityData.testInventory.integration.rows.length} rows`);
+        console.log(`   - Test Inventory (Scale/Perf): ${availabilityData.testInventory.scalePerf.rows.length} rows`);
+        console.log(`   - Test Inventory (Chaos): ${availabilityData.testInventory.chaos.rows.length} rows`);
         
     } catch (error) {
         console.error('❌ Error loading availability data:', error);
@@ -10368,6 +10877,15 @@ async function loadAllAvailabilityData() {
         availabilityData.themes = [];
         availabilityData.slaData = [];
         availabilityData.serviceReadiness = [];
+        availabilityData.ingressAlerts = { headers: [], rows: [] };
+        availabilityData.ingressDistribution = { headers: [], rows: [] };
+        availabilityData.ingressAccuracy = { headers: [], rows: [] };
+        availabilityData.testInventory = {
+            customerScenario: { headers: [], rows: [] },
+            integration: { headers: [], rows: [] },
+            scalePerf: { headers: [], rows: [] },
+            chaos: { headers: [], rows: [] }
+        };
         availabilityData.loaded = true;
     }
 }

@@ -1,0 +1,7 @@
+Product,Purpose,Details,Status,Frequency,Success Rate
+Ingress Gateway,VIP Creation,"[FIT] IGA FIT test - Writes an IngressGatewayConfig custom resource after every deployment, asserts correctness of external resource creation, and synthetically monitors the resulting endpoint",Not Enabled,Weekly,N/A
+Ingress Gateway,VIP Update,"[FIT] IGA FIT test - Writes an IngressGatewayConfig custom resource after every deployment, which includes a change to DNS. Test will assert change to DNS has been applied",Not Enabled,Weekly,N/A
+Ingress Gateway,Certificate Renewal,[FIT] IGA FIT test - Daily renewal test with alert,Not Enabled,Daily,N/A
+Ingress Gateway,Certificate Renewal,[FIT] IGA FIT test - Synthetic monitoring of daily renewed certificate,Not Enabled,Daily,N/A
+Ingress Gateway,Data Plane Steady State Operations,[FIT] IGDP FIT test - Post deployment FIT tests verifying health check endpoints. Success ensures that both syncing of TLS secrets and receiving proxy configuration works correctly,Not Enabled,Weekly,N/A
+Ingress Gateway,Data Plane Steady State Operations,[FIT] IGA FIT test - Synthetic monitoring of daily renewed certificate,Not Enabled,Weekly,N/A

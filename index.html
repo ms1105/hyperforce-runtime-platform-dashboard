@@ -71,29 +71,47 @@
                     </div>
                 </div>
 
-                <!-- Runtime Scale & Availability Section -->
+                <!-- Runtime Scale Section -->
                 <div class="nav-section">
-                    <div class="nav-item main-item" data-section="runtime">
+                    <div class="nav-item main-item" data-section="runtime-scale">
                         <span class="nav-icon">⚙️</span>
-                        <span class="nav-text">Runtime Scale & Availability</span>
+                        <span class="nav-text">Runtime Scale</span>
                         <span class="nav-arrow">▼</span>
                     </div>
                     
-                    <div class="nav-subitems" id="runtime-subitems">
+                    <div class="nav-subitems" id="runtime-scale-subitems">
                         <div class="nav-subitem" data-tab="runtime-overview" data-view="exec">
                             <span class="nav-text">Autoscaling</span>
                         </div>
                         <div class="nav-subitem" data-tab="runtime-hpa" data-view="developer">
                             <span class="nav-text">Autoscaling</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-availability" data-view="exec">
-                            <span class="nav-text">Availability</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="runtime-availability-dev" data-view="developer">
-                            <span class="nav-text">Availability</span>
-                        </div>
                         <div class="nav-subitem" data-tab="runtime-karpenter" data-view="both">
                             <span class="nav-text">Karpenter</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Runtime Availability Section -->
+                <div class="nav-section">
+                    <div class="nav-item main-item" data-section="runtime-availability">
+                        <span class="nav-icon">🛡️</span>
+                        <span class="nav-text">Runtime Availability</span>
+                        <span class="nav-arrow">▼</span>
+                    </div>
+                    
+                    <div class="nav-subitems" id="runtime-availability-subitems">
+                        <div class="nav-subitem" data-tab="runtime-availability" data-view="exec">
+                            <span class="nav-text">Exec Overview</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="runtime-availability-readiness" data-view="developer">
+                            <span class="nav-text">HRP Test Readiness (Preventive)</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="runtime-availability-inventory" data-view="developer">
+                            <span class="nav-text">HRP Test Inventory</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="runtime-availability-ingress" data-view="developer">
+                            <span class="nav-text">Ingress Alert Quality</span>
                         </div>
                     </div>
                 </div>
@@ -525,9 +543,14 @@
 
                     <!-- Migration Dependencies Tab -->
                     <div class="tab-pane" id="migration-dependencies">
-                        <div class="tab-header">
-                            <h2>🔗 Migration Dependencies</h2>
-                            <p>FKP feature requirements and dependent services analysis</p>
+                        <div class="tab-header with-actions">
+                            <div class="tab-header-text">
+                                <h2>🔗 Migration Dependencies</h2>
+                                <p>FKP feature requirements and dependent services analysis</p>
+                            </div>
+                            <button class="exec-back-btn" onclick="switchViewMode('exec'); switchTab('executive-overview');">
+                                ← Exec View
+                            </button>
                         </div>
                         <div class="dependencies-content">
                             <div class="dependencies-summary" id="dependencies-summary">
@@ -548,9 +571,14 @@
 
                     <!-- Service Information Tab -->
                     <div class="tab-pane" id="service-information">
-                        <div class="tab-header">
-                            <h2>🔧 Service Information</h2>
-                            <p>Detailed service analysis with drill-down capabilities</p>
+                        <div class="tab-header with-actions">
+                            <div class="tab-header-text">
+                                <h2>🔧 Service Information</h2>
+                                <p>Detailed service analysis with drill-down capabilities</p>
+                            </div>
+                            <button class="exec-back-btn" onclick="switchViewMode('exec'); switchTab('executive-overview');">
+                                ← Exec View
+                            </button>
                         </div>
                         <div class="service-content">
                             <!-- Service Information Metrics -->
@@ -580,9 +608,14 @@
 
                     <!-- COGS Analysis - Comm vs Gov Tab -->
                     <div class="tab-pane" id="cross-customer-analysis">
-                        <div class="tab-header">
-                            <h2>🔄 COGS Analysis - Comm vs Gov</h2>
-                            <p>Services spanning Commercial and GovCloud environments with migration stage comparison</p>
+                        <div class="tab-header with-actions">
+                            <div class="tab-header-text">
+                                <h2>🔄 COGS Analysis - Comm vs Gov</h2>
+                                <p>Services spanning Commercial and GovCloud environments with migration stage comparison</p>
+                            </div>
+                            <button class="exec-back-btn" onclick="switchViewMode('exec'); switchTab('executive-overview');">
+                                ← Exec View
+                            </button>
                         </div>
                         <div class="cross-customer-content">
                             <!-- Summary Metrics -->
@@ -622,9 +655,14 @@
                     
                     <!-- Integrations Tab -->
                     <div class="tab-pane" id="integrations">
-                        <div class="tab-header">
-                            <h2>🔧 Integrations</h2>
-                            <p>Integration services excluded from adoption metrics</p>
+                        <div class="tab-header with-actions">
+                            <div class="tab-header-text">
+                                <h2>🔧 Integrations</h2>
+                                <p>Integration services excluded from adoption metrics</p>
+                            </div>
+                            <button class="exec-back-btn" onclick="switchViewMode('exec'); switchTab('executive-overview');">
+                                ← Exec View
+                            </button>
                         </div>
                         <div class="integrations-content">
                             <!-- Integration Services Metrics -->
@@ -822,17 +860,27 @@
                         </div>
                     </div>
                     
-                    <!-- Runtime Availability Tab (shows Exec or Baseline based on view mode) -->
+                    <!-- Runtime Availability Exec Overview -->
                     <div class="tab-pane" id="runtime-availability">
                         <div id="runtime-availability-content">
-                            <!-- Content dynamically switches between Exec and Baseline based on view mode -->
+                            <!-- Exec Overview content -->
                         </div>
                     </div>
                     
-                    <!-- Runtime Availability Developer Tab -->
-                    <div class="tab-pane" id="runtime-availability-dev">
-                        <div id="runtime-availability-dev-content">
-                            <!-- Developer View content rendered dynamically -->
+                    <!-- Runtime Availability Developer Tabs -->
+                    <div class="tab-pane" id="runtime-availability-readiness">
+                        <div id="runtime-availability-readiness-content">
+                            <!-- HRP Test Readiness content rendered dynamically -->
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="runtime-availability-inventory">
+                        <div id="runtime-availability-inventory-content">
+                            <!-- HRP Test Inventory content rendered dynamically -->
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="runtime-availability-ingress">
+                        <div id="runtime-availability-ingress-content">
+                            <!-- Ingress Alert Quality content rendered dynamically -->
                         </div>
                     </div>
                     

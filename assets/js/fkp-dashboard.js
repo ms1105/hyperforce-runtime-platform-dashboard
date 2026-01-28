@@ -1639,6 +1639,9 @@ function switchTab(tabId) {
     // Update view button states (gray out if view not available)
     updateViewButtonStates(tabId);
     
+    // Ensure only the active section is expanded
+    updateSidebarSection(tabId);
+    
     // Update filter visibility
     updateFilterVisibility();
     
@@ -1646,6 +1649,24 @@ function switchTab(tabId) {
     if (!isReactTab) {
         refreshCurrentTab();
     }
+}
+
+function updateSidebarSection(tabId) {
+    const navItem = document.querySelector(`.nav-subitem[data-tab="${tabId}"]`);
+    if (!navItem) return;
+    
+    const parentSection = navItem.closest('.nav-section');
+    if (!parentSection) return;
+    
+    // Collapse all sections
+    document.querySelectorAll('.nav-subitems').forEach(list => list.classList.remove('active'));
+    document.querySelectorAll('.nav-item.main-item').forEach(item => item.classList.remove('active'));
+    
+    // Expand current section
+    const mainItem = parentSection.querySelector('.nav-item.main-item');
+    const subitems = parentSection.querySelector('.nav-subitems');
+    if (mainItem) mainItem.classList.add('active');
+    if (subitems) subitems.classList.add('active');
 }
 
 /**
@@ -7762,6 +7783,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update sidebar active states
             document.querySelectorAll('.nav-subitem').forEach(i => i.classList.remove('active'));
             this.classList.add('active');
+            updateSidebarSection(tabName);
         });
     });
     
@@ -7770,11 +7792,16 @@ document.addEventListener('DOMContentLoaded', function() {
         item.addEventListener('click', function() {
             const section = this.getAttribute('data-section');
             const subitems = document.getElementById(section + '-subitems');
+            const wasActive = subitems && subitems.classList.contains('active');
             
-            // Toggle subitems visibility
-            if (subitems) {
-                subitems.classList.toggle('active');
-                this.classList.toggle('active');
+            // Collapse all sections
+            document.querySelectorAll('.nav-subitems').forEach(list => list.classList.remove('active'));
+            document.querySelectorAll('.nav-item.main-item').forEach(main => main.classList.remove('active'));
+            
+            // Open current if it was closed
+            if (subitems && !wasActive) {
+                subitems.classList.add('active');
+                this.classList.add('active');
             }
         });
     });

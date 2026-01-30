@@ -12,9 +12,11 @@
 
 | Section | Owner | Description |
 |---------|-------|-------------|
+| **Executive Summary** | Aravinth | Consolidated KPIs across Availability, Scale, CTS, Onboarding |
+| **Runtime Availability** | TBD | Availability exec scorecard + dev views |
+| **Runtime Scale** | TBD | HPA adoption, Karpenter |
+| **Cost to Serve** | TBD | Platform cost analysis, HCP savings |
 | **Onboarding** | Aravinth | FKP/Mesh adoption tracking, migration pipeline, projections & roadmap, service information |
-| **Runtime Scale & Availability** | TBD | HPA adoption, availability metrics, Karpenter |
-| **Cost to Serve** | TBD | Platform cost analysis, HCP FKP Addon costs |
 
 ### Onboarding Tabs
 | Tab ID | Name | View Mode | Description |
@@ -27,42 +29,52 @@
 | `cross-customer-analysis` | COGS Analysis | Developer | Cross-customer cost analysis |
 | `integrations` | Integrations | Developer | Integration services list |
 
+### Executive Summary
+- Section-only page (no tab pane) and default landing view
+- No Exec/Developer toggle visible on this page
+- Sections: Runtime Availability (Detection/Prevention/Remediation), Runtime Scale, Cost to Serve, Onboarding
+- Cards route to their source tabs
+- If clicked from Developer view, page reloads to Exec Summary
+
+### Runtime Availability Tabs
+| Tab ID | Name | View Mode | Description |
+|--------|------|-----------|-------------|
+| `runtime-availability` | Exec Overview | Exec | Availability exec scorecard (incidents2.csv) |
+| `runtime-availability-ingress` | Ingress Alert Quality | Developer | Ingress alert KPIs + charts |
+| `runtime-availability-readiness` | HRP Test Readiness (Preventive) | Developer | Readiness table + KPIs |
+| `runtime-availability-inventory` | HRP Test Inventory | Developer | Test inventory by product/test |
+
+### Runtime Scale Tabs
+| Tab ID | Name | View Mode | Description |
+|--------|------|-----------|-------------|
+| `runtime-overview` | Autoscaling | Exec | HPA adoption metrics |
+| `runtime-hpa` | Autoscaling | Developer | HPA table + filters |
+| `runtime-karpenter` | Karpenter | Both | Bin-packing efficiency |
+
 ---
 
 ## 📁 Project Structure
 
 ```
 hyperforce-runtime-platform-360/
-├── index.html                    # Main dashboard HTML (hybrid: vanilla JS + React)
+├── index.html                    # Main dashboard HTML (vanilla JS)
 ├── assets/
 │   ├── css/
-│   │   └── fkp-dashboard.css     # Styles for Onboarding tabs
+│   │   └── fkp-dashboard.css     # Styles for all tabs
 │   ├── data/
 │   │   ├── fkp_adoption.csv      # SYMLINK → ../../fkp_adoption.csv (current quarter)
 │   │   ├── fkp_adoption_prev_q.csv # Previous quarter data
-│   │   ├── blackjack_adoption_normalized.csv # BlackJack (DoD) instances - current
-│   │   ├── blackjack_adoption_prev_q_normalized.csv # BlackJack - previous quarter
+│   │   ├── blackjack_adoption_normalized.csv # BlackJack current
+│   │   ├── blackjack_adoption_prev_q_normalized.csv # BlackJack previous
 │   │   ├── service_cloud_mapping_utf8.csv # Service → Org mapping
 │   │   ├── mesh_data.csv         # Mesh/mTLS adoption data
 │   │   ├── timeline_requirements.csv # Migration ETA and feature dependencies
-│   │   ├── unmapped_services.txt # Services without proper mapping
-│   │   ├── dashboard-data.json   # Mock/static data for Runtime tabs
-│   │   ├── cts-data.json         # Cost to Serve data
-│   │   ├── hpa-data.json         # HPA adoption data
-│   │   └── incidents-data.json   # Incident data
+│   │   ├── hcp-cts-forecast-actuals.json # CTS forecast vs actuals
+│   │   └── availability/         # Availability & test inventory CSVs
 │   └── js/
-│       ├── fkp-dashboard.js      # Onboarding logic (vanilla JS, ~4500 lines)
-│       └── react-tabs.js         # Bundled React components
-├── src/                          # React source (TypeScript)
-│   ├── main.tsx                  # React entry point
-│   ├── ReactTabs.tsx             # Tab router for React sections
-│   ├── index.css                 # Tailwind styles
-│   └── components/
-│       ├── RuntimeScaleHPA.tsx   # HPA adoption view
-│       ├── IncidentView.tsx      # Incidents & availability
-│       ├── HCPCostAnalysis.tsx   # Cost analysis
-│       ├── HCPCTSProgram.tsx     # CTS program view
-│       └── ...                   # Other React components
+│       ├── fkp-dashboard.js      # Main dashboard logic (vanilla JS)
+│       └── cost-to-serve.js      # CTS logic
+├── src/                          # Legacy React source (not used for new work)
 ├── fkp_adoption.csv              # Root-level data (current quarter)
 ├── fkp_adoption_prev_q.csv       # Root-level data (previous quarter)
 ├── package.json                  # Node dependencies
@@ -141,26 +153,12 @@ const EXCLUDED_SERVICES = ['unknown'];
 
 ## 🏗️ Architecture
 
-### Hybrid Approach
+### Vanilla JS Architecture
 
-The dashboard uses a **hybrid architecture**:
-
-1. **Onboarding Section** → Vanilla JavaScript (`fkp-dashboard.js`)
-   - Handles all FKP adoption, migration pipeline, service information tabs
-   - Manages global state via `fkpDashboard` object
-   - Loads CSV data files directly
-
-2. **Other Sections** → React + TypeScript (`src/`)
-   - Runtime, Cost, Self-Serve tabs are React components
-   - Bundled with Vite → `assets/js/react-tabs.js`
-   - Uses Tailwind CSS for styling
-
-### Tab Communication
-
-React tabs communicate with the vanilla JS sidebar via:
-```javascript
-window.updateReactTab = (tabId) => { ... };
-```
+All dashboard tabs are now **vanilla JavaScript**:
+- Primary logic lives in `assets/js/fkp-dashboard.js`
+- CTS logic lives in `assets/js/cost-to-serve.js`
+- Tabs are switched via `switchTab()` and sidebar state (`updateSidebarSection()`)
 
 ### Global State (`fkpDashboard`)
 
@@ -187,7 +185,7 @@ fkpDashboard = {
         'migration-stage': [...] // All 6 stages
     },
     state: {
-        currentTab: 'executive-overview',
+        currentTab: 'exec-summary',
         activeDropdown: null,
         dropdownSelectionMode: false
     }
@@ -211,6 +209,7 @@ fkpDashboard = {
 | `renderServiceInformationMetrics()` | Renders metrics cards for Service Information tab |
 | `renderProjectionsRoadmap()` | Renders Projections & Roadmap tab (Exec View) |
 | `loadProjectionsData()` | Loads roadmap CSV and calculates projections |
+| `renderExecutiveSummary()` | Renders Executive Summary (section-only page) |
 
 ---
 
@@ -350,15 +349,11 @@ CSV Files (assets/data/)
 ## 🚀 Running Locally
 
 ```bash
-# Simple HTTP server (for testing Onboarding tabs)
+# Simple HTTP server (GitHub Pages compatible)
 python3 -m http.server 8005
-
-# Full development with React (if modifying React tabs)
-npm install
-npm run dev
 ```
 
-Access at: `http://localhost:8005` (or Vite's port for dev mode)
+Access at: `http://localhost:8005`
 
 ---
 
@@ -381,6 +376,26 @@ my-service,John Doe,Platform Cloud,Infrastructure,Platform Team
 Service Name,Commercial ETA,Gia2h ETA,BlackJack ETA,Feature Dependencies
 my-service,FY26Q2,FY26Q3,TBD,ARM support
 ```
+
+### Availability Data Files
+| File | Purpose |
+|------|---------|
+| `assets/data/availability/incidents2.csv` | Availability KPIs (sev0/1, MTTD/MTTR) |
+| `assets/data/availability/hrp_service_readiness_score_data.csv` | Test readiness matrix |
+| `assets/data/availability/customer_test_scenario_view.csv` | Test inventory (customer scenarios) |
+| `assets/data/availability/integration_test_view.csv` | Test inventory (integration) |
+| `assets/data/availability/scale_perf_test_view.csv` | Test inventory (scale & perf) |
+| `assets/data/availability/chaos_tests_view.csv` | Test inventory (chaos) |
+| `assets/data/availability/Ingress incidents - False Positive Analysis - slack.csv` | Ingress alert quality KPIs |
+| `assets/data/availability/ingress_alert_distribution.csv` | Ingress alert donut chart |
+| `assets/data/availability/ingress_alert_accuracy_trend.csv` | Ingress accuracy trend chart |
+
+### HRP Test Inventory Logic (Developer View)
+- Product legend: **Enabled**, **Partially Enabled**, **Not Defined**
+- Integration/Customer Scenario: if defined but not enabled → **Partially Enabled**
+- Scale & Perf: treat all as **Enabled**
+- Integration tab shows counts: `N tests (x Post Deploy + y Pre Deploy)` from `Pre-Post Release`
+- Product summary header is dynamic: `HRP Product Summary - "<Selected Test>" Coverage`
 
 ---
 

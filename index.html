@@ -38,35 +38,34 @@
             </div>
             
             <nav class="sidebar-nav">
-                <!-- Onboarding Section -->
+                <!-- Executive Summary Section -->
                 <div class="nav-section">
-                    <div class="nav-item main-item active" data-section="onboarding">
-                        <span class="nav-icon">📊</span>
-                        <span class="nav-text">Onboarding</span>
+                    <div class="nav-item main-item active" data-section="exec-summary" data-tab="exec-summary" data-view="exec" onclick="setExecSummaryView()">
+                        <span class="nav-icon">📌</span>
+                        <span class="nav-text">Executive Summary</span>
+                    </div>
+                </div>
+
+                <!-- Runtime Availability Section -->
+                <div class="nav-section">
+                    <div class="nav-item main-item" data-section="runtime-availability">
+                        <span class="nav-icon">🛡️</span>
+                        <span class="nav-text">Runtime Availability</span>
                         <span class="nav-arrow">▼</span>
                     </div>
                     
-                    <div class="nav-subitems active" id="onboarding-subitems">
-                        <div class="nav-subitem active" data-tab="executive-overview" data-view="exec">
-                            <span class="nav-text">Overview</span>
+                    <div class="nav-subitems" id="runtime-availability-subitems">
+                        <div class="nav-subitem" data-tab="runtime-availability" data-view="exec">
+                            <span class="nav-text">Exec Overview</span>
                         </div>
-                        <div class="nav-subitem" data-tab="migration-pipeline" data-view="exec">
-                            <span class="nav-text">Migration Pipeline</span>
+                        <div class="nav-subitem" data-tab="runtime-availability-ingress" data-view="developer">
+                            <span class="nav-text">Ingress Alert Quality</span>
                         </div>
-                        <div class="nav-subitem" data-tab="projections-roadmap" data-view="exec">
-                            <span class="nav-text">Projections & Roadmap</span>
+                        <div class="nav-subitem" data-tab="runtime-availability-readiness" data-view="developer">
+                            <span class="nav-text">HRP Test Readiness (Preventive)</span>
                         </div>
-                        <div class="nav-subitem" data-tab="service-information" data-view="developer">
-                            <span class="nav-text">Overview</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="migration-dependencies" data-view="developer">
-                            <span class="nav-text">Migration Dependencies</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="cross-customer-analysis" data-view="developer">
-                            <span class="nav-text">COGS Analysis</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="integrations" data-view="developer">
-                            <span class="nav-text">Integrations</span>
+                        <div class="nav-subitem" data-tab="runtime-availability-inventory" data-view="developer">
+                            <span class="nav-text">HRP Test Inventory</span>
                         </div>
                     </div>
                 </div>
@@ -92,30 +91,6 @@
                     </div>
                 </div>
 
-                <!-- Runtime Availability Section -->
-                <div class="nav-section">
-                    <div class="nav-item main-item" data-section="runtime-availability">
-                        <span class="nav-icon">🛡️</span>
-                        <span class="nav-text">Runtime Availability</span>
-                        <span class="nav-arrow">▼</span>
-                    </div>
-                    
-                    <div class="nav-subitems" id="runtime-availability-subitems">
-                        <div class="nav-subitem" data-tab="runtime-availability" data-view="exec">
-                            <span class="nav-text">Exec Overview</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="runtime-availability-readiness" data-view="developer">
-                            <span class="nav-text">HRP Test Readiness (Preventive)</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="runtime-availability-inventory" data-view="developer">
-                            <span class="nav-text">HRP Test Inventory</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="runtime-availability-ingress" data-view="developer">
-                            <span class="nav-text">Ingress Alert Quality</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Cost to Serve Section -->
                 <div class="nav-section">
                     <div class="nav-item main-item" data-section="cost-to-serve">
@@ -130,6 +105,39 @@
                         </div>
                         <div class="nav-subitem" data-tab="cost-to-serve-details" data-view="developer">
                             <span class="nav-text">Initiative Details</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Onboarding Section -->
+                <div class="nav-section">
+                    <div class="nav-item main-item" data-section="onboarding">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Onboarding</span>
+                        <span class="nav-arrow">▼</span>
+                    </div>
+                    
+                    <div class="nav-subitems" id="onboarding-subitems">
+                        <div class="nav-subitem" data-tab="executive-overview" data-view="exec">
+                            <span class="nav-text">Overview</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="migration-pipeline" data-view="exec">
+                            <span class="nav-text">Migration Pipeline</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="projections-roadmap" data-view="exec">
+                            <span class="nav-text">Projections & Roadmap</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="service-information" data-view="developer">
+                            <span class="nav-text">Overview</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="migration-dependencies" data-view="developer">
+                            <span class="nav-text">Migration Dependencies</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="cross-customer-analysis" data-view="developer">
+                            <span class="nav-text">COGS Analysis</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="integrations" data-view="developer">
+                            <span class="nav-text">Integrations</span>
                         </div>
                     </div>
                 </div>
@@ -445,7 +453,7 @@
                     <div id="react-tabs-container" class="tab-pane" style="display: none;"></div>
                     
                     <!-- Executive Overview Tab -->
-                    <div class="tab-pane active" id="executive-overview">
+                    <div class="tab-pane" id="executive-overview">
                         <!-- AI Calls to Action Section -->
                         <div class="calls-to-action" id="calls-to-action">
                             <h3>🤖 AI-Generated Calls to Action for Cloud Leaders</h3>

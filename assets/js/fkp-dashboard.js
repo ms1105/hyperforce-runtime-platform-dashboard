@@ -47,7 +47,7 @@ let fkpDashboard = {
         'migration-stage': ['Not Started', 'Pre-Prod Progress', 'Parity Required', 'Prod Progress', 'Prod Complete', 'Mesh Complete'] // All stages by default
     },
     state: {
-        currentTab: 'executive-overview',
+        currentTab: 'exec-summary',
         viewMode: {
             primary: 'service',      // service | instance
             secondary: 'org-leader'  // org-leader | parent-cloud | cloud
@@ -264,42 +264,51 @@ async function initializeFKPDashboard() {
         // Load initial content
         console.log('⏳ Step 6: Loading initial content...');
         
-        // Set body class for initial tab (executive-overview)
-        document.body.classList.add('executive-overview-active');
+        // Set body class for initial tab if needed
+        if (fkpDashboard.state.currentTab === 'executive-overview') {
+            document.body.classList.add('executive-overview-active');
+        } else {
+            document.body.classList.remove('executive-overview-active');
+        }
         
         // Initialize view mode (Exec/Developer toggle)
         console.log('⏳ Step 7: Initializing view mode...');
         initializeViewMode();
+
+        // Default to Executive Summary on initial load
+        switchTab(fkpDashboard.state.currentTab || 'exec-summary');
         
-        // Ensure view buttons are visible
-        const pageHeader = document.querySelector('.page-header');
-        const headerControls = document.querySelector('.header-controls');
-        const viewToggleContainer = document.querySelector('.view-toggle-container');
-        const execBtn = document.querySelector('.view-mode-btn[data-view="exec"]');
-        const devBtn = document.querySelector('.view-mode-btn[data-view="developer"]');
-        
-        // Force visibility of all header elements
-        if (pageHeader) {
-            pageHeader.style.display = 'flex';
-            pageHeader.style.visibility = 'visible';
-        }
-        if (headerControls) {
-            headerControls.style.display = 'flex';
-            headerControls.style.visibility = 'visible';
-        }
-        if (viewToggleContainer) {
-            viewToggleContainer.style.display = 'flex';
-            viewToggleContainer.style.visibility = 'visible';
-        }
-        if (execBtn) {
-            execBtn.style.setProperty('display', 'flex', 'important');
-            execBtn.style.setProperty('visibility', 'visible', 'important');
-            execBtn.style.setProperty('opacity', '1', 'important');
-        }
-        if (devBtn) {
-            devBtn.style.setProperty('display', 'flex', 'important');
-            devBtn.style.setProperty('visibility', 'visible', 'important');
-            devBtn.style.setProperty('opacity', '1', 'important');
+        // Ensure view buttons are visible (except exec summary)
+        if (fkpDashboard.state.currentTab !== 'exec-summary') {
+            const pageHeader = document.querySelector('.page-header');
+            const headerControls = document.querySelector('.header-controls');
+            const viewToggleContainer = document.querySelector('.view-toggle-container');
+            const execBtn = document.querySelector('.view-mode-btn[data-view="exec"]');
+            const devBtn = document.querySelector('.view-mode-btn[data-view="developer"]');
+            
+            // Force visibility of all header elements
+            if (pageHeader) {
+                pageHeader.style.display = 'flex';
+                pageHeader.style.visibility = 'visible';
+            }
+            if (headerControls) {
+                headerControls.style.display = 'flex';
+                headerControls.style.visibility = 'visible';
+            }
+            if (viewToggleContainer) {
+                viewToggleContainer.style.display = 'flex';
+                viewToggleContainer.style.visibility = 'visible';
+            }
+            if (execBtn) {
+                execBtn.style.setProperty('display', 'flex', 'important');
+                execBtn.style.setProperty('visibility', 'visible', 'important');
+                execBtn.style.setProperty('opacity', '1', 'important');
+            }
+            if (devBtn) {
+                devBtn.style.setProperty('display', 'flex', 'important');
+                devBtn.style.setProperty('visibility', 'visible', 'important');
+                devBtn.style.setProperty('opacity', '1', 'important');
+            }
         }
         
         console.log('✅ View buttons initialized:', {
@@ -1376,7 +1385,7 @@ function updateFilterVisibility() {
     const isOnboardingDevTab = onboardingDevTabs.includes(currentTab);
     
     if (filtersBar) {
-        if (isOnboardingExecTab) {
+        if (currentTab === 'exec-summary' || isOnboardingExecTab) {
             // Hide filters for Onboarding Exec View tabs
             filtersBar.style.display = 'none';
         } else if (isOnboardingDevTab) {
@@ -1441,6 +1450,16 @@ function updateViewButtonStates(tabId) {
     const headerControls = document.querySelector('.header-controls');
     const viewToggleContainer = document.querySelector('.view-toggle-container');
     
+    if (tabId === 'exec-summary') {
+        if (headerControls) {
+            headerControls.style.setProperty('display', 'none', 'important');
+        }
+        if (viewToggleContainer) {
+            viewToggleContainer.style.setProperty('display', 'none', 'important');
+        }
+        return;
+    }
+
     // Ensure header controls are visible
     if (headerControls) {
         headerControls.style.display = 'flex';
@@ -1483,6 +1502,8 @@ function updateViewButtonStates(tabId) {
     
     // Define view availability per tab
     const viewAvailability = {
+        // Executive Summary: Exec only
+        'exec-summary': { exec: true, developer: false },
         // Availability: Exec + Developer
         'runtime-availability': { exec: true, developer: true },
         'runtime-availability-readiness': { exec: true, developer: true },
@@ -1564,6 +1585,37 @@ function switchTab(tabId) {
     // Check if this is a React tab
     const navItem = document.querySelector(`[data-tab="${tabId}"]`);
     const isReactTab = navItem && navItem.hasAttribute('data-react-tab');
+    const execSummaryContent = document.getElementById('exec-summary-content');
+    if (execSummaryContent) {
+        execSummaryContent.style.display = tabId === 'exec-summary' ? 'block' : 'none';
+    }
+
+    if (tabId === 'exec-summary') {
+        const headerControls = document.querySelector('.header-controls');
+        const viewToggleContainer = document.querySelector('.view-toggle-container');
+        if (headerControls) headerControls.style.setProperty('display', 'none', 'important');
+        if (viewToggleContainer) viewToggleContainer.style.setProperty('display', 'none', 'important');
+        renderExecutiveSummary();
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('active');
+            if (pane.id !== 'react-tabs-container') {
+                pane.style.display = 'none';
+            }
+        });
+        const reactContainer = document.getElementById('react-tabs-container');
+        if (reactContainer) {
+            reactContainer.style.display = 'none';
+            reactContainer.classList.remove('active');
+        }
+        document.body.classList.remove('executive-overview-active');
+        updatePageHeader(tabId);
+        fkpDashboard.state.currentTab = tabId;
+        updateViewControls(tabId);
+        updateViewButtonStates(tabId);
+        updateSidebarSection(tabId);
+        updateFilterVisibility();
+        return;
+    }
     
     if (isReactTab) {
         // Hide all regular tab panes
@@ -1653,9 +1705,11 @@ function switchTab(tabId) {
 
 function updateSidebarSection(tabId) {
     const navItem = document.querySelector(`.nav-subitem[data-tab="${tabId}"]`);
-    if (!navItem) return;
+    const mainItem = document.querySelector(`.nav-item.main-item[data-tab="${tabId}"]`);
+    const targetItem = navItem || mainItem;
+    if (!targetItem) return;
     
-    const parentSection = navItem.closest('.nav-section');
+    const parentSection = targetItem.closest('.nav-section');
     if (!parentSection) return;
     
     // Collapse all sections
@@ -1663,9 +1717,9 @@ function updateSidebarSection(tabId) {
     document.querySelectorAll('.nav-item.main-item').forEach(item => item.classList.remove('active'));
     
     // Expand current section
-    const mainItem = parentSection.querySelector('.nav-item.main-item');
+    const sectionMainItem = parentSection.querySelector('.nav-item.main-item');
     const subitems = parentSection.querySelector('.nav-subitems');
-    if (mainItem) mainItem.classList.add('active');
+    if (sectionMainItem) sectionMainItem.classList.add('active');
     if (subitems) subitems.classList.add('active');
 }
 
@@ -1679,6 +1733,10 @@ function updatePageHeader(tabId) {
     if (!pageTitle || !pageSubtitle) return;
     
     const tabTitles = {
+        'exec-summary': {
+            title: 'Hyperforce Runtime Platform 360',
+            subtitle: 'HRP Executive Summary'
+        },
         'executive-overview': {
             title: 'Onboarding',
             subtitle: 'Overview'
@@ -1760,12 +1818,316 @@ function updatePageHeader(tabId) {
 }
 
 /**
+ * Render Executive Summary page (non-tab layout)
+ */
+async function renderExecutiveSummary() {
+    const contentArea = document.querySelector('.content-area');
+    if (!contentArea) return;
+
+    let container = document.getElementById('exec-summary-content');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'exec-summary-content';
+        container.className = 'exec-summary-content';
+        contentArea.prepend(container);
+    }
+
+    container.style.display = 'block';
+    container.innerHTML = '<div class="exec-summary-loading">Loading executive summary...</div>';
+
+    try {
+        await Promise.all([
+            loadAllAvailabilityData(),
+            loadAutoscalingData(),
+            loadKarpenterData()
+        ]);
+
+        // Runtime Availability metrics
+        const incidents = availabilityData.incidents || [];
+        const sev0Incidents = incidents.filter(inc => inc.severity === 'Sev0').length;
+        const sev1Incidents = incidents.filter(inc => inc.severity === 'Sev1').length;
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const recentIncidents = incidents.filter(inc => {
+            const incDate = new Date(inc.detected_date);
+            return incDate >= thirtyDaysAgo && incDate <= now;
+        });
+        let avgMttd = 0;
+        let avgMttr = 0;
+        if (recentIncidents.length > 0) {
+            const validMttd = recentIncidents.filter(inc => parseFloat(inc.ttd_min) > 0);
+            const validMttr = recentIncidents.filter(inc => parseFloat(inc.ttr_min) > 0);
+            if (validMttd.length > 0) {
+                const totalMttd = validMttd.reduce((sum, inc) => sum + parseFloat(inc.ttd_min || 0), 0);
+                avgMttd = Math.round(totalMttd / validMttd.length);
+            }
+            if (validMttr.length > 0) {
+                const totalMttr = validMttr.reduce((sum, inc) => sum + parseFloat(inc.ttr_min || 0), 0);
+                avgMttr = Math.round(totalMttr / validMttr.length);
+            }
+        }
+
+        // Runtime Scale metrics (Autoscaling)
+        const services = autoscalingData.services || [];
+        const totalServices = services.length || 0;
+        const hpaEnabledCount = services.filter(s => s.hpa > 0).length;
+        const hpaAdoptionRate = totalServices > 0 ? ((hpaEnabledCount / totalServices) * 100) : 0;
+
+        // Runtime Scale metrics (Karpenter)
+        const filteredKarpenter = filterKarpenterData(karpenterData.mainSummary || [], true);
+        const calcGroupedAvg = (data, groupBy) => {
+            if (!data || data.length === 0) return 0;
+            const byGroup = {};
+            data.forEach(r => {
+                const key = r[groupBy] || 'unknown';
+                if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
+                byGroup[key].sum += parseFloat(r.avg_cpu || 0);
+                byGroup[key].count += 1;
+            });
+            const groups = Object.values(byGroup).filter(g => g.count > 0);
+            if (!groups.length) return 0;
+            const groupAvgs = groups.map(g => g.sum / g.count);
+            return groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length;
+        };
+        const avgFi = calcGroupedAvg(filteredKarpenter, 'falcon_instance');
+        const avgFd = calcGroupedAvg(filteredKarpenter, 'functional_domain');
+        const avgCluster = calcGroupedAvg(filteredKarpenter, 'cluster');
+
+        // Cost to Serve metrics
+        let totalPredictedSavings = null;
+        let totalActualSavings = null;
+        try {
+            const ctsResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json');
+            if (ctsResponse.ok) {
+                const ctsData = await ctsResponse.json();
+                totalPredictedSavings = ctsData?.summary?.totalRevisedSavings ?? null;
+                totalActualSavings = ctsData?.summary?.totalActualSavings ?? null;
+            }
+        } catch (error) {
+            console.warn('⚠️ Failed to load CTS summary data:', error);
+        }
+
+        // Onboarding metrics
+        const adoptionMetrics = calculateAdoptionByCustomerType();
+        const commercial = adoptionMetrics['Commercial'] || { adoptionPct: 0, fkpInstances: 0, totalInstances: 0 };
+        const gia = adoptionMetrics['GIA'] || { adoptionPct: 0, fkpInstances: 0, totalInstances: 0 };
+        const blackjack = adoptionMetrics['BlackJack'] || { adoptionPct: 0, fkpInstances: 0, totalInstances: 0 };
+        const overallTotal = commercial.totalInstances + gia.totalInstances + blackjack.totalInstances;
+        const overallFkp = commercial.fkpInstances + gia.fkpInstances + blackjack.fkpInstances;
+        const overallAdoption = overallTotal > 0 ? (overallFkp / overallTotal) * 100 : 0;
+
+        const formatCurrencySafe = (value) => {
+            if (typeof formatCurrency === 'function' && value !== null) {
+                return formatCurrency(value);
+            }
+            return value !== null ? `$${(value / 1000000).toFixed(2)}M` : '--';
+        };
+
+        const card = ({
+            title,
+            value,
+            sub,
+            badge,
+            color = 'blue',
+            onClick,
+            disabled = false
+        }) => `
+            <div class="exec-summary-card exec-summary-${color} ${disabled ? 'disabled' : 'clickable'}"
+                 ${onClick && !disabled ? `onclick="${onClick}"` : ''}>
+                <div class="exec-summary-badge">${badge || ''}</div>
+                <div class="exec-summary-label">${title}</div>
+                <div class="exec-summary-value">${value}</div>
+                ${sub ? `<div class="exec-summary-sub">${sub}</div>` : ''}
+            </div>
+        `;
+
+        const subpanel = ({ title, cardsHtml, className = '' }) => `
+            <div class="exec-summary-panel ${className}">
+                <div class="exec-summary-panel-title">${title}</div>
+                <div class="exec-summary-panel-grid">
+                    ${cardsHtml}
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = `
+            <div class="exec-summary-banner">
+                HRP 360 - Consolidated Dashboard Driving Platform Excellence through Unified Visibility and Adoption
+            </div>
+
+            <section class="exec-summary-section exec-summary-availability">
+                <div class="exec-summary-section-header">Runtime Availability</div>
+                <div class="exec-summary-panel-row">
+                    ${subpanel({
+                        title: 'Detection',
+                        cardsHtml: `
+                        ${card({
+                            title: 'Sev0 Incidents',
+                            value: sev0Incidents,
+                            badge: '🛡️',
+                            color: 'red',
+                            onClick: "switchTab('runtime-availability')"
+                        })}
+                        ${card({
+                            title: 'Sev1 Incidents',
+                            value: sev1Incidents,
+                            badge: '🛡️',
+                            color: 'orange',
+                            onClick: "switchTab('runtime-availability')"
+                        })}
+                        ${card({
+                            title: 'Avg MTTD',
+                            value: `${avgMttd}<span class="exec-summary-unit">min</span>`,
+                            badge: '⏱️',
+                            color: 'blue',
+                            onClick: "switchTab('runtime-availability')"
+                        })}
+                        ${card({
+                            title: 'Avg MTTR',
+                            value: `${avgMttr}<span class="exec-summary-unit">min</span>`,
+                            badge: '⏱️',
+                            color: 'purple',
+                            onClick: "switchTab('runtime-availability')"
+                        })}
+                        `
+                    })}
+                    ${subpanel({
+                        title: 'Prevention',
+                        cardsHtml: `
+                            ${card({ title: 'Pre-Release Integration Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
+                            ${card({ title: 'Post-Release Integration Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
+                            ${card({ title: 'Customer Scenario Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
+                            ${card({ title: 'Scale Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
+                            ${card({ title: 'Chaos Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
+                        `
+                    })}
+                    ${subpanel({
+                        title: 'Remediation',
+                        className: 'exec-summary-panel-center',
+                        cardsHtml: `
+                            ${card({ title: 'AIOps', value: 'TBD', badge: '🤖', color: 'gray', disabled: true })}
+                        `
+                    })}
+                </div>
+            </section>
+
+            <div class="exec-summary-section-row">
+                <section class="exec-summary-section exec-summary-scale">
+                    <div class="exec-summary-section-header">Runtime Scale</div>
+                    <div class="exec-summary-grid exec-summary-grid-center">
+                        ${card({
+                            title: 'Overall HPA Adoption Rate',
+                            value: `${hpaAdoptionRate.toFixed(1)}%`,
+                            sub: `${hpaEnabledCount.toLocaleString()}/${totalServices.toLocaleString()} services`,
+                            badge: '⚙️',
+                            color: 'blue',
+                            onClick: "switchTab('runtime-overview')"
+                        })}
+                    </div>
+                    <div class="exec-summary-grid exec-summary-grid-wide exec-summary-grid-spaced">
+                        ${card({
+                            title: 'Avg Bin-Packing Efficiency - FI',
+                            value: `${avgFi.toFixed(1)}%`,
+                            badge: '📈',
+                            color: 'green',
+                            onClick: "switchTab('runtime-karpenter')"
+                        })}
+                        ${card({
+                            title: 'Avg Bin-Packing Efficiency - FD',
+                            value: `${avgFd.toFixed(1)}%`,
+                            badge: '📈',
+                            color: 'green',
+                            onClick: "switchTab('runtime-karpenter')"
+                        })}
+                        ${card({
+                            title: 'Avg Bin-Packing Efficiency - Cluster',
+                            value: `${avgCluster.toFixed(1)}%`,
+                            badge: '📈',
+                            color: 'green',
+                            onClick: "switchTab('runtime-karpenter')"
+                        })}
+                    </div>
+                </section>
+
+                <section class="exec-summary-section exec-summary-cts exec-summary-compact">
+                    <div class="exec-summary-section-header">Cost to Serve</div>
+                    <div class="exec-summary-stack">
+                        ${card({
+                            title: 'Total Predicted Savings',
+                            value: formatCurrencySafe(totalPredictedSavings),
+                            sub: 'FY26 Forecast',
+                            badge: '💰',
+                            color: 'blue',
+                            onClick: "switchTab('cost-to-serve-overview')"
+                        })}
+                        ${card({
+                            title: 'Total Actual Savings',
+                            value: formatCurrencySafe(totalActualSavings),
+                            sub: 'Realized Savings',
+                            badge: '💰',
+                            color: 'green',
+                            onClick: "switchTab('cost-to-serve-overview')"
+                        })}
+                    </div>
+                </section>
+
+                <section class="exec-summary-section exec-summary-onboarding">
+                    <div class="exec-summary-section-header">Onboarding</div>
+                    <div class="exec-summary-grid exec-summary-grid-center">
+                        ${card({
+                            title: 'Overall Adoption Rate',
+                            value: `${overallAdoption.toFixed(1)}%`,
+                            sub: `(${overallFkp.toLocaleString()}/${overallTotal.toLocaleString()})`,
+                            badge: '📊',
+                            color: 'blue',
+                            onClick: "switchTab('executive-overview')"
+                        })}
+                    </div>
+                    <div class="exec-summary-grid exec-summary-grid-wide exec-summary-grid-spaced">
+                        ${card({
+                            title: 'Commercial Adoption',
+                            value: `${commercial.adoptionPct.toFixed(1)}%`,
+                            sub: `(${commercial.fkpInstances.toLocaleString()}/${commercial.totalInstances.toLocaleString()})`,
+                            badge: '📊',
+                            color: 'indigo',
+                            onClick: "switchTab('executive-overview')"
+                        })}
+                        ${card({
+                            title: 'GIA2H Adoption',
+                            value: `${gia.adoptionPct.toFixed(1)}%`,
+                            sub: `(${gia.fkpInstances.toLocaleString()}/${gia.totalInstances.toLocaleString()})`,
+                            badge: '📊',
+                            color: 'indigo',
+                            onClick: "switchTab('executive-overview')"
+                        })}
+                        ${card({
+                            title: 'BlackJack Adoption',
+                            value: `${blackjack.adoptionPct.toFixed(1)}%`,
+                            sub: `(${blackjack.fkpInstances.toLocaleString()}/${blackjack.totalInstances.toLocaleString()})`,
+                            badge: '📊',
+                            color: 'indigo',
+                            onClick: "switchTab('executive-overview')"
+                        })}
+                    </div>
+                </section>
+            </div>
+        `;
+    } catch (error) {
+        console.error('❌ Failed to render executive summary:', error);
+        container.innerHTML = '<div class="exec-summary-loading">Failed to load executive summary.</div>';
+    }
+}
+
+/**
  * Refresh content for the current tab
  */
 function refreshCurrentTab() {
     const currentTab = fkpDashboard.state.currentTab;
     
     switch (currentTab) {
+        case 'exec-summary':
+            renderExecutiveSummary();
+            break;
         case 'executive-overview':
             renderExecutiveOverview();
             break;
@@ -1819,6 +2181,15 @@ function refreshCurrentTab() {
             switchTab('runtime-availability');
             break;
     }
+}
+
+function setExecSummaryView() {
+    if (fkpDashboard.state.currentViewMode === 'developer') {
+        window.location.reload();
+        return;
+    }
+    fkpDashboard.state.currentViewMode = 'exec';
+    switchTab('exec-summary');
 }
 
 /**
@@ -2859,10 +3230,29 @@ function renderAvailabilityInventoryView() {
     }
     
     const inventory = availabilityData.testInventory;
-    const customerCount = inventory.customerScenario.rows.length;
-    const integrationCount = inventory.integration.rows.length;
-    const scalePerfCount = inventory.scalePerf.rows.length;
-    const chaosCount = inventory.chaos.rows.length;
+    const products = getInventoryProducts();
+    const customerRows = mapInventoryRows(inventory.customerScenario.rows, 'customerScenario');
+    const integrationRows = mapInventoryRows(inventory.integration.rows, 'integration');
+    const scalePerfRows = mapInventoryRows(inventory.scalePerf.rows, 'scalePerf');
+    const chaosRows = mapInventoryRows(inventory.chaos.rows, 'chaos');
+    const summary = buildInventorySummary(products, {
+        customerScenario: customerRows,
+        integration: integrationRows,
+        scalePerf: scalePerfRows,
+        chaos: chaosRows
+    });
+    const integrationReleaseCounts = integrationRows.reduce((acc, row) => {
+        const release = (row['Pre-Post Release'] || '').toLowerCase();
+        if (release.includes('post')) acc.post += 1;
+        else if (release.includes('pre')) acc.pre += 1;
+        return acc;
+    }, { pre: 0, post: 0 });
+    const testCounts = {
+        customerScenario: customerRows.length,
+        integration: integrationRows.length,
+        scalePerf: scalePerfRows.length,
+        chaos: chaosRows.length
+    };
     
     container.innerHTML = `
         <div class="availability-dev">
@@ -2881,46 +3271,101 @@ function renderAvailabilityInventoryView() {
                     </button>
                 </header>
                 
-                <div class="inventory-grid">
-                    <div class="inventory-card inventory-card-green" onclick="openInventoryModal('customerScenario')">
-                        <div class="inventory-icon">✅</div>
-                        <div class="inventory-title">Customer Scenario Test View</div>
-                        <div class="inventory-count"><span>${customerCount}</span> tests</div>
+                <div class="inventory-tabs">
+                    <button class="inventory-tab active" onclick="setInventoryTab('all', this)">
+                        <span class="inventory-tab-title">
+                            <span class="inventory-tab-icon">⚙️</span>
+                            <span class="inventory-tab-label">All Tests - Summary</span>
+                        </span>
+                        <span class="inventory-tab-count"><em>${testCounts.customerScenario + testCounts.integration + testCounts.scalePerf + testCounts.chaos} tests</em></span>
+                    </button>
+                    <button class="inventory-tab" onclick="setInventoryTab('customerScenario', this)">
+                        <span class="inventory-tab-title">
+                            <span class="inventory-tab-icon">🧑‍💼</span>
+                            <span class="inventory-tab-label">Customer Scenario Tests</span>
+                        </span>
+                        <span class="inventory-tab-count"><em>${testCounts.customerScenario} tests</em></span>
+                    </button>
+                    <button class="inventory-tab" onclick="setInventoryTab('integration', this)">
+                        <span class="inventory-tab-title">
+                            <span class="inventory-tab-icon">🔗</span>
+                            <span class="inventory-tab-label">Integration Tests</span>
+                        </span>
+                        <span class="inventory-tab-count"><em>${testCounts.integration} tests (${integrationReleaseCounts.post} Post Deploy + ${integrationReleaseCounts.pre} Pre Deploy)</em></span>
+                    </button>
+                    <button class="inventory-tab" onclick="setInventoryTab('scalePerf', this)">
+                        <span class="inventory-tab-title">
+                            <span class="inventory-tab-icon">📈</span>
+                            <span class="inventory-tab-label">Scale & Perf Tests</span>
+                        </span>
+                        <span class="inventory-tab-count"><em>${testCounts.scalePerf} tests</em></span>
+                    </button>
+                    <button class="inventory-tab" onclick="setInventoryTab('chaos', this)">
+                        <span class="inventory-tab-title">
+                            <span class="inventory-tab-icon">🔥</span>
+                            <span class="inventory-tab-label">Chaos Tests</span>
+                        </span>
+                        <span class="inventory-tab-count"><em>${testCounts.chaos} tests</em></span>
+                    </button>
+                </div>
+
+                <div class="inventory-summary-card" id="inventory-summary-card">
+                    <div class="inventory-summary-header">
+                        <h3>HRP Products · Test Coverage Summary</h3>
+                        <div class="inventory-legend">
+                            <span><span class="inv-dot inv-enabled"></span>Enabled</span>
+                            <span><span class="inv-dot inv-partial"></span>Partially Enabled</span>
+                            <span><span class="inv-dot inv-missing"></span>Not Defined</span>
+                        </div>
                     </div>
-                    <div class="inventory-card inventory-card-blue" onclick="openInventoryModal('integration')">
-                        <div class="inventory-icon">✅</div>
-                        <div class="inventory-title">Integration Test View</div>
-                        <div class="inventory-count"><span>${integrationCount}</span> tests</div>
-                    </div>
-                    <div class="inventory-card inventory-card-orange" onclick="openInventoryModal('scalePerf')">
-                        <div class="inventory-icon">✅</div>
-                        <div class="inventory-title">Scale & Perf Test View</div>
-                        <div class="inventory-count"><span>${scalePerfCount}</span> tests</div>
-                    </div>
-                    <div class="inventory-card inventory-card-red" onclick="openInventoryModal('chaos')">
-                        <div class="inventory-icon">✅</div>
-                        <div class="inventory-title">Chaos Test View</div>
-                        <div class="inventory-count"><span>${chaosCount}</span> tests</div>
+                    <div class="inventory-summary-table-wrap">
+                        <table class="inventory-summary-table">
+                            <thead>
+                                <tr>
+                                    <th>HRP Product</th>
+                                    <th>Customer Tests</th>
+                                    <th>Integration Tests</th>
+                                    <th>Scale Tests</th>
+                                    <th>Perf Tests</th>
+                                    <th>Chaos Tests</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${products.map(product => `
+                                    <tr>
+                                        <td>${product}</td>
+                                        ${renderSummaryCell(summary, product, 'customerScenario')}
+                                        ${renderSummaryCell(summary, product, 'integration')}
+                                        ${renderSummaryCell(summary, product, 'scalePerf')}
+                                        ${renderSummaryCell(summary, product, 'scalePerf', true)}
+                                        ${renderSummaryCell(summary, product, 'chaos')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
+                <div class="product-filter-block" id="inventory-product-block" style="display:none;">
+                    <div class="product-filter-header">
+                        <h3 id="inventory-selected-coverage-title">HRP Product Summary - "Selected Test" Coverage</h3>
+                        <div class="inventory-legend">
+                            <span><span class="inv-dot inv-enabled"></span>Enabled</span>
+                            <span><span class="inv-dot inv-partial"></span>Partially Enabled</span>
+                            <span><span class="inv-dot inv-missing"></span>Not Defined</span>
+                        </div>
+                    </div>
+                    <div class="product-filter-row" id="inventory-product-filters"></div>
+                </div>
+
+                <div class="inventory-detail" id="inventory-detail"></div>
             </div>
         </div>
     `;
-    
-    const modalId = 'availability-inventory-modal';
-    if (!document.getElementById(modalId)) {
-        document.body.insertAdjacentHTML('beforeend', `
-            <div class="modal" id="${modalId}" onclick="closeInventoryModal(event)">
-                <div class="modal-content" onclick="event.stopPropagation()">
-                    <div class="modal-header">
-                        <h3 id="availability-inventory-modal-title">Details</h3>
-                        <button class="modal-close" onclick="closeInventoryModal()">&times;</button>
-                    </div>
-                    <div class="modal-body" id="availability-inventory-modal-body"></div>
-                </div>
-            </div>
-        `);
-    }
+
+    inventoryActiveTab = 'all';
+    inventorySelectedProducts.clear();
+    renderInventoryDetail('all');
 }
 
 function renderAvailabilityIngressView() {
@@ -3087,52 +3532,191 @@ function renderAvailabilityIngressView() {
     initIngressAccuracyLine(accuracyTrend);
 }
 
-function openInventoryModal(type) {
-    const modal = document.getElementById('availability-inventory-modal');
-    const titleEl = document.getElementById('availability-inventory-modal-title');
-    const bodyEl = document.getElementById('availability-inventory-modal-body');
-    if (!modal || !titleEl || !bodyEl) return;
+function getInventoryProducts() {
+    return [
+        'Managed Mesh',
+        'Ingress Gateway',
+        'Falcon Kubernetes Service',
+        'WIS',
+        'Vegacache',
+        'Message Queue',
+        'MAPS'
+    ];
+}
+
+function mapInventoryRows(rows, type) {
+    return rows.map(row => {
+        let product = '';
+        if (type === 'customerScenario' || type === 'chaos') {
+            product = row.Product || '';
+        } else if (type === 'integration') {
+            const desc = (row['Test Description'] || '').toLowerCase();
+            product = desc.includes('vegacache') ? 'Vegacache' : 'Falcon Kubernetes Service';
+        } else if (type === 'scalePerf') {
+            const service = (row.Service || '').toLowerCase();
+            if (service.includes('mesh') || service.includes('istio')) product = 'Managed Mesh';
+            else if (service.includes('ingress')) product = 'Ingress Gateway';
+            else if (service.includes('vega')) product = 'Vegacache';
+            else if (service.includes('mq') || service.includes('message')) product = 'Message Queue';
+            else if (service.includes('maps')) product = 'MAPS';
+            else if (service.includes('wis') || service.includes('workload')) product = 'WIS';
+            else product = 'Falcon Kubernetes Service';
+        }
+        if (!product) product = 'Falcon Kubernetes Service';
+        return { ...row, _product: product };
+    });
+}
+
+function getRowStatus(row, type) {
+    if (type === 'customerScenario' || type === 'integration') {
+        return (row.Status || '').toLowerCase() === 'enabled' ? 'enabled' : 'partial';
+    }
+    if (type === 'scalePerf') {
+        return 'enabled';
+    }
+    if (type === 'chaos') {
+        return (row['Configure?'] || '').toLowerCase() === 'yes' ? 'enabled' : 'missing';
+    }
+    return 'missing';
+}
+
+function buildInventorySummary(products, datasets) {
+    const summary = {};
+    products.forEach(product => {
+        summary[product] = {
+            customerScenario: { total: 0, enabled: 0, partial: 0 },
+            integration: { total: 0, enabled: 0, partial: 0 },
+            scalePerf: { total: 0, enabled: 0, partial: 0 },
+            chaos: { total: 0, enabled: 0, partial: 0 }
+        };
+    });
+    Object.entries(datasets).forEach(([type, rows]) => {
+        rows.forEach(row => {
+            const product = summary[row._product] ? row._product : 'Falcon Kubernetes Service';
+            const bucket = summary[product][type];
+            bucket.total += 1;
+            const status = getRowStatus(row, type);
+            if (status === 'enabled') bucket.enabled += 1;
+            if (status === 'partial') bucket.partial += 1;
+        });
+    });
+    return summary;
+}
+
+function renderSummaryCell(summary, product, type, isPerf = false) {
+    const data = summary[product] ? summary[product][type] : { total: 0, enabled: 0, partial: 0 };
+    if (data.total === 0) return `<td><span class="inv-pill inv-missing">—</span></td>`;
+    const enabled = data.enabled;
+    const partial = data.partial;
+    if (type === 'scalePerf' && isPerf) {
+        if (enabled > 0) return `<td><span class="inv-pill inv-enabled">✔</span></td>`;
+        if (partial > 0) return `<td><span class="inv-pill inv-partial">⚠</span></td>`;
+        return `<td><span class="inv-pill inv-missing">✕</span></td>`;
+    }
+    if (enabled === data.total) return `<td><span class="inv-pill inv-enabled">✔</span></td>`;
+    if (enabled > 0 || partial > 0) return `<td><span class="inv-pill inv-partial">⚠</span></td>`;
+    return `<td><span class="inv-pill inv-missing">✕</span></td>`;
+}
+
+let inventoryActiveTab = 'all';
+const inventorySelectedProducts = new Set();
+
+function setInventoryTab(type, btn) {
+    inventoryActiveTab = type;
+    document.querySelectorAll('.inventory-tab').forEach(tab => tab.classList.remove('active'));
+    btn.classList.add('active');
+    const summary = document.getElementById('inventory-summary-card');
+    const filterBlock = document.getElementById('inventory-product-block');
+    if (summary) summary.style.display = type === 'all' ? 'block' : 'none';
+    if (filterBlock) filterBlock.style.display = type === 'all' ? 'none' : 'block';
+    if (type !== 'all') {
+        renderProductFilterRow(type);
+    }
+    renderInventoryDetail(type);
+}
+
+function toggleInventoryProduct(product, btn) {
+    if (inventorySelectedProducts.has(product)) {
+        inventorySelectedProducts.delete(product);
+        btn.classList.remove('active');
+    } else {
+        inventorySelectedProducts.add(product);
+        btn.classList.add('active');
+    }
+    renderInventoryDetail(inventoryActiveTab);
+}
+
+function renderProductFilterRow(type) {
+    const filterRow = document.getElementById('inventory-product-filters');
+    const titleEl = document.getElementById('inventory-selected-coverage-title');
+    if (!filterRow) return;
+    if (titleEl) {
+        const label = type === 'customerScenario'
+            ? 'Customer Scenario'
+            : type === 'integration'
+                ? 'Integration'
+                : type === 'scalePerf'
+                    ? 'Scale & Perf'
+                    : type === 'chaos'
+                        ? 'Chaos'
+                        : 'Selected';
+        titleEl.textContent = `HRP Product Summary - "${label} Test" Coverage`;
+    }
+    const products = getInventoryProducts();
+    const summary = buildInventorySummary(products, {
+        customerScenario: mapInventoryRows(availabilityData.testInventory.customerScenario.rows, 'customerScenario'),
+        integration: mapInventoryRows(availabilityData.testInventory.integration.rows, 'integration'),
+        scalePerf: mapInventoryRows(availabilityData.testInventory.scalePerf.rows, 'scalePerf'),
+        chaos: mapInventoryRows(availabilityData.testInventory.chaos.rows, 'chaos')
+    });
+    filterRow.innerHTML = products.map(product => `
+        <button class="product-pill ${inventorySelectedProducts.has(product) ? 'active' : ''}" onclick="toggleInventoryProduct('${product}', this)">
+            ${product}
+            <span class="inv-pill ${getProductStatusClass(summary, product, type)}">${getProductStatusIcon(summary, product, type)}</span>
+        </button>
+    `).join('');
+}
+
+function renderInventoryDetail(type) {
+    const container = document.getElementById('inventory-detail');
+    if (!container) return;
+    
+    if (type === 'all') {
+        container.innerHTML = '';
+        return;
+    }
     
     const inventory = availabilityData.testInventory;
-    const modalMap = {
+    const map = {
         customerScenario: {
             title: 'Customer Scenario Test View',
-            data: inventory.customerScenario
+            data: inventory.customerScenario,
+            columns: ['Product', 'Purpose', 'Status', 'Frequency', 'Details']
         },
         integration: {
             title: 'Integration Test View',
-            data: inventory.integration
+            data: inventory.integration,
+            columns: ['Pre-Post Release', 'Purpose', 'Test Name', 'Status', 'Test Description']
         },
         scalePerf: {
             title: 'Scale & Perf Test View',
-            data: inventory.scalePerf
+            data: inventory.scalePerf,
+            columns: ['Service', 'Type', 'Test Available', 'Frequency', 'Tier']
         },
         chaos: {
             title: 'Chaos Test View',
-            data: inventory.chaos
+            data: inventory.chaos,
+            columns: ['Product', 'Available Test in Chaos platform', 'Configure?', 'Frequency', 'Comment']
         }
     };
     
-    const selected = modalMap[type];
+    const selected = map[type];
     if (!selected) return;
     
-    titleEl.textContent = selected.title;
-    bodyEl.innerHTML = buildInventoryTable(selected.data.headers, selected.data.rows);
-    modal.style.display = 'block';
-}
-
-function closeInventoryModal(event) {
-    const modal = document.getElementById('availability-inventory-modal');
-    if (!modal) return;
-    if (event && event.target && event.target !== modal) {
-        return;
-    }
-    modal.style.display = 'none';
-}
-
-function buildInventoryTable(headers, rows) {
-    if (!headers.length) {
-        return `<div class="modal-text">No data available.</div>`;
+    const headers = selected.columns.filter(col => selected.data.headers.includes(col));
+    let rows = mapInventoryRows(selected.data.rows, type);
+    if (inventorySelectedProducts.size > 0) {
+        rows = rows.filter(row => inventorySelectedProducts.has(row._product));
     }
     
     const headerRow = headers.map(h => `<th>${h}</th>`).join('');
@@ -3141,14 +3725,52 @@ function buildInventoryTable(headers, rows) {
         return `<tr>${cells}</tr>`;
     }).join('');
     
-    return `
-        <div class="modal-table-scroll">
-            <table class="availability-modal-table">
-                <thead><tr>${headerRow}</tr></thead>
-                <tbody>${bodyRows || `<tr><td colspan="${headers.length}" class="empty-state">No rows</td></tr>`}</tbody>
-            </table>
+    container.innerHTML = `
+        <div class="inventory-detail-card">
+            <div class="inventory-detail-header">
+                <h3>${selected.title}</h3>
+                <span>${rows.length} tests</span>
+            </div>
+            <div class="modal-table-scroll">
+                <table class="availability-modal-table">
+                    <thead><tr>${headerRow}</tr></thead>
+                    <tbody>${bodyRows || `<tr><td colspan="${headers.length}" class="empty-state">No rows</td></tr>`}</tbody>
+                </table>
+            </div>
         </div>
     `;
+}
+
+function getProductStatusClass(summary, product, tab) {
+    const status = getProductStatus(summary, product, tab);
+    return status === 'enabled' ? 'inv-enabled' : status === 'partial' ? 'inv-partial' : 'inv-missing';
+}
+
+function getProductStatusIcon(summary, product, tab) {
+    const status = getProductStatus(summary, product, tab);
+    return status === 'enabled' ? '✔' : status === 'partial' ? '⚠' : '✕';
+}
+
+function getProductStatus(summary, product, tab) {
+    const types = ['customerScenario', 'integration', 'scalePerf', 'chaos'];
+    if (tab === 'all') {
+        let hasEnabled = false;
+        let hasPartial = false;
+        types.forEach(type => {
+            const bucket = summary[product]?.[type];
+            if (!bucket) return;
+            if (bucket.enabled > 0) hasEnabled = true;
+            if (bucket.partial > 0) hasPartial = true;
+        });
+        if (hasEnabled) return 'enabled';
+        if (hasPartial) return 'partial';
+        return 'missing';
+    }
+    const bucket = summary[product]?.[tab];
+    if (!bucket || bucket.total === 0) return 'missing';
+    if (bucket.enabled > 0) return 'enabled';
+    if (bucket.partial > 0) return 'partial';
+    return 'missing';
 }
 
 let ingressDonutChart = null;
@@ -7790,6 +8412,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle main nav item click (expand/collapse)
     document.querySelectorAll('.nav-item.main-item').forEach(item => {
         item.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            if (tabName) {
+                if (tabName === 'exec-summary') {
+                    setExecSummaryView();
+                } else {
+                    switchTab(tabName);
+                }
+                document.querySelectorAll('.nav-subitems').forEach(list => list.classList.remove('active'));
+                document.querySelectorAll('.nav-item.main-item').forEach(main => main.classList.remove('active'));
+                this.classList.add('active');
+                return;
+            }
+            
             const section = this.getAttribute('data-section');
             const subitems = document.getElementById(section + '-subitems');
             const wasActive = subitems && subitems.classList.contains('active');

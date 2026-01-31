@@ -292,14 +292,14 @@ async function initializeFKPDashboard() {
         // Default to Executive Summary on initial load
         switchTab(fkpDashboard.state.currentTab || 'exec-summary');
         
+        const pageHeader = document.querySelector('.page-header');
+        const headerControls = document.querySelector('.header-controls');
+        const viewToggleContainer = document.querySelector('.view-toggle-container');
+        const execBtn = document.querySelector('.view-mode-btn[data-view="exec"]');
+        const devBtn = document.querySelector('.view-mode-btn[data-view="developer"]');
+
         // Ensure view buttons are visible (except exec summary)
         if (fkpDashboard.state.currentTab !== 'exec-summary') {
-            const pageHeader = document.querySelector('.page-header');
-            const headerControls = document.querySelector('.header-controls');
-            const viewToggleContainer = document.querySelector('.view-toggle-container');
-            const execBtn = document.querySelector('.view-mode-btn[data-view="exec"]');
-            const devBtn = document.querySelector('.view-mode-btn[data-view="developer"]');
-            
             // Force visibility of all header elements
             if (pageHeader) {
                 pageHeader.style.display = 'flex';
@@ -343,16 +343,16 @@ async function initializeFKPDashboard() {
                     opacity: computed.opacity
                 });
             }
-        }
-        if (viewToggleContainer) {
-            const computed = window.getComputedStyle(viewToggleContainer);
-            console.log('🔍 view-toggle-container computed styles:', {
-                display: computed.display,
-                visibility: computed.visibility,
-                width: computed.width,
-                height: computed.height,
-                opacity: computed.opacity
-            });
+            if (viewToggleContainer) {
+                const computed = window.getComputedStyle(viewToggleContainer);
+                console.log('🔍 view-toggle-container computed styles:', {
+                    display: computed.display,
+                    visibility: computed.visibility,
+                    width: computed.width,
+                    height: computed.height,
+                    opacity: computed.opacity
+                });
+            }
         }
         
         refreshCurrentTab();

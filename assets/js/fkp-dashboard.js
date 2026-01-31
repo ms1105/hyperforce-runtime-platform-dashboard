@@ -323,26 +323,26 @@ async function initializeFKPDashboard() {
                 devBtn.style.setProperty('visibility', 'visible', 'important');
                 devBtn.style.setProperty('opacity', '1', 'important');
             }
-        }
-        
-        console.log('✅ View buttons initialized:', {
-            pageHeader: !!pageHeader,
-            headerControls: !!headerControls,
-            viewToggleContainer: !!viewToggleContainer,
-            execBtn: !!execBtn,
-            devBtn: !!devBtn
-        });
-        
-        // Additional check: Log computed styles to debug
-        if (headerControls) {
-            const computed = window.getComputedStyle(headerControls);
-            console.log('🔍 header-controls computed styles:', {
-                display: computed.display,
-                visibility: computed.visibility,
-                width: computed.width,
-                height: computed.height,
-                opacity: computed.opacity
+            
+            console.log('✅ View buttons initialized:', {
+                pageHeader: !!pageHeader,
+                headerControls: !!headerControls,
+                viewToggleContainer: !!viewToggleContainer,
+                execBtn: !!execBtn,
+                devBtn: !!devBtn
             });
+            
+            // Additional check: Log computed styles to debug
+            if (headerControls) {
+                const computed = window.getComputedStyle(headerControls);
+                console.log('🔍 header-controls computed styles:', {
+                    display: computed.display,
+                    visibility: computed.visibility,
+                    width: computed.width,
+                    height: computed.height,
+                    opacity: computed.opacity
+                });
+            }
         }
         if (viewToggleContainer) {
             const computed = window.getComputedStyle(viewToggleContainer);

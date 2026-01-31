@@ -158,26 +158,40 @@ function switchViewMode(mode) {
     
     // Check if current tab is hidden in new view
     if (currentTabEl && currentTabEl.style.display === 'none') {
-        // Try to find corresponding tab first
-        const correspondingTab = tabCorrespondence[currentTab];
-        if (correspondingTab) {
-            const correspondingTabEl = document.querySelector(`[data-tab="${correspondingTab}"]`);
-            if (correspondingTabEl && correspondingTabEl.style.display !== 'none') {
-                switchTab(correspondingTab);
-                console.log('✅ Switched to corresponding tab:', correspondingTab);
-                return;
+        // In Developer view, always switch to first visible tab in section
+        if (mode === 'developer') {
+            const parentSection = currentTabEl.closest('.nav-section');
+            if (parentSection) {
+                const firstVisibleInSection = parentSection.querySelector('.nav-subitem:not([style*="display: none"])');
+                if (firstVisibleInSection) {
+                    const newTabId = firstVisibleInSection.dataset.tab;
+                    switchTab(newTabId);
+                    console.log('✅ Switched to first visible tab:', newTabId);
+                    return;
+                }
             }
-        }
-        
-        // Fallback: Find first visible tab in current section
-        const parentSection = currentTabEl.closest('.nav-section');
-        if (parentSection) {
-            const firstVisibleInSection = parentSection.querySelector('.nav-subitem:not([style*="display: none"])');
-            if (firstVisibleInSection) {
-                const newTabId = firstVisibleInSection.dataset.tab;
-                switchTab(newTabId);
-                console.log('✅ Switched to first visible tab:', newTabId);
-                return;
+        } else {
+            // In Exec view, try to find corresponding tab first
+            const correspondingTab = tabCorrespondence[currentTab];
+            if (correspondingTab) {
+                const correspondingTabEl = document.querySelector(`[data-tab="${correspondingTab}"]`);
+                if (correspondingTabEl && correspondingTabEl.style.display !== 'none') {
+                    switchTab(correspondingTab);
+                    console.log('✅ Switched to corresponding tab:', correspondingTab);
+                    return;
+                }
+            }
+            
+            // Fallback: Find first visible tab in current section
+            const parentSection = currentTabEl.closest('.nav-section');
+            if (parentSection) {
+                const firstVisibleInSection = parentSection.querySelector('.nav-subitem:not([style*="display: none"])');
+                if (firstVisibleInSection) {
+                    const newTabId = firstVisibleInSection.dataset.tab;
+                    switchTab(newTabId);
+                    console.log('✅ Switched to first visible tab:', newTabId);
+                    return;
+                }
             }
         }
     }
@@ -1964,6 +1978,7 @@ async function renderExecutiveSummary() {
                         ${card({
                             title: 'Sev0 Incidents',
                             value: sev0Incidents,
+                            sub: 'Past 1 year',
                             badge: '🛡️',
                             color: 'red',
                             onClick: "switchTab('runtime-availability')"
@@ -1971,6 +1986,7 @@ async function renderExecutiveSummary() {
                         ${card({
                             title: 'Sev1 Incidents',
                             value: sev1Incidents,
+                            sub: 'Past 1 year',
                             badge: '🛡️',
                             color: 'orange',
                             onClick: "switchTab('runtime-availability')"

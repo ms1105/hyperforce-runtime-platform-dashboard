@@ -1947,9 +1947,11 @@ async function renderExecutiveSummary() {
             disabled = false
         }) => `
             <div class="exec-summary-card exec-summary-${color} ${disabled ? 'disabled' : 'clickable'}"
-                 ${onClick && !disabled ? `onclick="${onClick}"` : ''}>
-                <div class="exec-summary-badge">${badge || ''}</div>
-                <div class="exec-summary-label">${title}</div>
+                 ${onClick ? `onclick="${onClick}"` : ''}>
+                <div class="exec-summary-title-row">
+                    <div class="exec-summary-label">${title}</div>
+                    <div class="exec-summary-badge">${badge || ''}</div>
+                </div>
                 <div class="exec-summary-value">${value}</div>
                 ${sub ? `<div class="exec-summary-sub">${sub}</div>` : ''}
             </div>
@@ -2010,18 +2012,18 @@ async function renderExecutiveSummary() {
                     ${subpanel({
                         title: 'Prevention',
                         cardsHtml: `
-                            ${card({ title: 'Pre-Release Integration Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
-                            ${card({ title: 'Post-Release Integration Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
-                            ${card({ title: 'Customer Scenario Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
-                            ${card({ title: 'Scale Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
-                            ${card({ title: 'Chaos Tests', value: 'TBD', badge: '🧪', color: 'gray', disabled: true })}
+                            ${card({ title: 'Pre-Release Integration Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
+                            ${card({ title: 'Post-Release Integration Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
+                            ${card({ title: 'Customer Scenario Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
+                            ${card({ title: 'Scale Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
+                            ${card({ title: 'Chaos Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
                         `
                     })}
                     ${subpanel({
                         title: 'Remediation',
                         className: 'exec-summary-panel-center',
                         cardsHtml: `
-                            ${card({ title: 'AIOps', value: 'TBD', badge: '🤖', color: 'gray', disabled: true })}
+                            ${card({ title: 'AIOps', value: 'TBD', badge: '🤖', color: 'gray', onClick: "switchTab('runtime-availability')" })}
                         `
                     })}
                 </div>
@@ -2030,7 +2032,7 @@ async function renderExecutiveSummary() {
             <div class="exec-summary-section-row">
                 <section class="exec-summary-section exec-summary-scale">
                     <div class="exec-summary-section-header">Runtime Scale</div>
-                    <div class="exec-summary-grid exec-summary-grid-center">
+                    <div class="exec-summary-grid exec-summary-grid-wide">
                         ${card({
                             title: 'Overall HPA Adoption Rate',
                             value: `${hpaAdoptionRate.toFixed(1)}%`,
@@ -2039,8 +2041,6 @@ async function renderExecutiveSummary() {
                             color: 'blue',
                             onClick: "switchTab('runtime-overview')"
                         })}
-                    </div>
-                    <div class="exec-summary-grid exec-summary-grid-wide exec-summary-grid-spaced">
                         ${card({
                             title: 'Avg Bin-Packing Efficiency - FI',
                             value: `${avgFi.toFixed(1)}%`,
@@ -2065,7 +2065,7 @@ async function renderExecutiveSummary() {
                     </div>
                 </section>
 
-                <section class="exec-summary-section exec-summary-cts exec-summary-compact">
+                <section class="exec-summary-section exec-summary-cts">
                     <div class="exec-summary-section-header">Cost to Serve</div>
                     <div class="exec-summary-stack">
                         ${card({
@@ -2089,7 +2089,7 @@ async function renderExecutiveSummary() {
 
                 <section class="exec-summary-section exec-summary-onboarding">
                     <div class="exec-summary-section-header">Onboarding</div>
-                    <div class="exec-summary-grid exec-summary-grid-center">
+                    <div class="exec-summary-grid exec-summary-grid-wide">
                         ${card({
                             title: 'Overall Adoption Rate',
                             value: `${overallAdoption.toFixed(1)}%`,
@@ -2098,8 +2098,6 @@ async function renderExecutiveSummary() {
                             color: 'blue',
                             onClick: "switchTab('executive-overview')"
                         })}
-                    </div>
-                    <div class="exec-summary-grid exec-summary-grid-wide exec-summary-grid-spaced">
                         ${card({
                             title: 'Commercial Adoption',
                             value: `${commercial.adoptionPct.toFixed(1)}%`,

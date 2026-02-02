@@ -1858,34 +1858,80 @@ async function renderExecutiveSummary() {
 
         // Runtime Availability metrics
         const incidents = availabilityData.incidents || [];
-        const sev0Incidents = incidents.filter(inc => inc.severity === 'Sev0').length;
-        const sev1Incidents = incidents.filter(inc => inc.severity === 'Sev1').length;
         const now = new Date();
+        const latestIncidentDate = getLatestIncidentDate(incidents);
+        const elevenMonthStart = new Date(latestIncidentDate);
+        elevenMonthStart.setMonth(elevenMonthStart.getMonth() - 10);
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const recentIncidents = incidents.filter(inc => {
+        const msPerDay = 24 * 60 * 60 * 1000;
+
+        const getIncidentsInWindow = (severity) => incidents.filter(inc => {
             const incDate = new Date(inc.detected_date);
-            return incDate >= thirtyDaysAgo && incDate <= now;
+            if (Number.isNaN(incDate.getTime())) return false;
+            return inc.severity === severity && incDate >= elevenMonthStart && incDate <= latestIncidentDate;
         });
-        let avgMttd = 0;
-        let avgMttr = 0;
-        if (recentIncidents.length > 0) {
-            const validMttd = recentIncidents.filter(inc => parseFloat(inc.ttd_min) > 0);
-            const validMttr = recentIncidents.filter(inc => parseFloat(inc.ttr_min) > 0);
-            if (validMttd.length > 0) {
-                const totalMttd = validMttd.reduce((sum, inc) => sum + parseFloat(inc.ttd_min || 0), 0);
-                avgMttd = Math.round(totalMttd / validMttd.length);
-            }
-            if (validMttr.length > 0) {
-                const totalMttr = validMttr.reduce((sum, inc) => sum + parseFloat(inc.ttr_min || 0), 0);
-                avgMttr = Math.round(totalMttr / validMttr.length);
-            }
-        }
+
+        const getRecentIncidents = (severity) => incidents.filter(inc => {
+            const incDate = new Date(inc.detected_date);
+            if (Number.isNaN(incDate.getTime())) return false;
+            return inc.severity === severity && incDate >= thirtyDaysAgo && incDate <= now;
+        });
+
+        const calcAvg = (rows, field) => {
+            const valid = rows.filter(inc => parseFloat(inc[field]) > 0);
+            if (!valid.length) return 0;
+            const total = valid.reduce((sum, inc) => sum + parseFloat(inc[field] || 0), 0);
+            return Math.round(total / valid.length);
+        };
+
+        const getLatestBySeverity = (severity) => {
+            let latest = null;
+            incidents.forEach(inc => {
+                if (inc.severity !== severity) return;
+                const date = new Date(inc.detected_date);
+                if (Number.isNaN(date.getTime())) return;
+                if (!latest || date > latest) latest = date;
+            });
+            return latest;
+        };
+
+        const sev0Window = getIncidentsInWindow('Sev0');
+        const sev1Window = getIncidentsInWindow('Sev1');
+        const sev0Recent = getRecentIncidents('Sev0');
+        const sev1Recent = getRecentIncidents('Sev1');
+        const sev0Incidents = sev0Window.length;
+        const sev1Incidents = sev1Window.length;
+        const avgMttdSev0 = calcAvg(sev0Recent, 'ttd_min');
+        const avgMttrSev0 = calcAvg(sev0Recent, 'ttr_min');
+        const avgMttdSev1 = calcAvg(sev1Recent, 'ttd_min');
+        const avgMttrSev1 = calcAvg(sev1Recent, 'ttr_min');
+        const sev0Latest = getLatestBySeverity('Sev0');
+        const sev1Latest = getLatestBySeverity('Sev1');
+        const sev0DaysSince = sev0Latest ? Math.max(0, Math.floor((now - sev0Latest) / msPerDay)) : null;
+        const sev1DaysSince = sev1Latest ? Math.max(0, Math.floor((now - sev1Latest) / msPerDay)) : null;
+        const sev0Months = Array.from(new Set(sev0Window.map(inc => {
+            const date = new Date(inc.detected_date);
+            return Number.isNaN(date.getTime()) ? null : formatDetectedMonth(date);
+        }).filter(Boolean)));
+        const sev1ServiceCount = new Set(sev1Window.map(inc => inc.prb_owner).filter(Boolean)).size;
+        const slaClass = (avg, target) => {
+            if (!avg || avg <= 0) return 'text-slate';
+            return avg <= target ? 'text-green' : 'text-red';
+        };
 
         // Runtime Scale metrics (Autoscaling)
         const services = autoscalingData.services || [];
         const totalServices = services.length || 0;
         const hpaEnabledCount = services.filter(s => s.hpa > 0).length;
         const hpaAdoptionRate = totalServices > 0 ? ((hpaEnabledCount / totalServices) * 100) : 0;
+        const tier0Services = services.filter(s => s.serviceTier === 0);
+        const tier1Services = services.filter(s => s.serviceTier === 1);
+        const tier0Total = tier0Services.length;
+        const tier1Total = tier1Services.length;
+        const tier0Hpa = tier0Services.filter(s => s.hpa > 0).length;
+        const tier1Hpa = tier1Services.filter(s => s.hpa > 0).length;
+        const tier0HpaRate = tier0Total > 0 ? ((tier0Hpa / tier0Total) * 100) : 0;
+        const tier1HpaRate = tier1Total > 0 ? ((tier1Hpa / tier1Total) * 100) : 0;
 
         // Runtime Scale metrics (Karpenter)
         const filteredKarpenter = filterKarpenterData(karpenterData.mainSummary || [], true);
@@ -1937,194 +1983,437 @@ async function renderExecutiveSummary() {
             return value !== null ? `$${(value / 1000000).toFixed(2)}M` : '--';
         };
 
-        const card = ({
+        const formatCurrencySigned = (value) => {
+            if (value === null) return '--';
+            const abs = Math.abs(value);
+            const formatted = formatCurrencySafe(abs);
+            return value < 0 ? `-${formatted}` : formatted;
+        };
+
+        const varianceValue = (totalPredictedSavings !== null && totalActualSavings !== null)
+            ? totalActualSavings - totalPredictedSavings
+            : null;
+        const achievementRate = (totalPredictedSavings && totalActualSavings !== null)
+            ? (totalActualSavings / totalPredictedSavings) * 100
+            : null;
+
+        // FIT data for prevention KPIs
+        const fitRows = availabilityData.fitData?.rows || [];
+
+        const normalizeValue = (value) => (value || '').toString().trim().toLowerCase();
+        const parseFailureRate = (value) => {
+            const num = parseFloat((value || '').toString().replace('%', '').trim());
+            return Number.isNaN(num) ? null : num;
+        };
+        const parseRunDate = (value) => {
+            if (!value) return null;
+            const cleaned = value.toString().replace(' @ ', ' ');
+            const date = new Date(cleaned);
+            return Number.isNaN(date.getTime()) ? null : date;
+        };
+        const getRunTypeRows = (rows, typeKey) => rows.filter(r =>
+            normalizeValue(r['Run Type']).includes(typeKey)
+        );
+        const getLast30Rows = (rows) => rows.filter(r => {
+            const date = parseRunDate(r['Run Time']);
+            return date && date >= thirtyDaysAgo && date <= now;
+        });
+        const uniqueProductCount = (rows) => new Set(rows.map(r => r.Product).filter(Boolean)).size;
+        const sumTests = (rows) => rows.reduce((sum, r) => sum + (parseInt(r.Tests || 0, 10) || 0), 0);
+        const calcSuccessRate = (rows) => {
+            const rates = rows.map(r => parseFailureRate(r['Failure Rate'])).filter(v => v !== null);
+            if (!rates.length) return null;
+            const avgFailure = rates.reduce((a, b) => a + b, 0) / rates.length;
+            return Math.max(0, 100 - avgFailure);
+        };
+        const calcSuccessRateWindow = (rows, start, end) => {
+            const windowed = rows.filter(r => {
+                const date = parseRunDate(r['Run Time']);
+                return date && date >= start && date <= end;
+            });
+            return calcSuccessRate(windowed);
+        };
+        const formatDelta = (current, previous) => {
+            if (current === null || previous === null) return { text: 'No change vs last month', className: 'text-slate' };
+            const delta = current - previous;
+            const abs = Math.abs(delta).toFixed(1);
+            if (delta === 0) return { text: 'No change vs last month', className: 'text-slate' };
+            return {
+                text: `${delta > 0 ? '↑' : '↓'} ${abs}% vs last month`,
+                className: delta > 0 ? 'text-green' : 'text-red'
+            };
+        };
+
+        const preRows = getRunTypeRows(fitRows, 'predeployment');
+        const postRows = getRunTypeRows(fitRows, 'postdeployment');
+        const preLast30 = getLast30Rows(preRows);
+        const postLast30 = getLast30Rows(postRows);
+        const prevThirtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        const prePrevWindowStart = new Date(prevThirtyDaysAgo.getFullYear(), prevThirtyDaysAgo.getMonth(), 1);
+        const prePrev30 = preRows.filter(r => {
+            const date = parseRunDate(r['Run Time']);
+            return date && date >= prePrevWindowStart && date < thirtyDaysAgo;
+        });
+        const postPrev30 = postRows.filter(r => {
+            const date = parseRunDate(r['Run Time']);
+            return date && date >= prevThirtyDaysAgo && date < thirtyDaysAgo;
+        });
+        const preProductCount = uniqueProductCount(preRows);
+        const preTestsCount = sumTests(preRows);
+        const preServiceCount = new Set(preRows.map(r => r.Service).filter(Boolean)).size;
+        const preSuccessRate = calcSuccessRate(preLast30);
+        const postSuccessRate = calcSuccessRate(postLast30);
+        const prePrevSuccess = calcSuccessRate(prePrev30);
+        const postPrevSuccess = calcSuccessRate(postPrev30);
+        const preDelta = formatDelta(preSuccessRate, prePrevSuccess);
+        const postDelta = formatDelta(postSuccessRate, postPrevSuccess);
+
+        // Customer Scenario and Chaos product counts
+        const customerScenarioRows = availabilityData.testInventory.customerScenario.rows || [];
+        const chaosRows = availabilityData.testInventory.chaos.rows || [];
+        const scalePerfRows = mapInventoryRows(availabilityData.testInventory.scalePerf.rows || [], 'scalePerf');
+        const customerMapped = mapInventoryRows(customerScenarioRows, 'customerScenario');
+        const chaosMapped = mapInventoryRows(chaosRows, 'chaos');
+
+        const getStatus = (row) => normalizeValue(row.Status);
+        const enabledProducts = new Set();
+        const plannedProducts = new Set();
+        let enabledTests = 0;
+        customerMapped.forEach(row => {
+            const product = row._product;
+            const status = getStatus(row);
+            if (status === 'enabled') {
+                enabledProducts.add(product);
+                enabledTests += 1;
+            } else if (status === 'not enabled' || status === 'partial') {
+                plannedProducts.add(product);
+            }
+        });
+
+        const chaosEnabledProducts = new Set();
+        const chaosAllProducts = new Set();
+        let chaosPlannedTests = 0;
+        chaosMapped.forEach(row => {
+            const product = row._product;
+            chaosAllProducts.add(product);
+            const enabledValue = normalizeValue(row.Enabled);
+            if (enabledValue === 'enabled') {
+                chaosEnabledProducts.add(product);
+            } else if (enabledValue === 'not enabled' || enabledValue === 'tbd' || enabledValue === 'planned') {
+                chaosPlannedTests += 1;
+            } else {
+                const frequency = normalizeValue(row.Frequency);
+                if (frequency && frequency !== 'not enabled' && frequency !== 'tbd') {
+                    chaosEnabledProducts.add(product);
+                } else {
+                    chaosPlannedTests += 1;
+                }
+            }
+        });
+
+        const scalePerfProducts = new Set(scalePerfRows.map(row => row._product).filter(Boolean));
+        const scalePerfSummary = buildInventorySummary(getInventoryProducts(), {
+            scalePerf: scalePerfRows
+        });
+        const scalePerfEnabledProducts = new Set();
+        Object.keys(scalePerfSummary).forEach(product => {
+            const bucket = scalePerfSummary[product]?.scalePerf;
+            if (bucket && bucket.enabled > 0) {
+                scalePerfEnabledProducts.add(product);
+            }
+        });
+        const testMttrHours = 4.2;
+        const testMttrSub = '↓ 1.3 hrs improvement';
+
+        const kpiCard = ({
             title,
             value,
             sub,
-            badge,
-            color = 'blue',
-            onClick,
-            disabled = false
+            subClass = '',
+            valueClass = '',
+            onClick
         }) => `
-            <div class="exec-summary-card exec-summary-${color} ${disabled ? 'disabled' : 'clickable'}"
-                 ${onClick ? `onclick="${onClick}"` : ''}>
-                <div class="exec-summary-title-row">
-                    <div class="exec-summary-label">${title}</div>
-                    <div class="exec-summary-badge">${badge || ''}</div>
-                </div>
-                <div class="exec-summary-value">${value}</div>
-                ${sub ? `<div class="exec-summary-sub">${sub}</div>` : ''}
+            <div class="exec-summary-kpi-card ${onClick ? 'clickable' : ''}" ${onClick ? `onclick="${onClick}"` : ''}>
+                <div class="exec-summary-kpi-label">${title}</div>
+                <div class="exec-summary-kpi-value ${valueClass}">${value}</div>
+                <div class="exec-summary-kpi-sub ${subClass}">${sub || ''}</div>
             </div>
         `;
 
-        const subpanel = ({ title, cardsHtml, className = '' }) => `
-            <div class="exec-summary-panel ${className}">
-                <div class="exec-summary-panel-title">${title}</div>
-                <div class="exec-summary-panel-grid">
-                    ${cardsHtml}
-                </div>
-            </div>
-        `;
+        const sectionDivider = '<div class="exec-summary-divider"></div>';
 
         container.innerHTML = `
             <div class="exec-summary-banner">
                 HRP 360 - Consolidated Dashboard Driving Platform Excellence through Unified Visibility and Adoption
             </div>
 
-            <section class="exec-summary-section exec-summary-availability">
-                <div class="exec-summary-section-header">Runtime Availability</div>
-                <div class="exec-summary-panel-row">
-                    ${subpanel({
-                        title: 'Detection',
-                        cardsHtml: `
-                        ${card({
-                            title: 'Sev0 Incidents',
+            <section class="exec-summary-section">
+                <div class="exec-summary-section-header"><span class="exec-summary-section-icon">🛡️</span>Runtime Availability - Detection KPIs</div>
+                <div class="exec-summary-section-card">
+                    <div class="exec-summary-kpi-row sev0-row">
+                        <div class="exec-summary-kpi-grid columns-4">
+                        ${kpiCard({
+                            title: 'Sev0 Incidents (11MO)',
                             value: sev0Incidents,
-                            sub: 'Past 1 year',
-                            badge: '🛡️',
-                            color: 'red',
-                            onClick: "switchTab('runtime-availability')"
+                            sub: sev0Months.length ? `${sev0Incidents} total (${sev0Months.join(', ')})` : `${sev0Incidents} total`,
+                            valueClass: 'text-red',
+                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
                         })}
-                        ${card({
-                            title: 'Sev1 Incidents',
+                        ${kpiCard({
+                            title: 'Avg MTTD (Last 30 D)',
+                            value: `${avgMttdSev0}<span class="exec-summary-unit">min</span>`,
+                            sub: 'SLA Target <10 min',
+                            valueClass: slaClass(avgMttdSev0, 10),
+                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                        })}
+                        ${kpiCard({
+                            title: 'Avg MTTR (Last 30 D)',
+                            value: `${avgMttrSev0}<span class="exec-summary-unit">min</span>`,
+                            sub: 'SLA Target <30 min',
+                            valueClass: slaClass(avgMttrSev0, 30),
+                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                        })}
+                        ${kpiCard({
+                            title: 'Days Since Last Incident',
+                            value: sev0DaysSince !== null ? `${sev0DaysSince}` : '--',
+                            sub: sev0DaysSince !== null ? 'Days since last incident' : 'No Sev0 incidents',
+                            valueClass: 'text-red days-number',
+                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                        })}
+                        </div>
+                    </div>
+                    <div class="exec-summary-kpi-row sev1-row">
+                        <div class="exec-summary-kpi-grid columns-4">
+                        ${kpiCard({
+                            title: 'Sev1 Incidents (11MO)',
                             value: sev1Incidents,
-                            sub: 'Past 1 year',
-                            badge: '🛡️',
-                            color: 'orange',
-                            onClick: "switchTab('runtime-availability')"
+                            sub: sev1ServiceCount > 0 ? `${sev1Incidents} total across ${sev1ServiceCount} services` : `${sev1Incidents} total`,
+                            valueClass: 'text-orange',
+                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
                         })}
-                        ${card({
-                            title: 'Avg MTTD',
-                            value: `${avgMttd}<span class="exec-summary-unit">min</span>`,
-                            badge: '⏱️',
-                            color: 'blue',
-                            onClick: "switchTab('runtime-availability')"
+                        ${kpiCard({
+                            title: 'Avg MTTD (Last 30 D)',
+                            value: `${avgMttdSev1}<span class="exec-summary-unit">min</span>`,
+                            sub: 'SLA Target <10 min',
+                            valueClass: slaClass(avgMttdSev1, 10),
+                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
                         })}
-                        ${card({
-                            title: 'Avg MTTR',
-                            value: `${avgMttr}<span class="exec-summary-unit">min</span>`,
-                            badge: '⏱️',
-                            color: 'purple',
-                            onClick: "switchTab('runtime-availability')"
+                        ${kpiCard({
+                            title: 'Avg MTTR (Last 30 D)',
+                            value: `${avgMttrSev1}<span class="exec-summary-unit">min</span>`,
+                            sub: 'SLA Target <30 min',
+                            valueClass: slaClass(avgMttrSev1, 30),
+                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
                         })}
-                        `
-                    })}
-                    ${subpanel({
-                        title: 'Prevention',
-                        cardsHtml: `
-                            ${card({ title: 'Pre-Release Integration Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
-                            ${card({ title: 'Post-Release Integration Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
-                            ${card({ title: 'Customer Scenario Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
-                            ${card({ title: 'Scale Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
-                            ${card({ title: 'Chaos Tests', value: 'TBD', badge: '🧪', color: 'gray', onClick: "switchTab('runtime-availability')" })}
-                        `
-                    })}
-                    ${subpanel({
-                        title: 'Remediation',
-                        className: 'exec-summary-panel-center',
-                        cardsHtml: `
-                            ${card({ title: 'AIOps', value: 'TBD', badge: '🤖', color: 'gray', onClick: "switchTab('runtime-availability')" })}
-                        `
-                    })}
+                        ${kpiCard({
+                            title: 'Days Since Last Incident',
+                            value: sev1DaysSince !== null ? `${sev1DaysSince}` : '--',
+                            sub: sev1DaysSince !== null ? 'Days since last incident' : 'No Sev1 incidents',
+                            valueClass: 'text-orange days-number',
+                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                        })}
+                        </div>
+                    </div>
                 </div>
             </section>
+            ${sectionDivider}
 
-            <div class="exec-summary-section-row">
-                <section class="exec-summary-section exec-summary-scale">
-                    <div class="exec-summary-section-header">Runtime Scale</div>
-                    <div class="exec-summary-grid exec-summary-grid-wide">
-                        ${card({
+            <section class="exec-summary-section">
+                <div class="exec-summary-section-header"><span class="exec-summary-section-icon">🛡️</span>Runtime Availability - Prevention KPIs</div>
+                <div class="exec-summary-section-card">
+                    <div class="exec-summary-kpi-grid columns-4">
+                        ${kpiCard({
+                            title: 'Products - Pre-Release Testing',
+                            value: preProductCount || 0,
+                            sub: preServiceCount
+                                ? `${preTestsCount} tests across ${preServiceCount} services`
+                                : `${preTestsCount} tests across 0 services`,
+                            valueClass: 'text-blue',
+                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                        })}
+                        ${kpiCard({
+                            title: 'Pre-Release Test Success Rate (Last 30 D)',
+                            value: preSuccessRate !== null ? `${preSuccessRate.toFixed(1)}%` : 'TBD',
+                            sub: preDelta.text,
+                            subClass: preDelta.className,
+                            valueClass: preSuccessRate !== null ? 'text-blue' : 'text-blue',
+                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                        })}
+                        ${kpiCard({
+                            title: 'Post-Release Test Success Rate (Last 30 D)',
+                            value: postSuccessRate !== null ? `${postSuccessRate.toFixed(1)}%` : 'TBD',
+                            sub: postDelta.text,
+                            subClass: postDelta.className,
+                            valueClass: postSuccessRate !== null ? 'text-blue' : 'text-blue',
+                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                        })}
+                        ${kpiCard({
+                            title: 'Products - Scale and Perf Testing',
+                            value: scalePerfEnabledProducts.size || 0,
+                            sub: scalePerfRows.length ? `${scalePerfRows.length} tests` : '0 tests',
+                            valueClass: 'text-blue',
+                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                        })}
+                        ${kpiCard({
+                            title: 'Products - Customer Scenario Testing',
+                            value: enabledProducts.size || 0,
+                            sub: `${plannedProducts.size} planned`,
+                            valueClass: 'text-blue',
+                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                        })}
+                        ${kpiCard({
+                            title: 'Customer-Release Test Success Rate (Last 30 D)',
+                            value: '0%',
+                            sub: `${enabledTests} tests enabled`,
+                            valueClass: 'text-blue',
+                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                        })}
+                        ${kpiCard({
+                            title: 'Products - Chaos Testing',
+                            value: chaosEnabledProducts.size || 0,
+                            sub: `${chaosPlannedTests} tests planned`,
+                            valueClass: 'text-blue',
+                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                        })}
+                        ${kpiCard({
+                            title: 'Chaos Test MTTR',
+                            value: `${testMttrHours}<span class="exec-summary-unit">hrs</span>`,
+                            sub: testMttrSub,
+                            subClass: 'text-green',
+                            valueClass: 'text-blue',
+                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                        })}
+                    </div>
+                </div>
+            </section>
+            ${sectionDivider}
+
+            <section class="exec-summary-section">
+                <div class="exec-summary-section-header"><span class="exec-summary-section-icon">⚙️</span>Runtime Service Standards</div>
+                <div class="exec-summary-section-card">
+                    <div class="exec-summary-kpi-grid columns-3">
+                        ${kpiCard({
                             title: 'Overall HPA Adoption Rate',
                             value: `${hpaAdoptionRate.toFixed(1)}%`,
                             sub: `${hpaEnabledCount.toLocaleString()}/${totalServices.toLocaleString()} services`,
-                            badge: '⚙️',
-                            color: 'blue',
-                            onClick: "switchTab('runtime-overview')"
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
                         })}
-                        ${card({
+                        ${kpiCard({
+                            title: 'Tier 0 HPA Adoption Rate',
+                            value: `${tier0HpaRate.toFixed(1)}%`,
+                            sub: `${tier0Hpa.toLocaleString()}/${tier0Total.toLocaleString()} services`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
+                        })}
+                        ${kpiCard({
+                            title: 'Tier 1 HPA Adoption Rate',
+                            value: `${tier1HpaRate.toFixed(1)}%`,
+                            sub: `${tier1Hpa.toLocaleString()}/${tier1Total.toLocaleString()} services`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
+                        })}
+                        ${kpiCard({
                             title: 'Avg Bin-Packing Efficiency - FI',
                             value: `${avgFi.toFixed(1)}%`,
-                            badge: '📈',
-                            color: 'green',
-                            onClick: "switchTab('runtime-karpenter')"
+                            sub: 'Avg across FI',
+                            valueClass: 'text-green',
+                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
-                        ${card({
+                        ${kpiCard({
                             title: 'Avg Bin-Packing Efficiency - FD',
                             value: `${avgFd.toFixed(1)}%`,
-                            badge: '📈',
-                            color: 'green',
-                            onClick: "switchTab('runtime-karpenter')"
+                            sub: 'Avg across FD',
+                            valueClass: 'text-green',
+                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
-                        ${card({
+                        ${kpiCard({
                             title: 'Avg Bin-Packing Efficiency - Cluster',
                             value: `${avgCluster.toFixed(1)}%`,
-                            badge: '📈',
-                            color: 'green',
-                            onClick: "switchTab('runtime-karpenter')"
+                            sub: 'Avg across clusters',
+                            valueClass: 'text-green',
+                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
                     </div>
-                </section>
+                </div>
+            </section>
+            ${sectionDivider}
 
-                <section class="exec-summary-section exec-summary-cts">
-                    <div class="exec-summary-section-header">Cost to Serve</div>
-                    <div class="exec-summary-stack">
-                        ${card({
-                            title: 'Total Predicted Savings',
+            <section class="exec-summary-section">
+                <div class="exec-summary-section-header"><span class="exec-summary-section-icon">💰</span>Cost to Serve and Budget</div>
+                <div class="exec-summary-section-card">
+                    <div class="exec-summary-kpi-grid columns-4">
+                        ${kpiCard({
+                            title: 'Total Projected Savings',
                             value: formatCurrencySafe(totalPredictedSavings),
                             sub: 'FY26 Forecast',
-                            badge: '💰',
-                            color: 'blue',
-                            onClick: "switchTab('cost-to-serve-overview')"
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
                         })}
-                        ${card({
-                            title: 'Total Actual Savings',
+                        ${kpiCard({
+                            title: 'Total Actual Savings Achieved',
                             value: formatCurrencySafe(totalActualSavings),
                             sub: 'Realized Savings',
-                            badge: '💰',
-                            color: 'green',
-                            onClick: "switchTab('cost-to-serve-overview')"
+                            valueClass: 'text-green',
+                            onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
+                        })}
+                        ${kpiCard({
+                            title: 'Variance',
+                            value: formatCurrencySigned(varianceValue),
+                            sub: 'Actual - Projected',
+                            valueClass: varianceValue !== null && varianceValue < 0 ? 'text-red' : 'text-green',
+                            onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
+                        })}
+                        ${kpiCard({
+                            title: 'Achievement Rate',
+                            value: achievementRate !== null ? `${achievementRate.toFixed(1)}%` : '--',
+                            sub: totalActualSavings !== null && totalPredictedSavings !== null
+                                ? `${formatCurrencySafe(totalActualSavings)} / ${formatCurrencySafe(totalPredictedSavings)}`
+                                : 'TBD',
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
                         })}
                     </div>
-                </section>
+                </div>
+            </section>
+            ${sectionDivider}
 
-                <section class="exec-summary-section exec-summary-onboarding">
-                    <div class="exec-summary-section-header">Onboarding</div>
-                    <div class="exec-summary-grid exec-summary-grid-wide">
-                        ${card({
+            <section class="exec-summary-section">
+                <div class="exec-summary-section-header"><span class="exec-summary-section-icon">📊</span>Onboarding</div>
+                <div class="exec-summary-section-subheader">Falcon Kubernetes Platform</div>
+                <div class="exec-summary-section-card">
+                    <div class="exec-summary-kpi-grid columns-4">
+                        ${kpiCard({
                             title: 'Overall Adoption Rate',
                             value: `${overallAdoption.toFixed(1)}%`,
-                            sub: `(${overallFkp.toLocaleString()}/${overallTotal.toLocaleString()})`,
-                            badge: '📊',
-                            color: 'blue',
-                            onClick: "switchTab('executive-overview')"
+                            sub: `${overallFkp.toLocaleString()}/${overallTotal.toLocaleString()} service instances`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('executive-overview'); scrollToTabContent('executive-overview')"
                         })}
-                        ${card({
+                        ${kpiCard({
                             title: 'Commercial Adoption',
                             value: `${commercial.adoptionPct.toFixed(1)}%`,
-                            sub: `(${commercial.fkpInstances.toLocaleString()}/${commercial.totalInstances.toLocaleString()})`,
-                            badge: '📊',
-                            color: 'indigo',
-                            onClick: "switchTab('executive-overview')"
+                            sub: `${commercial.fkpInstances.toLocaleString()}/${commercial.totalInstances.toLocaleString()} service instances`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('executive-overview'); scrollToTabContent('executive-overview')"
                         })}
-                        ${card({
+                        ${kpiCard({
                             title: 'GIA2H Adoption',
                             value: `${gia.adoptionPct.toFixed(1)}%`,
-                            sub: `(${gia.fkpInstances.toLocaleString()}/${gia.totalInstances.toLocaleString()})`,
-                            badge: '📊',
-                            color: 'indigo',
-                            onClick: "switchTab('executive-overview')"
+                            sub: `${gia.fkpInstances.toLocaleString()}/${gia.totalInstances.toLocaleString()} service instances`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('executive-overview'); scrollToTabContent('executive-overview')"
                         })}
-                        ${card({
+                        ${kpiCard({
                             title: 'BlackJack Adoption',
                             value: `${blackjack.adoptionPct.toFixed(1)}%`,
-                            sub: `(${blackjack.fkpInstances.toLocaleString()}/${blackjack.totalInstances.toLocaleString()})`,
-                            badge: '📊',
-                            color: 'indigo',
-                            onClick: "switchTab('executive-overview')"
+                            sub: `${blackjack.fkpInstances.toLocaleString()}/${blackjack.totalInstances.toLocaleString()} service instances`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('executive-overview'); scrollToTabContent('executive-overview')"
                         })}
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         `;
     } catch (error) {
         console.error('❌ Failed to render executive summary:', error);
@@ -2204,6 +2493,19 @@ function setExecSummaryView() {
     }
     fkpDashboard.state.currentViewMode = 'exec';
     switchTab('exec-summary');
+}
+
+function scrollToTabContent(tabId) {
+    const containerId = `${tabId}-content`;
+    const container = document.getElementById(containerId);
+    if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+    }
+    const pane = document.getElementById(tabId);
+    if (pane) {
+        pane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 /**
@@ -2510,8 +2812,7 @@ function renderAvailabilityExecView(container) {
                                     <th>Pre-Release FIT</th>
                                     <th>Post-Release FIT</th>
                                     <th>E2E Critical FIT</th>
-                                    <th>Scale Tests</th>
-                                    <th>Perf Tests</th>
+                                    <th>Scale &amp; Perf Tests</th>
                                     <th>Chaos Tests</th>
                                     <th>Overall Score</th>
                                 </tr>
@@ -3255,6 +3556,8 @@ function renderAvailabilityInventoryView() {
         scalePerf: scalePerfRows,
         chaos: chaosRows
     });
+    const integrationFitSummary = buildIntegrationFitSummary(products);
+    availabilityData.integrationFitSummary = integrationFitSummary;
     const integrationReleaseCounts = integrationRows.reduce((acc, row) => {
         const release = (row['Pre-Post Release'] || '').toLowerCase();
         if (release.includes('post')) acc.post += 1;
@@ -3328,7 +3631,7 @@ function renderAvailabilityInventoryView() {
                         <h3>HRP Products · Test Coverage Summary</h3>
                         <div class="inventory-legend">
                             <span><span class="inv-dot inv-enabled"></span>Enabled</span>
-                            <span><span class="inv-dot inv-partial"></span>Partially Enabled</span>
+                            <span><span class="inv-dot inv-partial"></span>Planned</span>
                             <span><span class="inv-dot inv-missing"></span>Not Defined</span>
                         </div>
                     </div>
@@ -3338,9 +3641,9 @@ function renderAvailabilityInventoryView() {
                                 <tr>
                                     <th>HRP Product</th>
                                     <th>Customer Tests</th>
-                                    <th>Integration Tests</th>
-                                    <th>Scale Tests</th>
-                                    <th>Perf Tests</th>
+                                    <th>Integration Tests (Post)</th>
+                                    <th>Integration Tests (Pre)</th>
+                                    <th>Scale &amp; Perf Tests</th>
                                     <th>Chaos Tests</th>
                                 </tr>
                             </thead>
@@ -3349,9 +3652,9 @@ function renderAvailabilityInventoryView() {
                                     <tr>
                                         <td>${product}</td>
                                         ${renderSummaryCell(summary, product, 'customerScenario')}
-                                        ${renderSummaryCell(summary, product, 'integration')}
+                                        ${integrationFitSummary[product]?.post ? `<td><span class="inv-pill inv-enabled">✔</span></td>` : `<td><span class="inv-pill inv-missing">—</span></td>`}
+                                        ${integrationFitSummary[product]?.pre ? `<td><span class="inv-pill inv-enabled">✔</span></td>` : `<td><span class="inv-pill inv-missing">—</span></td>`}
                                         ${renderSummaryCell(summary, product, 'scalePerf')}
-                                        ${renderSummaryCell(summary, product, 'scalePerf', true)}
                                         ${renderSummaryCell(summary, product, 'chaos')}
                                     </tr>
                                 `).join('')}
@@ -3365,7 +3668,7 @@ function renderAvailabilityInventoryView() {
                         <h3 id="inventory-selected-coverage-title">HRP Product Summary - "Selected Test" Coverage</h3>
                         <div class="inventory-legend">
                             <span><span class="inv-dot inv-enabled"></span>Enabled</span>
-                            <span><span class="inv-dot inv-partial"></span>Partially Enabled</span>
+                            <span><span class="inv-dot inv-partial"></span>Planned</span>
                             <span><span class="inv-dot inv-missing"></span>Not Defined</span>
                         </div>
                     </div>
@@ -3558,6 +3861,12 @@ function getInventoryProducts() {
     ];
 }
 
+function getFitProductForService(service) {
+    const map = availabilityData.fitServiceProductMap || {};
+    const key = (service || '').toLowerCase();
+    return map[key] || '';
+}
+
 function mapInventoryRows(rows, type) {
     return rows.map(row => {
         let product = '';
@@ -3567,14 +3876,8 @@ function mapInventoryRows(rows, type) {
             const desc = (row['Test Description'] || '').toLowerCase();
             product = desc.includes('vegacache') ? 'Vegacache' : 'Falcon Kubernetes Service';
         } else if (type === 'scalePerf') {
-            const service = (row.Service || '').toLowerCase();
-            if (service.includes('mesh') || service.includes('istio')) product = 'Managed Mesh';
-            else if (service.includes('ingress')) product = 'Ingress Gateway';
-            else if (service.includes('vega')) product = 'Vegacache';
-            else if (service.includes('mq') || service.includes('message')) product = 'Message Queue';
-            else if (service.includes('maps')) product = 'MAPS';
-            else if (service.includes('wis') || service.includes('workload')) product = 'WIS';
-            else product = 'Falcon Kubernetes Service';
+            const service = row.Service || '';
+            product = getFitProductForService(service);
         }
         if (!product) product = 'Falcon Kubernetes Service';
         return { ...row, _product: product };
@@ -3583,13 +3886,21 @@ function mapInventoryRows(rows, type) {
 
 function getRowStatus(row, type) {
     if (type === 'customerScenario' || type === 'integration') {
-        return (row.Status || '').toLowerCase() === 'enabled' ? 'enabled' : 'partial';
+        const status = (row.Status || '').toLowerCase();
+        if (status === 'enabled') return 'enabled';
+        return status ? 'partial' : 'missing';
     }
     if (type === 'scalePerf') {
         return 'enabled';
     }
     if (type === 'chaos') {
-        return (row['Configure?'] || '').toLowerCase() === 'yes' ? 'enabled' : 'missing';
+        const enabledValue = (row.Enabled || '').toLowerCase();
+        if (enabledValue === 'enabled') return 'enabled';
+        if (enabledValue === 'not enabled' || enabledValue === 'tbd' || enabledValue === 'planned') return 'partial';
+        const frequency = (row.Frequency || '').toLowerCase();
+        if (!frequency) return 'missing';
+        if (frequency === 'not enabled' || frequency === 'tbd') return 'partial';
+        return 'enabled';
     }
     return 'missing';
 }
@@ -3601,7 +3912,7 @@ function buildInventorySummary(products, datasets) {
             customerScenario: { total: 0, enabled: 0, partial: 0 },
             integration: { total: 0, enabled: 0, partial: 0 },
             scalePerf: { total: 0, enabled: 0, partial: 0 },
-            chaos: { total: 0, enabled: 0, partial: 0 }
+        chaos: { total: 0, enabled: 0, partial: 0 }
         };
     });
     Object.entries(datasets).forEach(([type, rows]) => {
@@ -3617,19 +3928,45 @@ function buildInventorySummary(products, datasets) {
     return summary;
 }
 
+function buildIntegrationFitSummary(products) {
+    const summary = {};
+    products.forEach(product => {
+        summary[product] = { post: 0, pre: 0 };
+    });
+    const fitRows = availabilityData.fitData?.rows || [];
+    fitRows.forEach(row => {
+        const product = (row.Product || '').trim();
+        const mapped = summary[product] ? product : product === 'FKP'
+            ? 'Falcon Kubernetes Service'
+            : product === 'Mesh'
+                ? 'Managed Mesh'
+                : '';
+        if (!mapped || !summary[mapped]) return;
+        const runType = (row['Run Type'] || '').toLowerCase();
+        if (runType.includes('postdeployment')) summary[mapped].post += 1;
+        if (runType.includes('predeployment')) summary[mapped].pre += 1;
+    });
+    return summary;
+}
+
 function renderSummaryCell(summary, product, type, isPerf = false) {
     const data = summary[product] ? summary[product][type] : { total: 0, enabled: 0, partial: 0 };
     if (data.total === 0) return `<td><span class="inv-pill inv-missing">—</span></td>`;
     const enabled = data.enabled;
     const partial = data.partial;
+    if (type === 'chaos') {
+        if (enabled > 0) return `<td><span class="inv-pill inv-enabled">✔</span></td>`;
+        if (partial > 0) return `<td><span class="inv-pill inv-partial">⚠</span></td>`;
+        return `<td><span class="inv-pill inv-missing">—</span></td>`;
+    }
     if (type === 'scalePerf' && isPerf) {
         if (enabled > 0) return `<td><span class="inv-pill inv-enabled">✔</span></td>`;
         if (partial > 0) return `<td><span class="inv-pill inv-partial">⚠</span></td>`;
-        return `<td><span class="inv-pill inv-missing">✕</span></td>`;
+        return `<td><span class="inv-pill inv-missing">—</span></td>`;
     }
     if (enabled === data.total) return `<td><span class="inv-pill inv-enabled">✔</span></td>`;
     if (enabled > 0 || partial > 0) return `<td><span class="inv-pill inv-partial">⚠</span></td>`;
-    return `<td><span class="inv-pill inv-missing">✕</span></td>`;
+    return `<td><span class="inv-pill inv-missing">—</span></td>`;
 }
 
 let inventoryActiveTab = 'all';
@@ -3683,6 +4020,31 @@ function renderProductFilterRow(type) {
         scalePerf: mapInventoryRows(availabilityData.testInventory.scalePerf.rows, 'scalePerf'),
         chaos: mapInventoryRows(availabilityData.testInventory.chaos.rows, 'chaos')
     });
+    if (type === 'integration') {
+        const fitSummary = buildIntegrationFitSummary(products);
+        const buildPills = (key) => products.map(product => {
+            const enabled = (fitSummary[product]?.[key] || 0) > 0;
+            const pillClass = enabled ? 'inv-enabled' : 'inv-missing';
+            const icon = enabled ? '✔' : '—';
+            return `
+                <span class="product-pill ${inventorySelectedProducts.has(product) ? 'active' : ''}" onclick="toggleInventoryProduct('${product}', this)">
+                    ${product}
+                    <span class="inv-pill ${pillClass}">${icon}</span>
+                </span>
+            `;
+        }).join('');
+        filterRow.innerHTML = `
+            <div class="inventory-summary-line">
+                <strong>Post-Deployment:</strong>
+                <div class="inventory-summary-pills">${buildPills('post')}</div>
+            </div>
+            <div class="inventory-summary-line">
+                <strong>Pre-Deployment:</strong>
+                <div class="inventory-summary-pills">${buildPills('pre')}</div>
+            </div>
+        `;
+        return;
+    }
     filterRow.innerHTML = products.map(product => `
         <button class="product-pill ${inventorySelectedProducts.has(product) ? 'active' : ''}" onclick="toggleInventoryProduct('${product}', this)">
             ${product}
@@ -3708,34 +4070,54 @@ function renderInventoryDetail(type) {
             columns: ['Product', 'Purpose', 'Status', 'Frequency', 'Details']
         },
         integration: {
-            title: 'Integration Test View',
+            title: 'Integration Test View (Data to be updated)',
             data: inventory.integration,
             columns: ['Pre-Post Release', 'Purpose', 'Test Name', 'Status', 'Test Description']
         },
         scalePerf: {
             title: 'Scale & Perf Test View',
             data: inventory.scalePerf,
-            columns: ['Service', 'Type', 'Test Available', 'Frequency', 'Tier']
+            columns: ['Product', 'Service', 'Type', 'Test Available', 'Frequency', 'Tier']
         },
         chaos: {
             title: 'Chaos Test View',
             data: inventory.chaos,
-            columns: ['Product', 'Available Test in Chaos platform', 'Configure?', 'Frequency', 'Comment']
+            columns: ['Product', 'Available Test in Chaos platform', 'Risk level', 'Enabled']
         }
     };
     
     const selected = map[type];
     if (!selected) return;
     
-    const headers = selected.columns.filter(col => selected.data.headers.includes(col));
+    const headers = type === 'chaos'
+        ? selected.columns
+        : selected.columns.filter(col => selected.data.headers.includes(col) || col === 'Product');
     let rows = mapInventoryRows(selected.data.rows, type);
     if (inventorySelectedProducts.size > 0) {
         rows = rows.filter(row => inventorySelectedProducts.has(row._product));
     }
+    if (type === 'chaos') {
+        rows = rows.map(row => {
+            const enabledValue = (row.Enabled || '').toLowerCase();
+            let enabled = 'Planned';
+            if (enabledValue === 'enabled') enabled = 'Enabled';
+            else if (enabledValue === 'not enabled' || enabledValue === 'tbd' || enabledValue === 'planned') enabled = 'Planned';
+            else {
+                const frequency = (row.Frequency || '').toLowerCase();
+                if (frequency && frequency !== 'not enabled' && frequency !== 'tbd') {
+                    enabled = 'Enabled';
+                }
+            }
+            return { ...row, Enabled: enabled };
+        });
+    }
     
     const headerRow = headers.map(h => `<th>${h}</th>`).join('');
     const bodyRows = rows.map(row => {
-        const cells = headers.map(h => `<td>${row[h] || ''}</td>`).join('');
+        const cells = headers.map(h => {
+            if (h === 'Product') return `<td>${row._product || ''}</td>`;
+            return `<td>${row[h] || ''}</td>`;
+        }).join('');
         return `<tr>${cells}</tr>`;
     }).join('');
     
@@ -3762,7 +4144,7 @@ function getProductStatusClass(summary, product, tab) {
 
 function getProductStatusIcon(summary, product, tab) {
     const status = getProductStatus(summary, product, tab);
-    return status === 'enabled' ? '✔' : status === 'partial' ? '⚠' : '✕';
+    return status === 'enabled' ? '✔' : status === 'partial' ? '⚠' : '—';
 }
 
 function getProductStatus(summary, product, tab) {
@@ -3771,6 +4153,16 @@ function getProductStatus(summary, product, tab) {
         let hasEnabled = false;
         let hasPartial = false;
         types.forEach(type => {
+            if (type === 'integration') {
+                const fitSummary = availabilityData.integrationFitSummary || {};
+                const fitBucket = fitSummary[product];
+                if (fitBucket) {
+                    if (fitBucket.post > 0 || fitBucket.pre > 0) {
+                        hasEnabled = true;
+                    }
+                }
+                return;
+            }
             const bucket = summary[product]?.[type];
             if (!bucket) return;
             if (bucket.enabled > 0) hasEnabled = true;
@@ -3778,6 +4170,13 @@ function getProductStatus(summary, product, tab) {
         });
         if (hasEnabled) return 'enabled';
         if (hasPartial) return 'partial';
+        return 'missing';
+    }
+    if (tab === 'integration') {
+        const fitSummary = availabilityData.integrationFitSummary || {};
+        const fitBucket = fitSummary[product];
+        if (!fitBucket) return 'missing';
+        if (fitBucket.post > 0 || fitBucket.pre > 0) return 'enabled';
         return 'missing';
     }
     const bucket = summary[product]?.[tab];
@@ -11358,6 +11757,9 @@ let availabilityData = {
     slaData: [],           // sla_data.csv - SLA goals table
     incidents: [],         // incidents2.csv - Raw incident data for KPI calculations
     serviceReadiness: [],  // hrp_service_readiness_score_data.csv - Readiness score table
+    fitData: { headers: [], rows: [] },
+    fitServiceProductMap: {},
+    integrationFitSummary: {},
     ingressAlerts: { headers: [], rows: [] },
     ingressDistribution: { headers: [], rows: [] },
     ingressAccuracy: { headers: [], rows: [] },
@@ -11454,6 +11856,38 @@ function parseCSVWithHeadersRobust(csvText) {
     return { headers, rows };
 }
 
+function parseCSVWithHeadersMultiline(csvText) {
+    const lines = csvText.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return { headers: [], rows: [] };
+    const headers = parseCSVLineRespectQuotes(lines[0]).map(header => header.trim());
+    const rows = [];
+    let buffer = '';
+    for (let i = 1; i < lines.length; i += 1) {
+        buffer = buffer ? `${buffer}\n${lines[i]}` : lines[i];
+        const values = parseCSVLineRespectQuotes(buffer);
+        if (values.length < headers.length) {
+            continue;
+        }
+        const row = {};
+        headers.forEach((header, index) => {
+            row[header] = values[index]?.trim() || '';
+        });
+        rows.push(row);
+        buffer = '';
+    }
+    if (buffer) {
+        const values = parseCSVLineRespectQuotes(buffer);
+        if (values.length >= headers.length) {
+            const row = {};
+            headers.forEach((header, index) => {
+                row[header] = values[index]?.trim() || '';
+            });
+            rows.push(row);
+        }
+    }
+    return { headers, rows };
+}
+
 /**
  * Load ALL Availability Data in Parallel (optimized)
  */
@@ -11483,7 +11917,8 @@ async function loadAllAvailabilityData() {
             'customer_test_scenario_view.csv',
             'integration_test_view.csv',
             'scale_perf_test_view.csv',
-            'chaos_tests_view.csv'
+            'chaos_tests_view.csv',
+            'HRP Availability Scorecard - Data Collection - FIT Data.csv'
         ];
         
         const encodedPaths = files.map(file => {
@@ -11523,7 +11958,37 @@ async function loadAllAvailabilityData() {
         availabilityData.testInventory.customerScenario = parseCSVWithHeadersRobust(csvTexts[10]);
         availabilityData.testInventory.integration = parseCSVWithHeadersRobust(csvTexts[11]);
         availabilityData.testInventory.scalePerf = parseCSVWithHeadersRobust(csvTexts[12]);
-        availabilityData.testInventory.chaos = parseCSVWithHeadersRobust(csvTexts[13]);
+        availabilityData.testInventory.chaos = parseCSVWithHeadersMultiline(csvTexts[13]);
+        availabilityData.fitData = parseCSVWithHeadersRobust(csvTexts[14]);
+
+        const fitMap = {};
+        availabilityData.fitData.rows.forEach(row => {
+            const service = (row.Service || '').trim().toLowerCase();
+            const product = (row.Product || '').trim();
+            if (!service || !product) return;
+            if (!fitMap[service]) {
+                fitMap[service] = product;
+            }
+        });
+        const fitOverrides = {
+            'anypoint-operator': 'Managed Mesh',
+            'kaaskeywatcher': 'Falcon Kubernetes Service',
+            'ingressassistant': 'Ingress Gateway',
+            'ingressconfig': 'Ingress Gateway',
+            'ingressgateway': 'Ingress Gateway',
+            'workload-identity': 'WIS',
+            'strauz': 'WIS',
+            'policy-distribution': 'WIS'
+        };
+        const normalizedMap = {};
+        Object.entries({ ...fitMap, ...fitOverrides }).forEach(([service, product]) => {
+            const key = (service || '').toLowerCase();
+            if (!key) return;
+            if (product === 'FKP') normalizedMap[key] = 'Falcon Kubernetes Service';
+            else if (product === 'Mesh') normalizedMap[key] = 'Managed Mesh';
+            else normalizedMap[key] = product;
+        });
+        availabilityData.fitServiceProductMap = normalizedMap;
         
         availabilityData.loaded = true;
         
@@ -11543,6 +12008,7 @@ async function loadAllAvailabilityData() {
         console.log(`   - Test Inventory (Integration): ${availabilityData.testInventory.integration.rows.length} rows`);
         console.log(`   - Test Inventory (Scale/Perf): ${availabilityData.testInventory.scalePerf.rows.length} rows`);
         console.log(`   - Test Inventory (Chaos): ${availabilityData.testInventory.chaos.rows.length} rows`);
+        console.log(`   - FIT Data: ${availabilityData.fitData.rows.length} rows`);
         
     } catch (error) {
         console.error('❌ Error loading availability data:', error);
@@ -11562,6 +12028,9 @@ async function loadAllAvailabilityData() {
             scalePerf: { headers: [], rows: [] },
             chaos: { headers: [], rows: [] }
         };
+        availabilityData.fitData = { headers: [], rows: [] };
+        availabilityData.fitServiceProductMap = {};
+        availabilityData.integrationFitSummary = {};
         availabilityData.loaded = true;
     }
 }

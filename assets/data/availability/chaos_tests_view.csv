@@ -1,11 +1,69 @@
-Product,Available Test in Chaos platform,Configure?,Risk level,Purpose,Comment,Frequency
-Managed Mesh,Terminate EC2 node of the parent FKP cluster in 1AZ,No,High,TBD,Too chaotic to do in a shared environment,Not Enabled
-Managed Mesh,Container Graceful Stop (SIGTERM) - 1AZ (aka application containers in 1AZ),Yes,Low,Partial test of Static stability. TopologySpreadConstraint,The other two AZs should be able to handle the load.,Weekly
-Managed Mesh,Container Ungraceful Stop (SIGKILL) - 1AZ,Yes,Med,Resiliency,Injection or xds requests should get retried and succeed eventually,Weekly
-Managed Mesh,Add HIGH network latency to application pods in 1AZ,Yes,High,SLO - Convergence time,Config push is expected to be delayed. Do our alerts catch it?,Weekly
-Managed Mesh,Add LOW network latency to application pods in 1AZ,Yes,Low,SLO - Convergence time,Config push is expected to be delayed. Do our alerts catch it?,Weekly
-Managed Mesh,Add CPU stress to discovery - 50% of containers to run at 80% CPU for 15 mins,Yes,Low,Autoscaling,HPA should autoscale,Weekly
-Managed Mesh,Add Mem stress to discovery - 60% of containers to run at 80% of mem,Yes,Low,Overload protection + Autoscaling,Overload protection should kick in + HPA should scale up,Weekly
-Managed Mesh,CPU stress istio-proxy container,Yes,Low,Autoscaling,Pods should scale up. Convergence time impact to be observed,Weekly
-Managed Mesh,Mem stress istio-proxy container,Yes,Low,Autoscaling,Pods should scale up. OOMKill of container should have no visible,Weekly
-Managed Mesh,Network latency between k8s api-server and Istiod,Yes,High,Convergence time + mesh resiliency,Config push is delayed. Customers can expect to see some 5xx during this,Weekly
+Product,Available Test in Chaos platform,Configure?,Risk level,Purpose,Comment,Enabled
+Managed Mesh,Terminate EC2 node of the parent FKP cluster in 1AZ,❌,High,TBD,Too chaotic to do in a shared environment,Not Enabled
+Managed Mesh,Container Graceful Stop (SIGTERM) - 1AZ (aka application containers in 1AZ),✅,Low,"Partial test of Static stability.
+TopologySpreadConstraint",The other two AZes should be able to handle the load.,Enabled
+Managed Mesh,Container Ungraceful Stop (SIGKILL) - 1AZ,✅,Med,Resilliency,Injection or xds requests should get retried and succeed eventually,Enabled
+Managed Mesh,Add HIGH network latency to application pods in 1AZ,✅,High,SLO - Convergence time,Config push is expected to be delayed. Do our alerts catch it?,Enabled
+Managed Mesh,Add LOW network latency to application pods in 1AZ,✅,Low,SLO - Convergence time,Config push is expected to be delayed. Do our alerts catch it?,Enabled
+Managed Mesh,Add CPU stress to discovery - 50% of containers to run at 80% CPU for 15 mins,✅,Low,Autoscaling,HPA should autoscale,Enabled
+Managed Mesh,Add Mem stress to discovery - 60% of containers to run at 80% of mem,✅,Low,Overload protection + Autoscaling,Overload protection should kick in + HPA should scale up,Enabled
+Managed Mesh,CPU stress istio-proxy container,✅,Low,Autoscaling,Pods should scale up. Convergence time impact to be observed,Enabled
+Managed Mesh,Mem stress istio-proxy container,✅,Low,Autoscaling,Pods should scale up. OOMkill of container should have no visible impact on dataplanes,Enabled
+Managed Mesh,Network latency between k8s api-server and Istiod,✅,High,Convergence time + mesh resiliency,Config push is delayed. Customers can expect to see some 5xx during this time.,Enabled
+Managed Mesh,Rolling restart Istiod,✅,Low,XDS skew,The pod which started first is expected to take more proxies. This should not cause any visible problems such as oomkill loop etc.,Enabled
+Managed Mesh,Kill all Istiod pods at once,✅,High,Thundering herd,Whatever pod tries to come up will be stormed with XDS conns. This shouldn’t cause endless oomkill loop and pods should be able to come up,Enabled
+Managed Mesh,Block DNS for discovery container in ¼ pods for 5 minutes,✅,Med,Dependencies,See how the pod behaves,Enabled
+Managed Mesh,Block traffic to k8s api-server for 40% of pods for 5 minutes,✅,Low,Api server dependency test,Failure to talk to api server should be handled gracefully,Enabled
+Managed Mesh,Block traffic to discovery container in 40% pods for 5 minutes,✅,Low,Container hang,Dataplanes should move to other pods,Enabled
+Message Queue,Pod Deletion - 1 AZ Down,,Low,Pods in 1Az are deleted to test service resiliency to az down scenario,"Service health should degrade as enqueue/dequeue calls for the broker start failing with error rate going up, and total rates coming down.
+
+As messages may be routed to another instance, broker and DB usage may go up, with rate going back up.
+
+Finally kubernetes should spin up another pod, DB and broker usage, along with rate should go back to normal levels.",Enabled
+Message Queue,Container Kill (Graceful) - qpid,,TBD,QPid container is killed gracefully with a SIGTERM signal,"Service health should degrade as enqueue/dequeue calls for the broker start failing with error rate going up, and total rates coming down.
+
+As messages may be routed to another instance, broker and DB usage may go up, with rate going back up.
+
+Finally kubernetes should spin up another pod, DB and broker usage, along with rate should go back to normal levels.",Enabled
+Message Queue,Container Kill (Ungraceful) - qpid,,TBD,QPid container is killed ungracefully with a SIGKILL signal,"Service health should degrade as enqueue/dequeue calls for the broker start failing with error rate going up, and total rates coming down.
+
+As messages may be routed to another instance, broker and DB usage may go up, with rate going back up.
+
+Finally kubernetes should spin up another pod, DB and broker usage, along with rate should go back to normal levels.",Enabled
+Message Queue,Container Kill (Graceful) - istio,,TBD,Istio sidecar is killed gracefully with a SIGTERM signal,,Enabled
+Message Queue,Container Kill (Ungraceful) - istio,,TBD,Istio sidecar is killed ungracefully with a SIGKILL signal,,Enabled
+Message Queue,Pod Network Latency (Low),,TBD,Adds significant delay for outgoing packets to simulate minor network degradation,"There should be no impact of minor network delays on service health.
+
+There is no auto-recovery for this",Enabled
+Message Queue,Pod Network Latency (High),,TBD,Adds significant delay for outgoing packets to simulate severe network degradation,"We should observe a degradation in Longest Waiting Time.
+
+There is no auto-recovery for this",Enabled
+Message Queue,Container CPU Stress,,TBD,Generate high CPU load on QPid container,"Performance degradation is expected, including increased request duration and reduced throughput. 
+
+There is no auto-recovery for this",TBD
+Message Queue,Rolling Restart,,TBD,Restart all QPid pods in a staggered sequence,"The service should maintain high availability with a brief, minor transient impact on health metrics (e.g., connection drops) as each pod restarts.
+
+Recovery not applicable here",TBD
+Message Queue,Drop outgoing traffic,,TBD,Block partial/all outgoing network traffic from the QPid container,"QPid will be unable to communicate with external dependencies (e.g., DB), leading to immediate operation failures. Kubernetes should eventually restart the container/pod, and service health should improve.",TBD
+Message Queue,Container - Memory Stress,,TBD,Generate high memory load on QPid container,"The container may experience performance degradation or be terminated by the operating system (OOM kill).
+
+If terminated, Kubernetes will restart the container, and service health should improve. If not terminated, there is auto-recovery and performance will remain degraded.",TBD
+Message Queue,Container - Disk Fill,,TBD,Fill the local disk space on the QPid container/pod,"Operations that require disk writes (e.g., logging) will fail, leading to service degradation. Kubernetes should eventually restart the container/pod, and service health should improve.",TBD
+Message Queue,Pod Restart Loop,,TBD,Induce a fault that causes the QPid pod to repeatedly crash and restart,"Service health will be severely impacted for a prolonged period, showing degraded availability and high error rates until the underlying issue is resolved.
+
+No automated recovery",TBD
+Message Queue,Reduced Replica count,,TBD,Replica count for QPid would be reduced by 1,"The service should remain operational but with reduced capacity and resilience to subsequent faults. Health metrics (e.g., CPU/Memory) on remaining pods will increase.
+
+No automated recovery",TBD
+Message Queue,Container - Limit outgoing traffic,,TBD,Throttle the outgoing network throughput of the QPid container,"Service will experience increased message backlogs and request duration due to reduced ability to send data, but will remain available.
+
+No automated recovery",TBD
+Vegacache,Graceful Shutdown of Containers in a Single Zone,,TBD,TBD,TBD,Enabled
+Vegacache,Apply an additional 50% load on Redis CPU in the selected zone for 10 or 30 minutes.,,TBD,TBD,TBD,Enabled
+Vegacache,Delete all Pods in a Single Zone,,TBD,TBD,TBD,Enabled
+Vegacache,Single pod delete graceful,,TBD,TBD,TBD,Enabled
+Vegacache,Block traffic in 2 kpods for 5 min,,TBD,TBD,TBD,Enabled
+Vegacache,Block traffic in 4 kpods for 20 min,,TBD,TBD,TBD,Enabled
+Vegacache,Break connection between RCM and one of the primary pods for 5 min,,TBD,TBD,TBD,Enabled
+Vegacache,10x higher latency in just that one AZ,,TBD,TBD,TBD,Enabled
+MAPS,NOT Started,,TBD,TBD,TBD,Not Enabled

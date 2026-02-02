@@ -32,17 +32,19 @@
 ### Executive Summary
 - Section-only page (no tab pane) and default landing view
 - No Exec/Developer toggle visible on this page
-- Sections: Runtime Availability (Detection/Prevention/Remediation), Runtime Scale, Cost to Serve, Onboarding
-- Cards route to their source tabs
+- Sections: Runtime Availability (Detection/Prevention), Runtime Service Standards, Cost to Serve and Budget, Onboarding
+- Detection KPIs are split into two rows (Sev0 row + Sev1 row) with shaded backgrounds
+- All KPIs have sub-metrics (x/y, SLA targets, or deltas) and larger numeric values
+- Click behavior: cards route to their source tabs and scroll to top of the target content
 - If clicked from Developer view, page reloads to Exec Summary
 
 ### Runtime Availability Tabs
 | Tab ID | Name | View Mode | Description |
 |--------|------|-----------|-------------|
 | `runtime-availability` | Exec Overview | Exec | Availability exec scorecard (incidents2.csv) |
+| `runtime-availability-inventory` | HRP Test Inventory | Developer | Test inventory by product/test (first Developer tab) |
 | `runtime-availability-ingress` | Ingress Alert Quality | Developer | Ingress alert KPIs + charts |
 | `runtime-availability-readiness` | HRP Test Readiness (Preventive) | Developer | Readiness table + KPIs |
-| `runtime-availability-inventory` | HRP Test Inventory | Developer | Test inventory by product/test |
 
 ### Runtime Scale Tabs
 | Tab ID | Name | View Mode | Description |
@@ -386,15 +388,22 @@ my-service,FY26Q2,FY26Q3,TBD,ARM support
 | `assets/data/availability/integration_test_view.csv` | Test inventory (integration) |
 | `assets/data/availability/scale_perf_test_view.csv` | Test inventory (scale & perf) |
 | `assets/data/availability/chaos_tests_view.csv` | Test inventory (chaos) |
+| `assets/data/availability/HRP Availability Scorecard - Data Collection - FIT Data.csv` | FIT mapping + pre/post success rates |
 | `assets/data/availability/Ingress incidents - False Positive Analysis - slack.csv` | Ingress alert quality KPIs |
 | `assets/data/availability/ingress_alert_distribution.csv` | Ingress alert donut chart |
 | `assets/data/availability/ingress_alert_accuracy_trend.csv` | Ingress accuracy trend chart |
 
 ### HRP Test Inventory Logic (Developer View)
-- Product legend: **Enabled**, **Partially Enabled**, **Not Defined**
-- Integration/Customer Scenario: if defined but not enabled → **Partially Enabled**
-- Scale & Perf: treat all as **Enabled**
-- Integration tab shows counts: `N tests (x Post Deploy + y Pre Deploy)` from `Pre-Post Release`
+- Product legend: **Enabled**, **Planned**, **Not Defined**
+- Customer Scenario: **Enabled** only when `Status = Enabled`; **Planned** when `Status = Not Enabled` or `Partial`
+- Chaos: use `Enabled` column if present; fallback to `Frequency` (multiline CSV parsing needed)
+- Scale & Perf product mapping uses FIT `Service → Product` map
+  - Normalize FIT labels: `FKP → Falcon Kubernetes Service`, `Mesh → Managed Mesh`, `STRIDE → WIS`
+- Integration status in summary is based on FIT `Run Type`:
+  - **PostDeploymentValidation** and **PreDeploymentValidation** drive post/pre icons
+  - Summary table has separate Integration (Post) and (Pre) columns
+  - Integration detail has Post/Pre pill rows under “HRP Product Summary - "Integration Test" Coverage”
+- Scale & Perf summary column is combined (no separate Scale/Perf columns)
 - Product summary header is dynamic: `HRP Product Summary - "<Selected Test>" Coverage`
 
 ---

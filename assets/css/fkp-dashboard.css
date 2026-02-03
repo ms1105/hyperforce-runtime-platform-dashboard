@@ -1577,6 +1577,10 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     grid-template-columns: repeat(3, minmax(220px, 1fr));
 }
 
+.exec-summary-kpi-grid.columns-6 {
+    grid-template-columns: repeat(6, minmax(180px, 1fr));
+}
+
 .exec-summary-kpi-card {
     background: #ffffff;
     border-radius: 10px;

@@ -1932,6 +1932,14 @@ async function renderExecutiveSummary() {
         const tier1Hpa = tier1Services.filter(s => s.hpa > 0).length;
         const tier0HpaRate = tier0Total > 0 ? ((tier0Hpa / tier0Total) * 100) : 0;
         const tier1HpaRate = tier1Total > 0 ? ((tier1Hpa / tier1Total) * 100) : 0;
+        
+        // Calculate AZ Distribution metrics
+        const azDistribEnabledCount = services.filter(s => s.azDistrib > 0).length;
+        const azDistribAdoptionRate = totalServices > 0 ? ((azDistribEnabledCount / totalServices) * 100) : 0;
+        const tier0AzDistrib = tier0Services.filter(s => s.azDistrib > 0).length;
+        const tier1AzDistrib = tier1Services.filter(s => s.azDistrib > 0).length;
+        const tier0AzDistribRate = tier0Total > 0 ? ((tier0AzDistrib / tier0Total) * 100) : 0;
+        const tier1AzDistribRate = tier1Total > 0 ? ((tier1AzDistrib / tier1Total) * 100) : 0;
 
         // Runtime Scale metrics (Karpenter)
         const filteredKarpenter = filterKarpenterData(karpenterData.mainSummary || [], true);
@@ -2313,6 +2321,30 @@ async function renderExecutiveSummary() {
                             valueClass: 'text-blue',
                             onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
                         })}
+                    </div>
+                    <div class="exec-summary-kpi-grid columns-3" style="margin-top: 1rem;">
+                        ${kpiCard({
+                            title: 'Overall AZ Distribution Rate',
+                            value: `${azDistribAdoptionRate.toFixed(1)}%`,
+                            sub: `${azDistribEnabledCount.toLocaleString()}/${totalServices.toLocaleString()} services`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
+                        })}
+                        ${kpiCard({
+                            title: 'Tier 0 AZ Distribution Rate',
+                            value: `${tier0AzDistribRate.toFixed(1)}%`,
+                            sub: `${tier0AzDistrib.toLocaleString()}/${tier0Total.toLocaleString()} services`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
+                        })}
+                        ${kpiCard({
+                            title: 'Tier 1 AZ Distribution Rate',
+                            value: `${tier1AzDistribRate.toFixed(1)}%`,
+                            sub: `${tier1AzDistrib.toLocaleString()}/${tier1Total.toLocaleString()} services`,
+                            valueClass: 'text-blue',
+                            onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
+                        })}
+                    </div>
                         ${kpiCard({
                             title: 'Avg Bin-Packing Efficiency - FI',
                             value: `${avgFi.toFixed(1)}%`,

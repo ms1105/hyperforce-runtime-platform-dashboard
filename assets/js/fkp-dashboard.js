@@ -1957,7 +1957,7 @@ async function renderExecutiveSummary() {
         let totalPredictedSavings = null;
         let totalActualSavings = null;
         try {
-            const ctsResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json');
+            const ctsResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json?v=20250128');
             if (ctsResponse.ok) {
                 const ctsData = await ctsResponse.json();
                 totalPredictedSavings = ctsData?.summary?.totalRevisedSavings ?? null;

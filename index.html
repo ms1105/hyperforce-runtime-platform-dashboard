@@ -1145,7 +1145,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="assets/js/fkp-dashboard.js"></script>
+    <script src="assets/js/fkp-dashboard.js?v=20250128"></script>
     
     <!-- React and ReactDOM from CDN (for GitHub Pages) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -1316,7 +1316,7 @@
                                 // Load from static JSON file (works on both GitLab Pages and as fallback)
                                 if (!data) {
                                     try {
-                                        const staticResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json');
+                                        const staticResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json?v=20250128');
                                         if (staticResponse.ok) {
                                             data = await staticResponse.json();
                                             console.log('✅ HCP CTS data loaded from static file:', data);

@@ -9905,10 +9905,29 @@ async function renderAutoscalingExecView() {
     const tier1HpaCount = tier1WithHPA.length;
     const tier1HpaPct = tier1Count > 0 ? ((tier1HpaCount / tier1Count) * 100).toFixed(1) : 0;
     
+    // Calculate overall AZ Distribution adoption
+    const azDistribEnabledServices = services.filter(s => s.azDistrib > 0);
+    const azDistribEnabledCount = azDistribEnabledServices.length;
+    const azDistribAdoptionRate = ((azDistribEnabledCount / totalServices) * 100).toFixed(2);
+    const servicesWithoutAzDistrib = totalServices - azDistribEnabledCount;
+    
+    // Calculate AZ Distribution adoption for Tier 0
+    const tier0WithAzDistrib = tier0Services.filter(s => s.azDistrib > 0);
+    const tier0AzDistribCount = tier0WithAzDistrib.length;
+    const tier0AzDistribPct = tier0Count > 0 ? ((tier0AzDistribCount / tier0Count) * 100).toFixed(1) : 0;
+    
+    // Calculate AZ Distribution adoption for Tier 1
+    const tier1WithAzDistrib = tier1Services.filter(s => s.azDistrib > 0);
+    const tier1AzDistribCount = tier1WithAzDistrib.length;
+    const tier1AzDistribPct = tier1Count > 0 ? ((tier1AzDistribCount / tier1Count) * 100).toFixed(1) : 0;
+    
     console.log(`📊 Total: ${totalServices}, Tier0: ${tier0Count}, Tier1: ${tier1Count}`);
     console.log(`📊 HPA Enabled: ${hpaEnabledCount}, Rate: ${hpaAdoptionRate}%`);
     console.log(`📊 Tier 0: ${tier0HpaCount} with HPA (${tier0HpaPct}%)`);
     console.log(`📊 Tier 1: ${tier1HpaCount} with HPA (${tier1HpaPct}%)`);
+    console.log(`📊 AZ Distribution Enabled: ${azDistribEnabledCount}, Rate: ${azDistribAdoptionRate}%`);
+    console.log(`📊 Tier 0: ${tier0AzDistribCount} with AZ Distribution (${tier0AzDistribPct}%)`);
+    console.log(`📊 Tier 1: ${tier1AzDistribCount} with AZ Distribution (${tier1AzDistribPct}%)`);
     
     // ============ UPDATE SERVICE TIER BREAKDOWN CARD ============
     const totalServicesEl = document.getElementById('total-services-count');
@@ -10031,6 +10050,99 @@ async function renderAutoscalingExecView() {
             <div class="tier-hpa-detail-row">
                 <span class="tier-hpa-detail-label">HPA Adoption Rate</span>
                 <span class="tier-hpa-detail-value">${tier1HpaPct}%</span>
+            </div>
+        `;
+    }
+    
+    // ============ UPDATE AZ DISTRIBUTION RATE CARD ============
+    const azDistribRateEl = document.getElementById('az-distrib-adoption-rate');
+    if (azDistribRateEl) {
+        azDistribRateEl.textContent = `${azDistribAdoptionRate}%`;
+    }
+    
+    // Update AZ Distribution coverage percentage
+    const azDistribCoveragePctEl = document.getElementById('az-distrib-coverage-pct');
+    if (azDistribCoveragePctEl) {
+        azDistribCoveragePctEl.textContent = `${azDistribAdoptionRate}%`;
+    }
+    
+    // Update AZ Distribution progress bar
+    const azDistribProgressFill = document.getElementById('az-distrib-progress-fill');
+    if (azDistribProgressFill) {
+        azDistribProgressFill.style.width = `${azDistribAdoptionRate}%`;
+    }
+    
+    // Update AZ Distribution details
+    const azDistribDetails = document.getElementById('az-distrib-details');
+    if (azDistribDetails) {
+        azDistribDetails.innerHTML = `
+            <div class="tier-hpa-detail-row clickable" onclick="switchViewMode('developer'); switchTab('runtime-hpa');">
+                <span class="tier-hpa-detail-label">Services with AZ Distribution</span>
+                <span class="tier-hpa-detail-value">${azDistribEnabledCount} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row clickable" onclick="switchViewMode('developer'); switchTab('runtime-hpa');">
+                <span class="tier-hpa-detail-label">Services Without AZ Distribution</span>
+                <span class="tier-hpa-detail-value">${servicesWithoutAzDistrib} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row">
+                <span class="tier-hpa-detail-label">Total Services</span>
+                <span class="tier-hpa-detail-value">${totalServices}</span>
+            </div>
+        `;
+    }
+    
+    // ============ UPDATE TIER 0 AZ DISTRIBUTION CARD ============
+    const tier0AzDistribPctEl = document.getElementById('tier0-az-distrib-pct');
+    if (tier0AzDistribPctEl) tier0AzDistribPctEl.textContent = `${tier0AzDistribPct}%`;
+    
+    const tier0AzDistribCoveragePctEl = document.getElementById('tier0-az-distrib-coverage-pct');
+    if (tier0AzDistribCoveragePctEl) tier0AzDistribCoveragePctEl.textContent = `${tier0AzDistribPct}%`;
+    
+    const tier0AzDistribProgressFill = document.getElementById('tier0-az-distrib-progress-fill');
+    if (tier0AzDistribProgressFill) tier0AzDistribProgressFill.style.width = `${tier0AzDistribPct}%`;
+    
+    const tier0AzDistribDetails = document.getElementById('tier0-az-distrib-details');
+    if (tier0AzDistribDetails) {
+        tier0AzDistribDetails.innerHTML = `
+            <div class="tier-hpa-detail-row clickable" onclick="event.stopPropagation(); filterAutoscalingByTier(0)">
+                <span class="tier-hpa-detail-label">Services with AZ Distribution</span>
+                <span class="tier-hpa-detail-value">${tier0AzDistribCount} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row clickable" onclick="event.stopPropagation(); filterAutoscalingByTier(0)">
+                <span class="tier-hpa-detail-label">Total Tier 0 Services</span>
+                <span class="tier-hpa-detail-value">${tier0Count} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row">
+                <span class="tier-hpa-detail-label">AZ Distribution Rate</span>
+                <span class="tier-hpa-detail-value">${tier0AzDistribPct}%</span>
+            </div>
+        `;
+    }
+    
+    // ============ UPDATE TIER 1 AZ DISTRIBUTION CARD ============
+    const tier1AzDistribPctEl = document.getElementById('tier1-az-distrib-pct');
+    if (tier1AzDistribPctEl) tier1AzDistribPctEl.textContent = `${tier1AzDistribPct}%`;
+    
+    const tier1AzDistribCoveragePctEl = document.getElementById('tier1-az-distrib-coverage-pct');
+    if (tier1AzDistribCoveragePctEl) tier1AzDistribCoveragePctEl.textContent = `${tier1AzDistribPct}%`;
+    
+    const tier1AzDistribProgressFill = document.getElementById('tier1-az-distrib-progress-fill');
+    if (tier1AzDistribProgressFill) tier1AzDistribProgressFill.style.width = `${tier1AzDistribPct}%`;
+    
+    const tier1AzDistribDetails = document.getElementById('tier1-az-distrib-details');
+    if (tier1AzDistribDetails) {
+        tier1AzDistribDetails.innerHTML = `
+            <div class="tier-hpa-detail-row clickable" onclick="event.stopPropagation(); filterAutoscalingByTier(1)">
+                <span class="tier-hpa-detail-label">Services with AZ Distribution</span>
+                <span class="tier-hpa-detail-value">${tier1AzDistribCount} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row clickable" onclick="event.stopPropagation(); filterAutoscalingByTier(1)">
+                <span class="tier-hpa-detail-label">Total Tier 1 Services</span>
+                <span class="tier-hpa-detail-value">${tier1Count} <span class="link-icon">↗</span></span>
+            </div>
+            <div class="tier-hpa-detail-row">
+                <span class="tier-hpa-detail-label">AZ Distribution Rate</span>
+                <span class="tier-hpa-detail-value">${tier1AzDistribPct}%</span>
             </div>
         `;
     }

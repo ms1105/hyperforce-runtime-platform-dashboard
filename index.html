@@ -810,6 +810,89 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- AZ Distribution Section -->
+                            <div class="tier-hpa-cards-grid" id="az-distrib-cards-grid" style="margin-top: 2rem;">
+                                <!-- AZ Distribution Rate Card -->
+                                <div class="tier-hpa-card" id="az-distrib-adoption-card">
+                                    <div class="tier-hpa-header">
+                                        <span class="tier-hpa-title">AZ DISTRIBUTION RATE</span>
+                                    </div>
+                                    <div class="tier-hpa-main">
+                                        <span class="tier-hpa-percentage clickable-number" id="az-distrib-adoption-rate" onclick="switchViewMode('developer'); switchTab('runtime-hpa'); event.stopPropagation();" style="cursor: pointer;">--%</span>
+                                        <span class="tier-hpa-link-icon">↗</span>
+                                        <span class="tier-hpa-click-badge">CLICK</span>
+                                    </div>
+                                    <div class="tier-hpa-subtitle">Overall AZ Distribution Coverage</div>
+                                    <div class="tier-hpa-coverage">
+                                        <span class="tier-hpa-coverage-label">AZ Distribution Coverage</span>
+                                        <span class="tier-hpa-coverage-value" id="az-distrib-coverage-pct">--%</span>
+                                    </div>
+                                    <div class="tier-hpa-progress-bar" id="az-distrib-progress-bar">
+                                        <div class="tier-hpa-progress-fill" id="az-distrib-progress-fill"></div>
+                                    </div>
+                                    <div class="tier-hpa-details" id="az-distrib-details">
+                                        <!-- Dynamic content -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tier 0 and Tier 1 AZ Distribution Cards -->
+                            <div class="tier-hpa-cards-grid" id="tier-az-distrib-cards">
+                                <!-- Tier 0 AZ Distribution Card -->
+                                <div class="tier-hpa-card tier-0-card" id="tier0-az-distrib-card" onclick="filterAutoscalingByTier(0)">
+                                    <div class="tier-hpa-header">
+                                        <span class="tier-hpa-title">Tier 0 AZ Distribution</span>
+                                    </div>
+                                    <div class="tier-hpa-main">
+                                        <span class="tier-hpa-percentage" id="tier0-az-distrib-pct">--%</span>
+                                        <span class="tier-hpa-link-icon">↗</span>
+                                        <span class="tier-hpa-click-badge">CLICK</span>
+                                    </div>
+                                    <div class="tier-hpa-subtitle">Critical Services AZ Distribution</div>
+                                    <div class="tier-hpa-coverage">
+                                        <span class="tier-hpa-coverage-label">Tier 0 AZ Distribution Coverage</span>
+                                        <span class="tier-hpa-coverage-value" id="tier0-az-distrib-coverage-pct">--%</span>
+                                    </div>
+                                    <div class="tier-hpa-progress-bar">
+                                        <div class="tier-hpa-progress-fill" id="tier0-az-distrib-progress-fill"></div>
+                                    </div>
+                                    <div class="tier-hpa-details" id="tier0-az-distrib-details">
+                                        <!-- Dynamic content -->
+                                    </div>
+                                    <div class="tier-hpa-priority">
+                                        <span class="tier-hpa-priority-label">Priority Level</span>
+                                        <span class="tier-hpa-priority-value mission-critical">Mission Critical ↗</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Tier 1 AZ Distribution Card -->
+                                <div class="tier-hpa-card tier-1-card" id="tier1-az-distrib-card" onclick="filterAutoscalingByTier(1)">
+                                    <div class="tier-hpa-header">
+                                        <span class="tier-hpa-title">Tier 1 AZ Distribution</span>
+                                    </div>
+                                    <div class="tier-hpa-main">
+                                        <span class="tier-hpa-percentage" id="tier1-az-distrib-pct">--%</span>
+                                        <span class="tier-hpa-link-icon">↗</span>
+                                        <span class="tier-hpa-click-badge">CLICK</span>
+                                    </div>
+                                    <div class="tier-hpa-subtitle">Standard Services AZ Distribution</div>
+                                    <div class="tier-hpa-coverage">
+                                        <span class="tier-hpa-coverage-label">Tier 1 AZ Distribution Coverage</span>
+                                        <span class="tier-hpa-coverage-value" id="tier1-az-distrib-coverage-pct">--%</span>
+                                    </div>
+                                    <div class="tier-hpa-progress-bar">
+                                        <div class="tier-hpa-progress-fill" id="tier1-az-distrib-progress-fill"></div>
+                                    </div>
+                                    <div class="tier-hpa-details" id="tier1-az-distrib-details">
+                                        <!-- Dynamic content -->
+                                    </div>
+                                    <div class="tier-hpa-priority">
+                                        <span class="tier-hpa-priority-label">Priority Level</span>
+                                        <span class="tier-hpa-priority-value production-standard">Production Standard ↗</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     

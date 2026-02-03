@@ -2299,7 +2299,8 @@ async function renderExecutiveSummary() {
             <section class="exec-summary-section">
                 <div class="exec-summary-section-header"><span class="exec-summary-section-icon">⚙️</span>Runtime Service Standards</div>
                 <div class="exec-summary-section-card">
-                    <div class="exec-summary-kpi-grid columns-6">
+                    <!-- Row 1: HPA Adoption Rates -->
+                    <div class="exec-summary-kpi-grid columns-3">
                         ${kpiCard({
                             title: 'Overall HPA Adoption Rate',
                             value: `${hpaAdoptionRate.toFixed(1)}%`,
@@ -2321,6 +2322,9 @@ async function renderExecutiveSummary() {
                             valueClass: 'text-blue',
                             onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
                         })}
+                    </div>
+                    <!-- Row 2: AZ Distribution Rates -->
+                    <div class="exec-summary-kpi-grid columns-3" style="margin-top: 1rem;">
                         ${kpiCard({
                             title: 'Overall AZ Distribution Rate',
                             value: `${azDistribAdoptionRate.toFixed(1)}%`,
@@ -2343,6 +2347,8 @@ async function renderExecutiveSummary() {
                             onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
                         })}
                     </div>
+                    <!-- Row 3: Bin-Packing Efficiency -->
+                    <div class="exec-summary-kpi-grid columns-3" style="margin-top: 1rem;">
                         ${kpiCard({
                             title: 'Avg Bin-Packing Efficiency - FI',
                             value: `${avgFi.toFixed(1)}%`,

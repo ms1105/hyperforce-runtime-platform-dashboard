@@ -141,7 +141,7 @@ function renderCumulativeInitiativesChart(data, months) {
     
     const initiativesData = [
         { name: 'Improve Bin Packing with Karpenter- Platform', data: [0, 0, 0.06, 0.24, 0.49, 0.76, 1.03, 1.30, 1.58, 1.85, 2.13, 2.41], color: '#3182ce' },
-        { name: 'Rightsizing of HCP AddOns- Platform', data: [0, 0, 0.02, 0.04, 0.11, 0.22, 0.37, 0.52, 0.80, 1.13, 1.49, 1.84], color: '#dc2626' },
+        { name: 'Rightsizing of HCP AddOns- Platform', data: [0, 0, 0.02, 0.04, 0.11, 0.22, 0.37, 0.52, 0.80, 1.13, 1.49, 1.87], color: '#dc2626' },
         { name: 'OVP EBS Prune', data: [0, 0, 0.04, 0.07, 0.11, 0.18, 0.25, 0.36, 0.46, 0.56, 0.66, 0.76], color: '#fbbf24' },
         { name: 'Mesh / IG- Platform', data: [0, 0, 0, 0, 0.04, 0.08, 0.18, 0.31, 0.43, 0.56, 0.68, 0.81], color: '#059669' },
         { name: 'Decom of Redundant Compute- Tenant', data: [0.03, 0.05, 0.08, 0.10, 0.14, 0.17, 0.22, 0.26, 0.30, 0.34, 0.38, 0.43], color: '#f59e0b' }

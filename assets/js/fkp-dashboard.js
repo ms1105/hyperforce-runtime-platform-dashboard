@@ -10342,12 +10342,25 @@ async function renderAutoscalingDeveloperView() {
             hpaBadgeClass += ' hpa-partial';
         }
         
+        // AZ Distribution percentage styling (similar to HPA)
+        let azDistribBadgeClass = 'hpa-pct-badge';
+        if (service.azDistrib === 0) {
+            azDistribBadgeClass += ' hpa-zero';
+        } else if (service.azDistrib === 100) {
+            azDistribBadgeClass += ' hpa-full';
+        } else if (service.azDistrib >= 50) {
+            azDistribBadgeClass += ' hpa-high';
+        } else {
+            azDistribBadgeClass += ' hpa-partial';
+        }
+        
         return `
             <tr>
                 <td>${service.serviceName}</td>
                 <td>Platform Services</td>
                 <td><span class="${tierBadgeClass}">${tierLabel}</span></td>
                 <td><span class="${hpaBadgeClass}">${Math.round(service.hpa)}%</span></td>
+                <td><span class="${azDistribBadgeClass}">${Math.round(service.azDistrib)}%</span></td>
             </tr>
         `;
     }).join('');

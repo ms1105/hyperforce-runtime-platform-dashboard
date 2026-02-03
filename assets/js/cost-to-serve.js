@@ -28,8 +28,8 @@ function renderExecView(data) {
     // Calculate totals - use exact values from source of truth
     const totalOriginal = 8.17; // $8.17M - Original Estimate
     const totalForecast = 6.26; // $6.26M - Revised Estimate  
-    const totalActual = 6.25; // $6.25M - Realized Savings
-    const variance = totalActual - totalForecast; // -$0.01M
+    const totalActual = 6.28; // $6.28M - Realized Savings
+    const variance = totalActual - totalForecast; // +$0.02M
     const variancePercent = totalForecast > 0 ? ((variance / totalForecast) * 100).toFixed(2) : 0;
     const achievementRate = totalForecast > 0 ? ((totalActual / totalForecast) * 100).toFixed(2) : 0;
     

@@ -752,6 +752,29 @@
                                         <!-- Dynamic content -->
                                     </div>
                                 </div>
+                                
+                                <!-- AZ Distribution Breakdown Card -->
+                                <div class="tier-hpa-card" id="az-distrib-tier-breakdown-card">
+                                    <div class="tier-hpa-header">
+                                        <span class="tier-hpa-title">AZ DISTRIBUTION BREAKDOWN</span>
+                                    </div>
+                                    <div class="tier-hpa-main">
+                                        <span class="tier-hpa-percentage clickable-number" id="total-az-distrib-services-count" onclick="switchViewMode('developer'); switchTab('runtime-hpa'); event.stopPropagation();" style="cursor: pointer;">--</span>
+                                        <span class="tier-hpa-link-icon">↗</span>
+                                        <span class="tier-hpa-click-badge">CLICK</span>
+                                    </div>
+                                    <div class="tier-hpa-subtitle">Distribution by Service Tier</div>
+                                    <div class="tier-hpa-coverage">
+                                        <span class="tier-hpa-coverage-label">Tier 0 (Critical) AZ Distribution Coverage</span>
+                                        <span class="tier-hpa-coverage-value" id="tier0-az-distrib-coverage-pct-overall">--%</span>
+                                    </div>
+                                    <div class="tier-hpa-progress-bar">
+                                        <div class="tier-hpa-progress-fill tier-0" id="tier-0-az-distrib-segment-overall"></div>
+                                    </div>
+                                    <div class="tier-hpa-details" id="az-distrib-tier-details">
+                                        <!-- Dynamic content -->
+                                    </div>
+                                </div>
                             </div>
                             
                             <!-- Tier 0 and Tier 1 HPA Adoption Cards -->

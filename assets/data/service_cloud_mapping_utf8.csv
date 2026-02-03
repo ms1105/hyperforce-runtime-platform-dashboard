@@ -3,7 +3,7 @@ abs-graphql,CCI Platform,Core DX,Reliable AI-Driven Developer eXperience (RADX),
 access-management-azure-ad-oidc-wrapper,MS Core Services,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 access-management-bcrypt-as-a-service,MS Core Services,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 access-management-comm-2-hf-poc-falcon,MS Core Services,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
-ace,GovSAE - ACE,GIA,GIA,Brad Arkin
+ace,GovSAE - ACE,GIA,GIA,Jim Wiese
 ace-podtap,ACE Incident Management Tools,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 aceml-job-scheduler,Moncloud AI,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 aceml-runner,Moncloud AI,Monitoring Cloud,Big Data & Observability,Darryn Dieken
@@ -14,7 +14,7 @@ acm-acm-community-bridge-service,MS API Community Manager,MuleSoft Product Org,M
 acm-acm-community-bridge-service-infra,MS API Community Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 acp-observability-client,HALO,ACP - Autonomous Control Plane,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 acp-observability-service,HALO,ACP - Autonomous Control Plane,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
-addons-eval-gov-iso,GovSecDev,GIA,GIA,Brad Arkin
+addons-eval-gov-iso,GovSecDev,GIA,GIA,Jim Wiese
 addons-test,Falcon Add-ons,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 adframework-cujimpact,Platform Infra Dev - INDIA,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 admin-ui-rcgtpm,Industries RCG TPM Off Core 2,Retail and Consumer Goods,Industries,Ramesh Ragineni
@@ -145,7 +145,7 @@ api-designer-dc-xapi-service,MS API Designer and Catalog,MuleSoft Product Org,Mu
 api-designer-ui,MS API Designer and Catalog,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 api-designer-xapi,MS API Designer and Catalog,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 api-designer-xapi-falcon-infra,MS API Designer and Catalog,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
-api-fetcher,TIP Log Platform - Data Plane,Secure Stack Engineering,GIA,Brad Arkin
+api-fetcher,TIP Log Platform - Data Plane,Secure Stack Engineering,GIA,Jim Wiese
 api-functional-monitoring-bat-analytics-service,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 api-functional-monitoring-bat-asset-provider-artifacts-service,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 api-functional-monitoring-bat-asset-provider-results-service,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -208,6 +208,7 @@ apiq-crypto-kms,A360 Nexus,Activity Platform,Sales,Meir Amiel
 apiq-data-policy,EAC Foundation,Activity Platform,Sales,Meir Amiel
 apiq-data-streamer-eap,A360 Nexus,Activity Platform,Sales,Meir Amiel
 apiq-data-streamer-shared,A360 Nexus,Activity Platform,Sales,Meir Amiel
+apiq-e2c-extrctn,Sales Cloud Auriga,Sales AI,Sales,Meir Amiel
 apiq-e2c-mgrt-schdlr,Sales Cloud Auriga,Sales AI,Sales,Meir Amiel
 apiq-e2e-fit-tests,Activities 360 Q3 Engg,Activity Platform,Sales,Meir Amiel
 apiq-e2e-verifier-service,A360 Stargate,Activity Platform,Sales,Meir Amiel
@@ -554,18 +555,20 @@ armada2-servicecrd,fedx-cp,Developer Productivity Experience,Reliable AI-Driven 
 arsenal,Data Protection,SDB,HPS,Paul Constantinides
 art-broker,Team Spearhead,Service Cloud,Service,Meir Amiel
 art-provider,Team Spearhead,Service Cloud,Service,Meir Amiel
-ask-iam-svc,EntSecIAM-Auto-IAM,Enterprise Security,Security & Compliance,Brad Arkin
-ast-controller,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-ast-scan-worker,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-ast-tools,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-astcenter,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-astciservice,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-astcrawler,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-astmaster,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-astnexus,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-astprisma,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-astscscanner,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-astworker,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+ask-iam-svc,EntSecIAM-Auto-IAM,Enterprise Security,Security & Compliance,Jim Wiese
+ast-controller,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+ast-scan-worker,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+ast-tools,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+astcenter,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+astciservice,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+astcrawler,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+astmaster,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+astnexus,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+astprisma,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+astscscanner,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+astworker,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+athena,Salesforce Research Environments,Salesforce AI Research,Salesforce AI Research,Silvio Savarese
+athena-frontend,Salesforce Research Environments,Salesforce AI Research,Salesforce AI Research,Silvio Savarese
 athenadnsplatform,DNS Engineering,DNS Engineering and Operations,Infrastructure Strategy Data Center Operations (ISDO),Darryn Dieken
 athenadnsplatform-infra,DNS Engineering,DNS Engineering and Operations,Infrastructure Strategy Data Center Operations (ISDO),Darryn Dieken
 athenadnsproxyservice,DNS Engineering,DNS Engineering and Operations,Infrastructure Strategy Data Center Operations (ISDO),Darryn Dieken
@@ -602,7 +605,7 @@ bar-recover-jobs,Salesforce Backup (Backup and Restore),Trusted Services,Platfor
 bar-recover-service,Salesforce Backup (Backup and Restore),Trusted Services,Platform Services,Muralidhar Krishnaprasad
 bar-token-vendor,Salesforce Backup (Backup and Restore),Trusted Services,Platform Services,Muralidhar Krishnaprasad
 bastion,Infra IAM - Data Plane Access (India),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
-bastionrestricted,Infra IAM - Substrate Readiness,Enterprise Security,Security & Compliance,Brad Arkin
+bastionrestricted,Infra IAM - Substrate Readiness,Enterprise Security,Security & Compliance,Jim Wiese
 bat-analytics-service,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 bat-asset-provider-artifacts,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 bat-asset-provider-results,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -619,7 +622,7 @@ bdmpresto-airflow,Interactive Analytics,Salesforce Presto,Unified Intelligence P
 bdmpresto-hive-metastore,Interactive Analytics,Salesforce Presto,Unified Intelligence Platform,Darryn Dieken
 bdmpresto-superset,Interactive Analytics,Salesforce Presto,Unified Intelligence Platform,Darryn Dieken
 beacons-control-box,MCI Service Delivery - DC Squad,D360 Service Delivery,D360,Muralidhar Krishnaprasad
-beehive,TVM Infrastructure scanning,,,Brad Arkin
+beehive,TVM Infrastructure scanning,,,Jim Wiese
 bghostaccess,Syssec Infra,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 bharosa,PKI - Foundations,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 bifrost,HLE,App Data Services,HPS,Paul Constantinides
@@ -643,6 +646,7 @@ breakglass,IAM - JIT Data Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constan
 btdandacore,BT D&A Core Analytics [ CDAO],,,Joe Inzerillo
 build-monitoring,Core Build Experience,Core DX,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 build-patrol,SFCI TRUST,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+build-reliability-service,HAWK,SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 bulwark,Quantum,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 bundler-adapter-fedx,CRE Field Service DevOps,Field Service Edge,Field Service,Meir Amiel
 bundler-avp-engine-fedx,CRE Field Service DevOps,Field Service Edge,Field Service,Meir Amiel
@@ -687,7 +691,7 @@ cantor-storage,Warden AIOps Observability,Hyperscale Core CRM,HPS,Paul Constanti
 capacity-slack-apps,DeepSea - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 cape-ava,GP Internal,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 caps,Cross-Org Data Access,Metadata Platform,Platform Services,Muralidhar Krishnaprasad
-cascade,TIP SLP Data plane (Cascade),GIA,GIA,Brad Arkin
+cascade,TIP SLP Data plane (Cascade),GIA,GIA,Jim Wiese
 cbatch,CMS Core,Unified Experience & Authoring Platform,AI Application Development,Muralidhar Krishnaprasad
 cc-cds,CC OM Fast and Furious,CC OMS,Commerce,Meir Amiel
 cc-cds-restricted,CC OM Fast and Furious,CC OMS,Commerce,Meir Amiel
@@ -749,6 +753,7 @@ cdp-data-extractor-crm-service,CDP CRM 2,D360 Customer Data Platform (CDP),D360,
 cdp-data-extractor-dispatcher,CDP CRM 2,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 cdp-data-extractor-events,Fredericton Express,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 cdp-data-ingestion-service,Fredericton Express,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
+cdp-data-ingestion-service-cdp-cluster,Fredericton Express,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 cdp-data-prep,CDP_DataPrep,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 cdp-data-processing-controller,CDP_Fabric,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 cdp-data-service,CDP_Data_Services,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
@@ -798,7 +803,7 @@ cdp-usage-etl,EPIC Team,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Dar
 cef-platform,KRE-HYD,HyperForce Runtime Platform,HPS,Paul Constantinides
 cell-reservation-system,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
 central-feature-toggles,CC Digital Evergreen,CC ECOM Infra,Commerce Cloud Kernel,Meir Amiel
-certapi,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Brad Arkin
+certapi,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Jim Wiese
 certificateservices,PKI - RA,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 cfm-configuration-manager-db-migrations,MS Tooling & Connectivity Services,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cfm-configuration-manager-service,MS Tooling & Connectivity Services,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -808,9 +813,9 @@ cfm-secrets-migration-job,MS Tooling & Connectivity Services,MuleSoft Product Or
 cha-app,EAI - Engagement Automation & Insights,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 cha-ui,EAI - Engagement Automation & Insights,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 change-portal,CPE Change Intelligence Platform,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
-changecourier-high,Gov Onboarding Experience,GIA,GIA,Brad Arkin
-changecourier-low,Gov Onboarding Experience,GIA,GIA,Brad Arkin
-checkmarxast,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+changecourier-high,Gov Onboarding Experience,GIA,GIA,Jim Wiese
+changecourier-low,Gov Onboarding Experience,GIA,GIA,Jim Wiese
+checkmarxast,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 chronicle,CRM Infra Monitoring Platform (CMP),SDB,HPS,Paul Constantinides
 chronicle-alert-router,CRM Infra Monitoring Platform (CMP),SDB,HPS,Paul Constantinides
 chronicle-alertmanager,CRM Infra Monitoring Platform (CMP),SDB,HPS,Paul Constantinides
@@ -831,6 +836,7 @@ ciacprovisiondb,HASE,SDB,HPS,Paul Constantinides
 ciacprovisionla,HASE,SDB,HPS,Paul Constantinides
 ciacutils,HASE,SDB,HPS,Paul Constantinides
 cih-recommendation-engine,Recommendation Framework,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
+cih-recommendation-sync,Recommendation Framework,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 cipher-aggregator,Moncloud Streaming,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 cipher-aggregator-noncore,Moncloud Streaming,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 cipher-aggregator-preprod,Moncloud Streaming,Monitoring Cloud,Big Data & Observability,Darryn Dieken
@@ -850,14 +856,18 @@ cloudatlas-dynamo-datastore,Cloud Atlas,Identity Services,Platform Services,Mura
 cloudcps,KMS Platform,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 cloudcps-bootstrap,KMS Platform,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 cloudhsm,KMS Platform,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
+cloudhub-autoscaler-svc,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+cloudhub-deployer-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+cloudhub-heraldmem-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-heraldmsg-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-platformt-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+cloudhub-platformrt-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-rpim,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-temporal-worker-ct,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-temporal-worker-rt,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-ui,MS Anypoint UI Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
-cloudmap-api,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-cloudmap-scanners,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+cloudmap-api,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+cloudmap-scanners,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 cloudwatchexporter,Monitoring Agent,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 cloudyboy,CCI Platform,Core DX,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 clustermanagement,Falcon Kubernetes Platform,HyperForce Runtime Platform,HPS,Paul Constantinides
@@ -877,12 +887,12 @@ compute,Einstein Compute,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasa
 compute-namespaces,Einstein Compute,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 container-lifecycle-service,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 container-replicator,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-containersec-console,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-containersec-eks,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-containersec-infra,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-containersec-new,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+containersec-console,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+containersec-eks,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+containersec-infra,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+containersec-new,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 continuous-localization,Globalization,Globalization,Platform Services,Muralidhar Krishnaprasad
-controlplane,TIP SLP Control plane,Secure Stack Engineering,GIA,Brad Arkin
+controlplane,TIP SLP Control plane,Secure Stack Engineering,GIA,Jim Wiese
 controlplane-ui,Workspace Engineering,Core DX,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 coolan-alert-management-service,Infrastructure Insights & Intelligence (i3),SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 coolan-alert-processor,ARE,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
@@ -925,39 +935,39 @@ cr-notifications,CPE Change Intelligence Platform,"CRMD - Change, Release Manage
 cr-reputation-risk-processor,CPE Change Intelligence Platform,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 cr-reputation-risk-scoring,CPE Change Intelligence Platform,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 credential-service,CDP Service Protection,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
-credmaster,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-credworker,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+credmaster,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+credworker,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 critical-alerts-data-provider,Moncloud Alerting,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 critical-metrics-updater,Moncloud Alerting,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 crmetadata,Release Intelligence and Signals Engineering (RISE),"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
-crowdstrike-atomic-object-management,SCP - Endpoint Protection,Secure Stack Engineering,GIA,Brad Arkin
-crowdstrike-falcon-sensor-fedx,SCP - Endpoint Protection,Secure Stack Engineering,GIA,Brad Arkin
+crowdstrike-atomic-object-management,SCP - Endpoint Protection,Secure Stack Engineering,GIA,Jim Wiese
+crowdstrike-falcon-sensor-fedx,SCP - Endpoint Protection,Secure Stack Engineering,GIA,Jim Wiese
 crrs-fsfo-observer,CRM DB Replication and Recovery as a Service (CRRS),SDB,HPS,Paul Constantinides
 crtrust,Release Intelligence and Signals Engineering (RISE),"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 crtrust-rules-engine,Release Intelligence and Signals Engineering (RISE),"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
-cspm-etl,Cloud Security Posture Management (CSPM),Secure Stack Engineering,GIA,Brad Arkin
+cspm-etl,Cloud Security Posture Management (CSPM),Secure Stack Engineering,GIA,Jim Wiese
 ctscan,Encryption At-Rest,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 ctscan-harbinger,Encryption At-Rest,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 ctscan-ois,Encryption At-Rest,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 cuj-platform-services,Platform Infra Dev - INDIA,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 cujalerts-evaluator,Platform Infra Dev - INDIA,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 custom-checks-agent,MCI Service Delivery,MC Intelligence Cloud,Marketing,Muralidhar Krishnaprasad
-custom-domain,GovSecDev,GIA,GIA,Brad Arkin
+custom-domain,GovSecDev,GIA,GIA,Jim Wiese
 cx-router,CX Eng - SFDocs,Technology Services,Technology Services,Andrea Leszek
 cxa-api,GP Internal,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
-cxbastionast,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+cxbastionast,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 daas,Industries Site Reliability Engineering,Industries Shared,Industries,Ramesh Ragineni
 dapp,Core on SAM,Hyperscale Core CRM,HPS,Paul Constantinides
 data-cloud-cdp-fabric-access,CDP_Fabric,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 data-cloud-segment-gen-ai,Gen-AI,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 data-connectors,CDP JDBC Connectors,"D360 Quality, Performance, Productivity",D360,Muralidhar Krishnaprasad
-data-fabric-api,TIP - USDL,Secure Stack Engineering,GIA,Brad Arkin
-data-lineage-link,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
-data-observability-svc,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
-data-observability-ui,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
+data-fabric-api,TIP - USDL,Secure Stack Engineering,GIA,Jim Wiese
+data-lineage-link,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
+data-observability-svc,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
+data-observability-ui,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
 data-prism,GenAI Intelligence Data Orchestration,Search,Search,Muralidhar Krishnaprasad
-data-quality-outcome-link,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
-data-quality-service,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
+data-quality-outcome-link,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
+data-quality-service,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
 data-resilience,DataSec - Resilience,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 data-seed,AI Data Seeding,Developer Platform,Platform Services,Muralidhar Krishnaprasad
 datadetect-scanner,Data Detect,Trusted Services,Platform Services,Muralidhar Krishnaprasad
@@ -998,7 +1008,7 @@ dc-rcm,TDP - Bridge Edge Experiences & Dataserver,Tableau Data Platform,Analytic
 dc-rcm-corpnet,TDP - Bridge Edge Experiences & Dataserver,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
 dc-rcm-db,TDP - Bridge Edge Experiences & Dataserver,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
 dda-ack-api,DnA Data Mgt Tools,Data Intelligence,Data & Analytics (DnA),Joe Inzerillo
-defender,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+defender,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 delphi-app,Delphi,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 demeter,Hyperforce Governance Configuration and Orchestration,SDB,HPS,Paul Constantinides
 deploy-falcon-gating,FEDX Sample Apps,Hyperforce Solutions Engineering,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -1042,27 +1052,27 @@ distill-backend,Distill Platform,Industries Shared,Industries,Ramesh Ragineni
 distill-frontend,Distill Platform,Industries Shared,Industries,Ramesh Ragineni
 distill-vector,Distill Platform,Industries Shared,Industries,Ramesh Ragineni
 dms,Accelerate,Trusted Services,Platform Services,Muralidhar Krishnaprasad
-dnr-airflow,TIP Detection Platform - Foundation ML,Secure Stack Engineering,GIA,Brad Arkin
-dnr-connector,TIP Log Platform - Collect,Secure Stack Engineering,GIA,Brad Arkin
-dnr-fsnormalizer,TIP Log Platform - Transform,Secure Stack Engineering,GIA,Brad Arkin
-dnr-k2p,TIP Log Platform - Transform,Secure Stack Engineering,GIA,Brad Arkin
-dnr-k2s,TIP Search Experience,Secure Stack Engineering,GIA,Brad Arkin
-dnr-molokai,TIP Search Experience,Secure Stack Engineering,GIA,Brad Arkin
-dnr-normalizer,TIP Log Platform - Transform,Secure Stack Engineering,GIA,Brad Arkin
-dnr-orion,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
-dnr-partitioner,TIP Log Platform - Collect,Secure Stack Engineering,GIA,Brad Arkin
-dnr-prism,TIP Log Platform - Collect,Secure Stack Engineering,GIA,Brad Arkin
-dnr-search-molokai,TIP Search Experience,Secure Stack Engineering,GIA,Brad Arkin
-dnr-search-troll,TIP Search Experience,Secure Stack Engineering,GIA,Brad Arkin
-dnr-soar-app,Autonomous Response Platform - Automation,Detection & Response,Security & Compliance,Brad Arkin
-dnr-soar-db,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Brad Arkin
-dnr-streamingsearch,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
-dnrdp-nova,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
-dnrdp-nova-ds,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
-dnrdp-nova-egress,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
-dnrdp-nova-ml,TIP Detection Platform - Foundation ML,Secure Stack Engineering,GIA,Brad Arkin
-dnrdp-orch,TIP Detection Platform - Foundation ML,Secure Stack Engineering,GIA,Brad Arkin
-dnrdp-orion,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
+dnr-airflow,TIP Detection Platform - Foundation ML,Secure Stack Engineering,GIA,Jim Wiese
+dnr-connector,TIP Log Platform - Collect,Secure Stack Engineering,GIA,Jim Wiese
+dnr-fsnormalizer,TIP Log Platform - Transform,Secure Stack Engineering,GIA,Jim Wiese
+dnr-k2p,TIP Log Platform - Transform,Secure Stack Engineering,GIA,Jim Wiese
+dnr-k2s,TIP Search Experience,Secure Stack Engineering,GIA,Jim Wiese
+dnr-molokai,TIP Search Experience,Secure Stack Engineering,GIA,Jim Wiese
+dnr-normalizer,TIP Log Platform - Transform,Secure Stack Engineering,GIA,Jim Wiese
+dnr-orion,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
+dnr-partitioner,TIP Log Platform - Collect,Secure Stack Engineering,GIA,Jim Wiese
+dnr-prism,TIP Log Platform - Collect,Secure Stack Engineering,GIA,Jim Wiese
+dnr-search-molokai,TIP Search Experience,Secure Stack Engineering,GIA,Jim Wiese
+dnr-search-troll,TIP Search Experience,Secure Stack Engineering,GIA,Jim Wiese
+dnr-soar-app,Autonomous Response Platform - Automation,Detection & Response,Security & Compliance,Jim Wiese
+dnr-soar-db,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Jim Wiese
+dnr-streamingsearch,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
+dnrdp-nova,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
+dnrdp-nova-ds,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
+dnrdp-nova-egress,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
+dnrdp-nova-ml,TIP Detection Platform - Foundation ML,Secure Stack Engineering,GIA,Jim Wiese
+dnrdp-orch,TIP Detection Platform - Foundation ML,Secure Stack Engineering,GIA,Jim Wiese
+dnrdp-orion,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
 dns,DDI,DNS Engineering and Operations,Infrastructure Strategy Data Center Operations (ISDO),Darryn Dieken
 docker-sigs-replicator,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 document-service,CX Eng - Airgap Document Service,Technology Services,Technology Services,Andrea Leszek
@@ -1071,6 +1081,7 @@ dpx-genai,DPX Tools,Developer Productivity Experience,Reliable AI-Driven Develop
 dpxbot,DPXBot,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 dream-activity-worker,Einstein Foundation Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 dream-api,Einstein Foundation Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
+dream-weaver,NetSec - L7 Firewall,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 dream-workflow-worker,Einstein Foundation Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 druid-gateway,MonCloud Events,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 dx-mcp-gateway,Autonomous Agents Team,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -1085,6 +1096,8 @@ e360-cdp-ingestion,E360 Platform Inbound Samurai,Next Gen Messaging Services,Ser
 e360-consent,MC Consent Service,Engagement Platform,Marketing Tech Cloud,Meir Amiel
 e360-correlation-store-service,E360 Messaging WhatsApp Channel,Digital Engagement,Service,Meir Amiel
 e360-email-service,E360 Messaging Email,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
+e360-mam-inbound,E360 Mobile App Messaging Inbound,Digital Engagement,Service,Meir Amiel
+e360-mam-outbound,E360 Mobile App Messaging Inbound,Digital Engagement,Service,Meir Amiel
 e360-metadata-service,E360 Messaging WhatsApp Channel,Digital Engagement,Service,Meir Amiel
 e360-mobile-push,E360 Mobile App Messaging Application,Engagement Platform,Marketing Tech Cloud,Meir Amiel
 e360-push,E360 Mobile App Messaging Application,Engagement Platform,Marketing Tech Cloud,Meir Amiel
@@ -1151,7 +1164,7 @@ epic-agent-handler-service,MAGIC Agentforce,MAGIC,Reliable AI-Driven Developer e
 epic-bot,MAGIC Agentforce,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 epic-slack-integration-service,MAGIC Agentforce,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 erb-predictor,Einstein ML Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
-eureka,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Brad Arkin
+eureka,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Jim Wiese
 evangelos,CC Mostly Harmless,CC ECOM Transact,Commerce,Meir Amiel
 event-alert-evaluator,Moncloud Alerting,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 event-alert-scheduler,Moncloud Alerting,Monitoring Cloud,Big Data & Observability,Darryn Dieken
@@ -1216,6 +1229,7 @@ feedback-api,Developer Web Ops,Marketing Technology,CMO,Joe Inzerillo
 fees,CP Site Reliability Engineering,Site Reliability Engineering,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 ffx,Keystone Catalog,App Data Services,HPS,Paul Constantinides
 figma-sfdc,Innovation Task Force,Sales Cloud Core,Sales,Meir Amiel
+file-injector-mutating-webhook,Terraform Infrastructure Developer Experience (TIDE),FEDX Infra Deploys and Configuration (FIDC),Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 finch,FIRE-Test-Platform,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 finch-data-management,FIRE-FTEP,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 finch-dba,FIRE-FTEP,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -1266,7 +1280,7 @@ fmt-tooling,FMT (Falcon Metadata Tool),Continuous Provisioning,Reliable AI-Drive
 fmtetl,FMT (Falcon Metadata Tool),Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 fo-k8s,Log Analytics Scrum Team,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 foyer,UISF Core,Platform and Slackforce,Slack,Rod García
-fpaas,SysSec Container Security,Secure Stack Engineering,GIA,Brad Arkin
+fpaas,SysSec Container Security,Secure Stack Engineering,GIA,Jim Wiese
 fps-argo-workflows,Central Performance Foundation,Central Performance,Central Performance,Meir Amiel
 fps-atlas,Central Performance Foundation,Central Performance,Central Performance,Meir Amiel
 fps-ui,Central Performance Foundation,Central Performance,Central Performance,Meir Amiel
@@ -1338,7 +1352,7 @@ gater-public,Gater,Developer Productivity Experience,Reliable AI-Driven Develope
 gater-webhook,Gater,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 gater-webhook-sandbox,Gater,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 gaterx,Gater,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-gca,GovCloud Continuous Authority to Operate (GovCATO),GIA,GIA,Brad Arkin
+gca,GovCloud Continuous Authority to Operate (GovCATO),GIA,GIA,Jim Wiese
 gcmeapiserver,Release Intelligence and Signals Engineering (RISE),"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 gdc-service,Release Automation Platform,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 gdcbatch,Release Automation Platform,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
@@ -1347,14 +1361,14 @@ gdcworker,Release Automation Platform,"CRMD - Change, Release Management + DevOp
 gid-service,Global Identity Setup,,,Alice Steinglass
 gid-service-hf,Identity Data,Identity Services,Platform Services,Muralidhar Krishnaprasad
 gidruntime,Global Identity Runtime,Identity Services,Platform Services,Muralidhar Krishnaprasad
-gov-change-linter,GovCloud Secure Artifact Engineering (GovSAE),GIA,GIA,Brad Arkin
-govbot-slack-prd,GovCloud Release Engineering (GovRelEng),GIA,GIA,Brad Arkin
-govenclave,GovCloud Network RTB (GovNetsRTB),GIA,GIA,Brad Arkin
-govinfradev-data,Gov Onboarding Experience,GIA,GIA,Brad Arkin
-govinfradev-data-high,Gov Onboarding Experience,GIA,GIA,Brad Arkin
-govobx-conductor,GovCloud Secure Artifact Engineering (GovSAE),GIA,GIA,Brad Arkin
-govsvcadmin,GovSecEng,GIA,GIA,Brad Arkin
-govsyssec-dse,GovSecDev,GIA,GIA,Brad Arkin
+gov-change-linter,GovCloud Secure Artifact Engineering (GovSAE),GIA,GIA,Jim Wiese
+govbot-slack-prd,GovCloud Release Engineering (GovRelEng),GIA,GIA,Jim Wiese
+govenclave,GovCloud Network RTB (GovNetsRTB),GIA,GIA,Jim Wiese
+govinfradev-data,Gov Onboarding Experience,GIA,GIA,Jim Wiese
+govinfradev-data-high,Gov Onboarding Experience,GIA,GIA,Jim Wiese
+govobx-conductor,GovCloud Secure Artifact Engineering (GovSAE),GIA,GIA,Jim Wiese
+govsvcadmin,GovSecEng,GIA,GIA,Jim Wiese
+govsyssec-dse,GovSecDev,GIA,GIA,Jim Wiese
 gpinternal-aggregator,GP Internal,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 gpinternal-ui,GP Internal,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 graph-execution-service,Einstein ML Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
@@ -1399,9 +1413,9 @@ helm-archive-replicator,SFCD Stargate,Developer Productivity Experience,Reliable
 helm-extractor,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 hfa-agg,Hyperforce Fabric Availability,ACP - Autonomous Control Plane,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 high-scale-flow,C360 High Scale Flow,C360 Flow,Marketing,Meir Amiel
-hinax-bot,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Brad Arkin
-hinax-falcon,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Brad Arkin
-hinax-infra,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Brad Arkin
+hinax-bot,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Jim Wiese
+hinax-falcon,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Jim Wiese
+hinax-infra,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Jim Wiese
 hmrapp,Continuous Hammer,Integration and Events,Platform Services,Muralidhar Krishnaprasad
 horizon-alerter,CECM - Platform,CECM - Cloud Economics & Capacity Management,Cloud Economics & Capacity Mgmt (CECM),Darryn Dieken
 horizon-data-hub,CECM - Platform,CECM - Cloud Economics & Capacity Management,Cloud Economics & Capacity Mgmt (CECM),Darryn Dieken
@@ -1432,7 +1446,7 @@ icc-slack,ACE Incident Management Tools,Monitoring Cloud,Big Data & Observabilit
 icc-ui,ACE Incident Management Tools,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 id-mapper,Data Connectivity Frameworks,Integration and Events,Platform Services,Muralidhar Krishnaprasad
 ide-provisioner,Core IDE Experience,Core DX,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-identity-360,TIP - USDL,Secure Stack Engineering,GIA,Brad Arkin
+identity-360,TIP - USDL,Secure Stack Engineering,GIA,Jim Wiese
 identity-controller,STRIDE,HyperForce Runtime Platform,HPS,Paul Constantinides
 identitycontrollertest,STRIDE,HyperForce Runtime Platform,HPS,Paul Constantinides
 identity-controller-refresher,STRIDE,HyperForce Runtime Platform,HPS,Paul Constantinides
@@ -1444,20 +1458,20 @@ idp-management-service,MS IDP,MuleSoft Product Org,MuleSoft,Muralidhar Krishnapr
 idp-runtime-service,MS IDP,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 idp-ui,MS IDP,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 ids-worker,Einstein Infra US,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
-iem-bot,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Brad Arkin
-ignite-api-experience-securityhub,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-process,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-process-ilm,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-system-active-directory,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-system-gsuite,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-system-idm,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-system-iiq,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-system-notifications,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-system-okta,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-system-slack,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-api-system-zscaler,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-iiq,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
-ignite-support,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Brad Arkin
+iem-bot,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Jim Wiese
+ignite-api-experience-securityhub,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-process,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-process-ilm,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-active-directory,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-gsuite,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-idm,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-iiq,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-notifications,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-okta,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-slack,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-zscaler,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-iiq,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-support,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 iip-api-gateway,Infrastructure Insights & Intelligence (i3),SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 iip-core,Infrastructure Insights & Intelligence (i3),SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 iip-frontend,Infrastructure Insights & Intelligence (i3),SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
@@ -1565,7 +1579,7 @@ kmsinfra,KMS Platform,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 knative-serving,SAM Dev Tools,HyperForce Runtime Platform,HPS,Paul Constantinides
 kodama,Core Alignment and Tools (CAT),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 komputegroup,FKP Data Plane,HyperForce Runtime Platform,HPS,Paul Constantinides
-kraken,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+kraken,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 kre-3pp-orchestrator,KRE-HYD,HyperForce Runtime Platform,HPS,Paul Constantinides
 kreglue,KRE-HYD,HyperForce Runtime Platform,HPS,Paul Constantinides
 ksapiserver,NetSec - Falcon Platform Services (FPS),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
@@ -1594,14 +1608,14 @@ log-governance-service,Governed Product Usage,Hyperforce Trust Platform (HTP),HP
 log-proxy,Identity Sync,Identity Services,Platform Services,Muralidhar Krishnaprasad
 logs-opensearch-infra,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 logs-processor,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
-louper,govcloud compliance automation,GIA,GIA,Brad Arkin
-louper-c,govcloud compliance automation,GIA,GIA,Brad Arkin
+louper,govcloud compliance automation,GIA,GIA,Jim Wiese
+louper-c,govcloud compliance automation,GIA,GIA,Jim Wiese
 lpt,PACE,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 lsc-metadata-svc,LifeSciences-Anakin,Life Sciences Cloud,Industries,Ramesh Ragineni
 lume-design-system,MS UX Engineering,UX Foundations,UX Central,Kat Holmes
-luna-engine,Autonomous Response Platform - Automation,Detection & Response,Security & Compliance,Brad Arkin
-luna-ui,Autonomous Response Platform - Automation,Detection & Response,Security & Compliance,Brad Arkin
-luna-worker,Autonomous Response Platform - Automation,Detection & Response,Security & Compliance,Brad Arkin
+luna-engine,Autonomous Response Platform - Automation,Detection & Response,Security & Compliance,Jim Wiese
+luna-ui,Autonomous Response Platform - Automation,Detection & Response,Security & Compliance,Jim Wiese
+luna-worker,Autonomous Response Platform - Automation,Detection & Response,Security & Compliance,Jim Wiese
 lwc-compiler-service,Web Components Framework,Application Foundation,AI Application Development,Muralidhar Krishnaprasad
 macha-api,SFCD ROSS,Continuous Deployment,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 madeira-ali,Log Analytics Scrum Team,Monitoring Cloud,Big Data & Observability,Darryn Dieken
@@ -1631,6 +1645,8 @@ matlockauthrad,Infra IAM - Authentication,Hyperforce Trust Platform (HTP),HPS,Pa
 matlockauthsync,Infra IAM - Authentication,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 matlockauthval,Infra IAM - Authentication,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 matlockplex,Infra IAM - Authentication,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
+matrix-agent-service,AIForce SDLC Agent Delivery,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+matrix-event-processor,Autonomous Agents Team,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 mbuni,Messaging DevOps,Digital Engagement,Service,Meir Amiel
 mc-ladigaga,SFMC Database Control Plane,Engagement Platform,Marketing Tech Cloud,Meir Amiel
 mcdatatier-prerelease,MC CD,Engagement Platform,Marketing Tech Cloud,Meir Amiel
@@ -1729,16 +1745,16 @@ menshen,NetSec - Falcon Platform Services (FPS),Hyperforce Trust Platform (HTP),
 mesh-operator,Mesh Control Plane,HyperForce Runtime Platform,HPS,Paul Constantinides
 mesh-service-config,Mesh Control Plane,HyperForce Runtime Platform,HPS,Paul Constantinides
 message-rendition-service,Pardot Email Team,Account Engagement,Marketing,Meir Amiel
-metadata,TIP SLP Control plane,Secure Stack Engineering,GIA,Brad Arkin
+metadata,TIP SLP Control plane,Secure Stack Engineering,GIA,Jim Wiese
 metadata-concealer,STRIDE,HyperForce Runtime Platform,HPS,Paul Constantinides
-metadata-db,TIP SLP Control plane,Secure Stack Engineering,GIA,Brad Arkin
+metadata-db,TIP SLP Control plane,Secure Stack Engineering,GIA,Jim Wiese
 metadata-ingestion-service,CX Eng - SFDocs,Technology Services,Technology Services,Andrea Leszek
 metering-api-infra,MS MDAS Metering,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 metering-temporal-workflows,MS MDAS Metering,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 metisfalcon,NetSec - Falcon Platform Services (FPS),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 metric-alert-evaluator,Moncloud Alerting,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 metric-alert-scheduler,Moncloud Alerting,Monitoring Cloud,Big Data & Observability,Darryn Dieken
-midgard,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Brad Arkin
+midgard,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Jim Wiese
 mj-aac,MC Global Authentication and Transformation,Engagement Platform,Marketing Tech Cloud,Meir Amiel
 mj-ab-testing,MC Email Apps,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 mj-abtest-slots,MC Email Apps,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
@@ -2114,9 +2130,9 @@ mvs-db,Einstein Metadata Management,Agentforce Foundations,AI Cloud,Muralidhar K
 nalb,Nexus & Artifactory Infrastructure,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 nc-constraints-engine,BRE Cygnus,Configurator,Revenue,Ramesh Ragineni
 ncrp-deployment,BRE Cygnus,Configurator,Revenue,Ramesh Ragineni
-nessusmaster,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
+nessusmaster,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
 nest,Nexus & Artifactory Infrastructure,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-netscan,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
+netscan,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
 network-access-controller,NetSec - Falcon Platform Services (FPS),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 network-policies-generation,NetSec - Falcon Platform Services (FPS),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 nexus-proxy,Nexus & Artifactory Infrastructure,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -2124,7 +2140,7 @@ nexusproxy-release,Nexus & Artifactory Infrastructure,Developer Productivity Exp
 nexustest81,Nexus & Artifactory Infrastructure,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 nimbus-slack,TDX SRE,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 nl-2-semantic-query,Data Prism,Search,Search,Muralidhar Krishnaprasad
-nomad-bot-prd,GovSCALE,GIA,GIA,Brad Arkin
+nomad-bot-prd,GovSCALE,GIA,GIA,Jim Wiese
 normalization,Einstein.ai Language,Agentforce Lifecycle and Applied AI,AI Cloud,Muralidhar Krishnaprasad
 notebook,Einstein Interactive Data Science,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 notebookai,CDP UDS Apps,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
@@ -2149,9 +2165,9 @@ odcr-services,CECM - Capacity,CECM - Cloud Economics & Capacity Management,Cloud
 offer-gating-service,Digital Offer Gating Services,Marketing Technology,CMO,Joe Inzerillo
 offline-jumphost,IAM - JIT Data Plane,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 ois,CRE Field Service DevOps,Field Service Edge,Field Service,Meir Amiel
-oligo-collector,AST-Interceptors,Secure Stack Engineering,GIA,Brad Arkin
-oligo-scanner,AST-Interceptors,Secure Stack Engineering,GIA,Brad Arkin
-oligo-sensor,AST-Interceptors,Secure Stack Engineering,GIA,Brad Arkin
+oligo-collector,AST-Interceptors,Secure Stack Engineering,GIA,Jim Wiese
+oligo-scanner,AST-Interceptors,Secure Stack Engineering,GIA,Jim Wiese
+oligo-sensor,AST-Interceptors,Secure Stack Engineering,GIA,Jim Wiese
 onyx-agent,SFMP,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 onyx-engine,SFMP,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 onyx-engine-control-pod,SFMP,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
@@ -2180,14 +2196,14 @@ ops-buddy,CRM Database Sustaining Engineering,SDB,HPS,Paul Constantinides
 ops-buddy-api,CRM Database Sustaining Engineering,SDB,HPS,Paul Constantinides
 ops-buddy-job,CRM Database Sustaining Engineering,SDB,HPS,Paul Constantinides
 oracle-large-binaries,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-orchengine,TIP SLP Control plane,Secure Stack Engineering,GIA,Brad Arkin
-orchestrator,TIP Log Platform - Data Plane,Secure Stack Engineering,GIA,Brad Arkin
+orchengine,TIP SLP Control plane,Secure Stack Engineering,GIA,Jim Wiese
+orchestrator,TIP Log Platform - Data Plane,Secure Stack Engineering,GIA,Jim Wiese
 orgstore-data-manager,Org Data Store Team,HBase & Phoenix,Big Data & Observability,Darryn Dieken
 orgstore-permissions,Org Data Store Team,HBase & Phoenix,Big Data & Observability,Darryn Dieken
 orgstore-provisioner,Org Data Store Team,HBase & Phoenix,Big Data & Observability,Darryn Dieken
 os-bundles,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-osquery-agent,SCP - Endpoint Protection,Secure Stack Engineering,GIA,Brad Arkin
-osqueryagent,SCP - Endpoint Protection,Secure Stack Engineering,GIA,Brad Arkin
+osquery-agent,SCP - Endpoint Protection,Secure Stack Engineering,GIA,Jim Wiese
+osqueryagent,SCP - Endpoint Protection,Secure Stack Engineering,GIA,Jim Wiese
 osrb,FORGE,SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 ourea,CPE Change Intelligence Platform,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 output-connector,Einstein Data Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
@@ -2263,7 +2279,7 @@ pradsm,Infra IAM - Data Plane Access,Hyperforce Trust Platform (HTP),HPS,Paul Co
 praui,Infra IAM - Data Plane Access,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 pravm,Infra IAM - Data Plane Access,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 prazk,Infra IAM - Data Plane Access,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
-pre-processor,TIP Log Platform - Collect,Secure Stack Engineering,GIA,Brad Arkin
+pre-processor,TIP Log Platform - Collect,Secure Stack Engineering,GIA,Jim Wiese
 prediction,Einstein ML Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 prediction-cache,Einstein ML Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 prism-nl2sql,Data Prism,Search,Search,Muralidhar Krishnaprasad
@@ -2309,18 +2325,18 @@ r53proxy,DDI,DNS Engineering and Operations,Infrastructure Strategy Data Center 
 rabbitmq-external-sfmp,SFMP,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 radagast,SFDO Release Engineering,Industries Shared,Industries,Ramesh Ragineni
 radius,IAM Platform Integrity and C4SSH,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
-rag-bot,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
-rag-evaluation,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
-rag-generation,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
-rag-suite,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
+rag-bot,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
+rag-evaluation,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
+rag-generation,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
+rag-suite,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
 ralb,Nexus & Artifactory Infrastructure,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 raphty,PKI - Foundations,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
-rapidsnail,TVM Infrastructure scanning,,,Brad Arkin
+rapidsnail,TVM Infrastructure scanning,,,Jim Wiese
 raptorsvc,NetSec - Falcon Platform Services (FPS)-India,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 raven,NetSec Policy Generation & Delivery,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 ray,Einstein Interactive Data Science,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 rediscluster-manager,Caching Services,HyperForce Runtime Platform,HPS,Paul Constantinides
-registry,Terraform Infrastructure Developer Experience (TIDE),Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+registry,Terraform Infrastructure Developer Experience (TIDE),FEDX Infra Deploys and Configuration (FIDC),Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 regrello,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 regrello-ai-monitoring,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 regrello-app-generation,Change Management,ILM - Infrastructure Lifecycle Management,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
@@ -2395,27 +2411,27 @@ sagas-messaging-nats,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishna
 sagas-server-service,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 sagas-server-service-infra,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 sagebot,NetSec - Falcon Platform Services (FPS),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
-sai-access-service,Salesforce Asset Inventory,Secure Stack Engineering,GIA,Brad Arkin
-sai-gateway,Salesforce Asset Inventory,Secure Stack Engineering,GIA,Brad Arkin
+sai-access-service,Salesforce Asset Inventory,Secure Stack Engineering,GIA,Jim Wiese
+sai-gateway,Salesforce Asset Inventory,Secure Stack Engineering,GIA,Jim Wiese
 sam,Falcon Kubernetes Platform,HyperForce Runtime Platform,HPS,Paul Constantinides
 saturn,DnA AI Platform,DnA - Data Science,Data & Analytics (DnA),Joe Inzerillo
 savings-plan-service,DeepSea - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 sc-api,SFCD Structured Config,Continuous Deployment,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 scalecenter,Scale Center,Hyperscale Core CRM,HPS,Paul Constantinides
 scalecenter-ai,Scale Center,Hyperscale Core CRM,HPS,Paul Constantinides
-scdp-model-serving,EntSecIAM-Auto-IAM,Enterprise Security,Security & Compliance,Brad Arkin
-scim-1password,IAM - Privileged Access Management,Enterprise Security,Security & Compliance,Brad Arkin
-scim-1password-infra,IAM - Privileged Access Management,Enterprise Security,Security & Compliance,Brad Arkin
+scdp-model-serving,EntSecIAM-Auto-IAM,Enterprise Security,Security & Compliance,Jim Wiese
+scim-1password,IAM - Privileged Access Management,Enterprise Security,Security & Compliance,Jim Wiese
+scim-1password-infra,IAM - Privileged Access Management,Enterprise Security,Security & Compliance,Jim Wiese
 scim-service,CP CS-Users Groups and Sites,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
 scot-mend-nginx-proxy,SFCI SCoT,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 scot-mend-renovate,SFCI SCoT,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 scot-mend-renovate-github,SFCI SCoT,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 scot-metrics-aggregator,SFCI SCoT,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-scp-cue,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
-scp-event-relay,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
-scp-sot,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
-scp-vuln-processor,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
-scpvulninsightservice,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
+scp-cue,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
+scp-event-relay,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
+scp-sot,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
+scp-vuln-processor,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
+scpvulninsightservice,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
 scrt1-central,SCRT1 DevOps,Digital Engagement,Service,Meir Amiel
 scrt1-ingress,SCRT1 DevOps,Digital Engagement,Service,Meir Amiel
 scrt1lapp,SCRT1 DevOps,Digital Engagement,Service,Meir Amiel
@@ -2508,7 +2524,7 @@ segint-sigma,Segment Intelligence,MC Intelligence Cloud,Marketing,Meir Amiel
 segint-sigma-control-pod,Segment Intelligence,MC Intelligence Cloud,Marketing,Meir Amiel
 segint-sigma-db,Segment Intelligence,MC Intelligence Cloud,Marketing,Meir Amiel
 segint-sigma-elasticache,Segment Intelligence,MC Intelligence Cloud,Marketing,Meir Amiel
-seidr,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Brad Arkin
+seidr,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
 semantic-analytics-agent,Semantic Analytics Agent,Tableau Unified Analytics,Analytics Cloud,Muralidhar Krishnaprasad
 semantic-engine-gateway,Semantic - SQLGenerator,Tableau Unified Analytics,Analytics Cloud,Muralidhar Krishnaprasad
 semantic-query-manager,Semantic - SQLGenerator,Tableau Unified Analytics,Analytics Cloud,Muralidhar Krishnaprasad
@@ -2520,6 +2536,7 @@ service-directory,Universal Service Directory,Monitoring Cloud,Big Data & Observ
 service-mesh-xapi-service,MS API Runtime Control Plane,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 service-ownership-console,MonCloud Notifications,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 servicemesh,Mesh Control Plane,HyperForce Runtime Platform,HPS,Paul Constantinides
+sf-iceberg-rest-catalog,Interactive Analytics,Salesforce Presto,Unified Intelligence Platform,Darryn Dieken
 sf-spark-scheduler,Flowsnake,Flowsnake,Unified Intelligence Platform,Darryn Dieken
 sfb-arbiter,Salesforce Backup (Backup and Restore),Trusted Services,Platform Services,Muralidhar Krishnaprasad
 sfb-org-authenticator,Salesforce Backup (Backup and Restore),Trusted Services,Platform Services,Muralidhar Krishnaprasad
@@ -2572,6 +2589,7 @@ sfdx-deployer,CRMTitans,Field Service Lightning,Field Service,Meir Amiel
 sfmaps-aa,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
 sfmaps-gateway-falcon,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
 sfmaps-geocoder,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
+sfmaps-geocoder-v7,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
 sfmaps-geocoding-falcon,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
 sfmaps-gis-falcon,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
 sfmaps-gis-falcon-worker,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
@@ -2624,7 +2642,7 @@ smscps,HCA HSM Management,Hyperforce Trust Platform (HTP),HPS,Paul Constantinide
 smsekm-skb,KMS Platform,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 smszk,KMS Platform,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 snapshot-producer,SAM Dev Tools,HyperForce Runtime Platform,HPS,Paul Constantinides
-snykbroker,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+snykbroker,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 solr-service,Search Solr Kiki,Search,Search,Muralidhar Krishnaprasad
 solution-cloud-jobmage,SFDO Release Engineering,Industries Shared,Industries,Ramesh Ragineni
 sonarqube,Falcon Integration Testing (FIT),Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -2657,7 +2675,7 @@ splunk-k8s-sh,Log Analytics Scrum Team,Monitoring Cloud,Big Data & Observability
 splunk-kubernetes,Log Analytics Scrum Team,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 splunk-operator,Log Analytics Scrum Team,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 splunkmadeira,Log Analytics Scrum Team,Monitoring Cloud,Big Data & Observability,Darryn Dieken
-spo,SysSec Container Security,Secure Stack Engineering,GIA,Brad Arkin
+spo,SysSec Container Security,Secure Stack Engineering,GIA,Jim Wiese
 sqlconcurrencythrottler,SFMC Database Service Engineering,Engagement Platform,Marketing Tech Cloud,Meir Amiel
 sre-agent,Falcon SRE US,Site Reliability Engineering,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 sre-feature-flag-service,MS SRE,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -2698,8 +2716,8 @@ strauz,STRIDE,HyperForce Runtime Platform,HPS,Paul Constantinides
 suaas-app,Db Schema,App Data Services,HPS,Paul Constantinides
 suaas-web,Db Schema,App Data Services,HPS,Paul Constantinides
 sup-content-delivery,SentOS Enablement,Search,Search,Muralidhar Krishnaprasad
-supplychainsec,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-supplychainsec-updates-pipeline,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+supplychainsec,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+supplychainsec-updates-pipeline,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 suraksha,PKI - Foundations,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 synesis,ILM TIGER,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 taasresponder,MC_DRHAM,Engagement Platform,Marketing Tech Cloud,Meir Amiel
@@ -2852,8 +2870,8 @@ tabpub-prerender,AX DMC Public Platform and Integrations,Analytics Experiences,A
 tabpub-vizhub,AX DMC Public Platform and Integrations,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
 tabsecrets-service,Secrets Management,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 taleggio-publisher,Release Intelligence and Signals Engineering (RISE),"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
-tanium,Control Planes,Secure Stack Engineering,GIA,Brad Arkin
-tc-service,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+tanium,Control Planes,Secure Stack Engineering,GIA,Jim Wiese
+tc-service,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 telemetry-exporter-configuration-service,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 telemetry-exporter-logs,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 telemetry-exporter-metrics-internal,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -2874,10 +2892,10 @@ temporalproxy,Temporal Fusion,ACP - Autonomous Control Plane,Infrastructure Life
 temporalresourcemanager,OrcaaS - Orchestration-as-a-Service,SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 temporalui,OrcaaS - Orchestration-as-a-Service,SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 temporalworker,OrcaaS - Orchestration-as-a-Service,SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
-tenable-sc,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
+tenable-sc,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
 tenant-registration-operator,FKP Cross Control,HyperForce Runtime Platform,HPS,Paul Constantinides
-tentacle,Cloud Security Posture Management (CSPM),Secure Stack Engineering,GIA,Brad Arkin
-terraform,Terraform Infrastructure Developer Experience (TIDE),Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+tentacle,Cloud Security Posture Management (CSPM),Secure Stack Engineering,GIA,Jim Wiese
+terraform,Terraform Infrastructure Developer Experience (TIDE),FEDX Infra Deploys and Configuration (FIDC),Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 terraform-latest-tar-updater,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 terraform-managed-operations,Terraform Service,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 terraform-replicator,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -2897,11 +2915,13 @@ tf-rtfc-provisioner-global-v2,MS CloudHub 2.0 Infra,MuleSoft Product Org,MuleSof
 tf-rtfc-provisioner-regional-v2,MS CloudHub 2.0 Infra,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 tfregistry,fedx-cp,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 thb-agent-api,ThunderBird - Agent Experience & Media Mgmt,Service Cloud Thunderbird,Service,Meir Amiel
+thb-clickhouse-operator,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
 thb-dialog-relay-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
 thb-dialog-relay-api-gateway,ThunderBird - Digital Voice (Active),Service Cloud Thunderbird,Service,Meir Amiel
 thb-eks,ThunderBird - DevOps and Infra,Service Cloud Thunderbird,Service,Meir Amiel
 thb-eks-afv,ThunderBird - DevOps and Infra,Service Cloud Thunderbird,Service,Meir Amiel
 thb-flow-action-handler,ThunderBird - Krishna (IVR),Service Cloud Thunderbird,Service,Meir Amiel
+thb-freeswitch-core,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
 thb-gatling-load-generator-poc,ThunderBird - Garuda ( Voice Call Recording ),Service Cloud Thunderbird,Service,Meir Amiel
 thb-global-channelline-api,ThunderBird - Admin Experience & Number Management,Service Cloud Thunderbird,Service,Meir Amiel
 thb-homer,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
@@ -2909,6 +2929,11 @@ thb-iva-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunder
 thb-iva-controller-api,ThunderBird Cauvery (IVA),Service Cloud Thunderbird,Service,Meir Amiel
 thb-iva-relay-api,ThunderBird Cauvery (IVA),Service Cloud Thunderbird,Service,Meir Amiel
 thb-janus-gateway-server,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
+thb-kamailio-ops,ThunderBird - Native Voice - Team-3,Service Cloud Thunderbird,Service,Meir Amiel
+thb-kamailio-sip-router,ThunderBird - Native Voice - Team-3,Service Cloud Thunderbird,Service,Meir Amiel
+thb-media-converter,ThunderBird - Native Voice - Team-3,Service Cloud Thunderbird,Service,Meir Amiel
+thb-media-lb,ThunderBird - Native Voice - Team-3,Service Cloud Thunderbird,Service,Meir Amiel
+thb-media-relay,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
 thb-metering-service,ThunderBird - Digital Voice (Active),Service Cloud Thunderbird,Service,Meir Amiel
 thb-mfm-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
 thb-mfm-uploader-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
@@ -2918,6 +2943,8 @@ thb-rbbn-sbc-afv,ThunderBird - DevOps and Infra,Service Cloud Thunderbird,Servic
 thb-speech-service,ThunderBird - Raven ( Transcription and Text to Speech ),Service Cloud Thunderbird,Service,Meir Amiel
 thb-stunner-gw,ThunderBird - Native Voice - Team-3,Service Cloud Thunderbird,Service,Meir Amiel
 thb-transcript-handler,ThunderBird - Garuda ( Voice Call Recording ),Service Cloud Thunderbird,Service,Meir Amiel
+thb-transcription-lb,ThunderBird - Native Voice - Team-3,Service Cloud Thunderbird,Service,Meir Amiel
+thb-transcription-relay,ThunderBird - Native Voice - Team-3,Service Cloud Thunderbird,Service,Meir Amiel
 thb-tts-service,ThunderBird - Krishna (IVR),Service Cloud Thunderbird,Service,Meir Amiel
 thb-voice-api,ThunderBird Voice Signal Abstraction,Service Cloud Thunderbird,Service,Meir Amiel
 thb-voice-command-router,ThunderBird - Native Voice - Team-3,Service Cloud Thunderbird,Service,Meir Amiel
@@ -2927,18 +2954,18 @@ thb-voice-integration,ThunderBird - Phoenix ( Voice Orchestrator ),Service Cloud
 thb-voice-recording-exporter,ThunderBird - Garuda ( Voice Call Recording ),Service Cloud Thunderbird,Service,Meir Amiel
 thb-voice-switch-allocator-api,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
 thb-voice-switch-discovery-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
-threat-canvas-backend,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
-tiim,Terraform Infrastructure Developer Experience (TIDE),Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-tip-flink-operator,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
-tip-panopticon,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Brad Arkin
-tip-slams,TIP - USDL,Secure Stack Engineering,GIA,Brad Arkin
-tip-usdl-iceberg-rest-proxy,TIP - USDL,Secure Stack Engineering,GIA,Brad Arkin
-tip-usdl-ingestion-platform,TIP - USDL,Secure Stack Engineering,GIA,Brad Arkin
-tip-usdl-janus,TIP - USDL,Secure Stack Engineering,GIA,Brad Arkin
-tip-usdl-janus-infra,TIP - USDL,Secure Stack Engineering,GIA,Brad Arkin
-tip-usdl-midgard,TIP - USDL,Secure Stack Engineering,GIA,Brad Arkin
-tip-usdl-streaming-platform,TIP - USDL Enablement,Secure Stack Engineering,GIA,Brad Arkin
-tm-tool,AST - Application Security Technology,Secure Stack Engineering,GIA,Brad Arkin
+threat-canvas-backend,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
+tiim,Terraform Infrastructure Developer Experience (TIDE),FEDX Infra Deploys and Configuration (FIDC),Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+tip-flink-operator,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
+tip-panopticon,TIP Detection Platform - Detection Engines,Secure Stack Engineering,GIA,Jim Wiese
+tip-slams,TIP - USDL,Secure Stack Engineering,GIA,Jim Wiese
+tip-usdl-iceberg-rest-proxy,TIP - USDL,Secure Stack Engineering,GIA,Jim Wiese
+tip-usdl-ingestion-platform,TIP - USDL,Secure Stack Engineering,GIA,Jim Wiese
+tip-usdl-janus,TIP - USDL,Secure Stack Engineering,GIA,Jim Wiese
+tip-usdl-janus-infra,TIP - USDL,Secure Stack Engineering,GIA,Jim Wiese
+tip-usdl-midgard,TIP - USDL,Secure Stack Engineering,GIA,Jim Wiese
+tip-usdl-streaming-platform,TIP - USDL Enablement,Secure Stack Engineering,GIA,Jim Wiese
+tm-tool,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 tobin-dev-docs-en,MS Falcon Integration Team,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 tobin-dev-docs-web,MS Falcon Integration Team,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 toc-flink-cluster,CP CE-CloudInfra-TOC,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
@@ -2960,7 +2987,7 @@ trailblazer-profile-service,Digital Profile Service,Marketing Technology,CMO,Joe
 trino-gateway,Interactive Analytics,Salesforce Presto,Unified Intelligence Platform,Darryn Dieken
 triton,BYOM Services & Model Optimizations,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 trust-admin-ui,CAT - Trust,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
-trust-bot,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Brad Arkin
+trust-bot,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Jim Wiese
 trust-data-service,CAT - Trust,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 trust-monitor-service,CAT - Trust,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 trust-status-api,CAT - Trust,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
@@ -2974,9 +3001,9 @@ tua-insights-service,TUA-PLS-Insights,Tableau Unified Analytics,Analytics Cloud,
 tua-kernel-service,TUA-DQA,Tableau Unified Analytics,Analytics Cloud,Muralidhar Krishnaprasad
 tua-platform-eng-portal,TUA-Falcon Foundation,Tableau Unified Analytics,Analytics Cloud,Muralidhar Krishnaprasad
 tua-timeseries-service,TUA-PLS-Insights,Tableau Unified Analytics,Analytics Cloud,Muralidhar Krishnaprasad
-tvm-adhocscanning,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
-tvm-db,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Brad Arkin
-tvm-db-automation,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Brad Arkin
+tvm-adhocscanning,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
+tvm-db,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Jim Wiese
+tvm-db-automation,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Jim Wiese
 uap-heartbeat-service,Unified API Platform,Integration and Events,Platform Services,Muralidhar Krishnaprasad
 ucs-content-ingestion,Digital-Content+Taxonomy,Marketing Technology,CMO,Joe Inzerillo
 uip-ai-comm-service,UIP Foundation & Exploration,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
@@ -2995,6 +3022,7 @@ uip-notebook2-k8s-service,UIP Foundation & Exploration,Unified Intelligence Plat
 uip-permission-service,UIP Foundation & Exploration,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uip-rest-catalog,DeepSea - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uip-router,UIP Foundation & Exploration,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
+uip-table-management,Data Services - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uipds,DeepSea - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uipengsys-artifact-server,SFCI TRUST,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 uipengsys-eks,SFCI TRUST,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -3028,8 +3056,8 @@ ums-smtp-blackhole,UNIFIED MAIL SERVICE,In Market Messaging Services,Marketing T
 ums-snat-proxy,UNIFIED MAIL SERVICE,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 ums-tenant-api,UNIFIED MAIL SERVICE,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 unified-content-services,Digital-Content+Taxonomy,Marketing Technology,CMO,Joe Inzerillo
-unifiedportal-api,IAM Self-Service Application Administration,Enterprise Security,Security & Compliance,Brad Arkin
-unifiedportal-ui,IAM Self-Service Application Administration,Enterprise Security,Security & Compliance,Brad Arkin
+unifiedportal-api,IAM Self-Service Application Administration,Enterprise Security,Security & Compliance,Jim Wiese
+unifiedportal-ui,IAM Self-Service Application Administration,Enterprise Security,Security & Compliance,Jim Wiese
 unstructured-realtime,CDP Unstructured Data,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 ura,PKI - RA,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 urawatchdog,PKI - RA,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
@@ -3039,14 +3067,14 @@ urcs-inbound-receiver,Unified RCS,Engagement Platform,Marketing Tech Cloud,Mural
 urcs-message-router,Unified RCS,Engagement Platform,Marketing Tech Cloud,Muralidhar Krishnaprasad
 urcs-notification-dispatcher,Unified RCS,Engagement Platform,Marketing Tech Cloud,Muralidhar Krishnaprasad
 usd-service,Universal Service Directory,Monitoring Cloud,Big Data & Observability,Darryn Dieken
-usdl-streaming-platform,TIP - USDL Enablement,Secure Stack Engineering,GIA,Brad Arkin
+usdl-streaming-platform,TIP - USDL Enablement,Secure Stack Engineering,GIA,Jim Wiese
 usms-blackhole-service,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 usms-config-api,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 usms-event-processor,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 usms-grpc-api,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 usms-http-blackhole-service,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 usms-inbound-smpp-mo,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
-usms-mco,GIA2H Build and Onboarding,GIA,GIA,Brad Arkin
+usms-mco,GIA2H Build and Onboarding,GIA,GIA,Jim Wiese
 util,Nexus & Artifactory Infrastructure,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 vaas-verificationengine,Verification as a Service (VaaS),Identity Services,Platform Services,Muralidhar Krishnaprasad
 validation-service,MS Mycroft,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -3065,7 +3093,7 @@ vaultlite,Einstein Infra US,Agentforce Foundations,AI Cloud,Muralidhar Krishnapr
 vaultmetadatadocdb,Secrets Management,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 vaultwebhook,Secrets Management,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 vegacache,Caching Services,HyperForce Runtime Platform,HPS,Paul Constantinides
-vigilancewatch,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Brad Arkin
+vigilancewatch,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
 visibility-agent,SAM Dev Tools,HyperForce Runtime Platform,HPS,Paul Constantinides
 visibility-pipeline,SAM Dev Tools,HyperForce Runtime Platform,HPS,Paul Constantinides
 visualizer-experience-api,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -3087,7 +3115,7 @@ wardenui,Warden AIOps Platform,Hyperscale Core CRM,HPS,Paul Constantinides
 wardenwebhook,Warden AIOps Platform,Hyperscale Core CRM,HPS,Paul Constantinides
 watchdog-pug,FEDX Watchdog,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 watchdog-weimaraner,FEDX Watchdog,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-wave-service,EntSecIAM-MiAMI,Enterprise Security,Security & Compliance,Brad Arkin
+wave-service,EntSecIAM-MiAMI,Enterprise Security,Security & Compliance,Jim Wiese
 wc-adapter,CRE Field Service DevOps,Field Service Edge,Field Service,Meir Amiel
 wc-processor,CRE Field Service DevOps,Field Service Edge,Field Service,Meir Amiel
 web-violation-report,Product Defense,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides

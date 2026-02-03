@@ -9678,7 +9678,7 @@ function normalizeBlackjackData(rawBlackjackData) {
         if (!serviceName || !env) return;
         
         // Create unique key for each instance
-        const key = `${serviceName}-${env}-${cluster}`;
+        const key = `${serviceName}-${env}-${cluster}-${row.FunctionalDomain || row.fd || 'foundation'}`;
         
         if (!instanceMap.has(key)) {
             instanceMap.set(key, {

@@ -2,8 +2,8 @@
 Sr Exec	Eng Manager	Service Name	Service Tier	# Replicas	AZ Distrib	HPA	Liveness Probe
 Ariel Kelman	Ariel Kelman	identity-integration-service	1	0%	100%	0%	
 Ariel Kelman	Ariel Kelman	trailblazer-profile-service	1	2%	100%	0%	
-Brad Arkin	Aasia Haque	tip-usdl-iceberg-rest-proxy	1	0%	100%	0%	100%
-Brad Arkin	Brad Arkin	wave-service	1	95%	74%	49%	0%
+Jim Wiese	Aasia Haque	tip-usdl-iceberg-rest-proxy	1	0%	100%	0%	100%
+Jim Wiese	Jim Wiese	wave-service	1	95%	74%	49%	0%
 Darryn Dieken	Alsontra Daniels	athenadnsplatform	1	100%	0%	100%	100%
 Darryn Dieken	Alsontra Daniels	r53proxy	1	98%	60%	0%	66%
 Darryn Dieken	Dilip Pai	argo-rollout	1	97%	40%	46%	99%

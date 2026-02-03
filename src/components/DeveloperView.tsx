@@ -106,7 +106,7 @@ const DeveloperView: React.FC = () => {
         livenessProbe: ''
       },
       {
-        srExec: 'Brad Arkin',
+        srExec: 'Jim Wiese',
         engManager: 'Aasia Haque',
         serviceName: 'tip-usdl-iceberg-rest-proxy',
         serviceTier: '1',
@@ -116,8 +116,8 @@ const DeveloperView: React.FC = () => {
         livenessProbe: '100%'
       },
       {
-        srExec: 'Brad Arkin',
-        engManager: 'Brad Arkin',
+        srExec: 'Jim Wiese',
+        engManager: 'Jim Wiese',
         serviceName: 'wave-service',
         serviceTier: '1',
         replicas: '95%',

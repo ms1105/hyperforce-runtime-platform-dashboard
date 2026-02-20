@@ -55,17 +55,14 @@
                     </div>
                     
                     <div class="nav-subitems" id="runtime-availability-subitems">
-                        <div class="nav-subitem" data-tab="runtime-availability" data-view="exec">
-                            <span class="nav-text">Exec Overview</span>
+                        <div class="nav-subitem" data-tab="runtime-availability-detection" data-view="exec">
+                            <span class="nav-text">Detection</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-availability-inventory" data-view="developer">
-                            <span class="nav-text">HRP Test Inventory</span>
+                        <div class="nav-subitem" data-tab="runtime-availability-prevention" data-view="both">
+                            <span class="nav-text">Prevention</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-availability-ingress" data-view="developer">
-                            <span class="nav-text">Ingress Alert Quality</span>
-                        </div>
-                        <div class="nav-subitem" data-tab="runtime-availability-readiness" data-view="developer">
-                            <span class="nav-text">HRP Test Readiness (Preventive)</span>
+                        <div class="nav-subitem" data-tab="runtime-availability-remediation" data-view="both" data-disabled="true">
+                            <span class="nav-text">Remediation - Under Construction</span>
                         </div>
                     </div>
                 </div>
@@ -969,10 +966,20 @@
                         </div>
                     </div>
                     
-                    <!-- Runtime Availability Exec Overview -->
-                    <div class="tab-pane" id="runtime-availability">
-                        <div id="runtime-availability-content">
-                            <!-- Exec Overview content -->
+                    <!-- Runtime Availability Exec Tabs -->
+                    <div class="tab-pane" id="runtime-availability-detection">
+                        <div id="runtime-availability-detection-content">
+                            <!-- Detection content -->
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="runtime-availability-prevention">
+                        <div id="runtime-availability-prevention-content">
+                            <!-- Prevention content -->
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="runtime-availability-remediation">
+                        <div id="runtime-availability-remediation-content">
+                            <!-- Remediation content -->
                         </div>
                     </div>
                     
@@ -980,11 +987,6 @@
                     <div class="tab-pane" id="runtime-availability-readiness">
                         <div id="runtime-availability-readiness-content">
                             <!-- HRP Test Readiness content rendered dynamically -->
-                        </div>
-                    </div>
-                    <div class="tab-pane" id="runtime-availability-inventory">
-                        <div id="runtime-availability-inventory-content">
-                            <!-- HRP Test Inventory content rendered dynamically -->
                         </div>
                     </div>
                     <div class="tab-pane" id="runtime-availability-ingress">

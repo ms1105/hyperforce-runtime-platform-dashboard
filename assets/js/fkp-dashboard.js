@@ -140,11 +140,16 @@ function switchViewMode(mode) {
         // Autoscaling: runtime-overview (exec) ↔ runtime-hpa (developer)
         'runtime-overview': 'runtime-hpa',
         'runtime-hpa': 'runtime-overview',
-        // Availability: runtime-availability (exec) ↔ runtime-availability-readiness (developer)
-        'runtime-availability': 'runtime-availability-readiness',
-        'runtime-availability-readiness': 'runtime-availability',
-        'runtime-availability-inventory': 'runtime-availability',
-        'runtime-availability-ingress': 'runtime-availability',
+        // Availability: Detection/Prevention/Remediation tabs share IDs across views
+        'runtime-availability-detection': 'runtime-availability-detection',
+        'runtime-availability-prevention': 'runtime-availability-prevention',
+        'runtime-availability-remediation': 'runtime-availability-remediation',
+        // Availability: Developer-only tabs map back to Detection in Exec
+        'runtime-availability-readiness': 'runtime-availability-detection',
+        'runtime-availability-ingress': 'runtime-availability-detection',
+        // Legacy mapping
+        'runtime-availability': 'runtime-availability-detection',
+        'runtime-availability-inventory': 'runtime-availability-prevention',
         // Onboarding Overview: executive-overview (exec) ↔ service-information (developer)
         'executive-overview': 'service-information',
         'service-information': 'executive-overview',
@@ -200,12 +205,14 @@ function switchViewMode(mode) {
     updateViewButtonStates(fkpDashboard.state.currentTab);
     
     // If viewing runtime-availability or runtime-karpenter, refresh to show correct content
-    if (fkpDashboard.state.currentTab === 'runtime-availability') {
-        renderRuntimeAvailability();
+    if (fkpDashboard.state.currentTab === 'runtime-availability-detection') {
+        renderAvailabilityDetectionTab();
+    } else if (fkpDashboard.state.currentTab === 'runtime-availability-prevention') {
+        renderAvailabilityPreventionTab();
+    } else if (fkpDashboard.state.currentTab === 'runtime-availability-remediation') {
+        renderAvailabilityRemediationTab();
     } else if (fkpDashboard.state.currentTab === 'runtime-availability-readiness') {
         renderAvailabilityReadinessView();
-    } else if (fkpDashboard.state.currentTab === 'runtime-availability-inventory') {
-        renderAvailabilityInventoryView();
     } else if (fkpDashboard.state.currentTab === 'runtime-availability-ingress') {
         renderAvailabilityIngressView();
     } else if (fkpDashboard.state.currentTab === 'runtime-karpenter') {
@@ -365,6 +372,278 @@ async function initializeFKPDashboard() {
         showError(`Failed to initialize dashboard: ${error.message}. Please check browser console for details.`);
         showLoading(false);
     }
+}
+
+function renderAvailabilityPreventionExecView(container) {
+    const fitRows = getFilteredFitRows();
+    const normalizeValue = (value) => (value || '').toString().trim().toLowerCase();
+    const parseFailureRate = (raw) => {
+        if (!raw) return null;
+        const cleaned = raw.toString().trim().replace('%', '');
+        const val = parseFloat(cleaned);
+        return Number.isNaN(val) ? null : val;
+    };
+    const parseRunDate = (raw) => parseFitRunDate(raw);
+    const getRunTypeRows = (rows, typeKey) => rows.filter(r =>
+        normalizeValue(r['Run Type']).includes(typeKey)
+    );
+    const getLast30Rows = (rows) => {
+        const now = new Date();
+        return rows.filter(r => {
+            const date = parseRunDate(r['Run Time']);
+            return date && date >= thirtyDaysAgo && date <= now;
+        });
+    };
+    const uniqueProductCount = (rows) => new Set(rows.map(r => r.Product).filter(Boolean)).size;
+    const sumTests = (rows) => rows.reduce((sum, r) => sum + (parseInt(r.Tests || 0, 10) || 0), 0);
+    const calcSuccessRate = (rows) => {
+        const rates = rows.map(r => parseFailureRate(r['Failure Rate'])).filter(v => v !== null);
+        if (!rates.length) return null;
+        const avgFailure = rates.reduce((a, b) => a + b, 0) / rates.length;
+        return Math.max(0, 100 - avgFailure);
+    };
+    const formatDelta = (current, previous) => {
+        if (current === null || previous === null) return { text: 'No change vs last month', className: 'text-slate' };
+        const delta = current - previous;
+        const abs = Math.abs(delta).toFixed(1);
+        if (delta === 0) return { text: 'No change vs last month', className: 'text-slate' };
+        return {
+            text: `${delta > 0 ? '↑' : '↓'} ${abs}% vs last month`,
+            className: delta > 0 ? 'text-green' : 'text-red'
+        };
+    };
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const prevThirtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const preRows = getRunTypeRows(fitRows, 'predeployment');
+    const postRows = getRunTypeRows(fitRows, 'postdeployment');
+    const preLast30 = getLast30Rows(preRows);
+    const postLast30 = getLast30Rows(postRows);
+    const prePrevWindowStart = new Date(prevThirtyDaysAgo.getFullYear(), prevThirtyDaysAgo.getMonth(), 1);
+    const prePrev30 = preRows.filter(r => {
+        const date = parseRunDate(r['Run Time']);
+        return date && date >= prePrevWindowStart && date < thirtyDaysAgo;
+    });
+    const postPrev30 = postRows.filter(r => {
+        const date = parseRunDate(r['Run Time']);
+        return date && date >= prevThirtyDaysAgo && date < thirtyDaysAgo;
+    });
+
+    const preProductCount = new Set(preRows.map(r => getFitProductForService(r.Service)).filter(p => p && p !== 'N/A')).size;
+    const preTestsCount = sumTests(preRows);
+    const preServiceCount = new Set(preRows.map(r => r.Service).filter(Boolean)).size;
+    const totalHrpServices = Object.keys(availabilityData.fitServiceProductMap || {}).length;
+    const preSuccessRate = calcSuccessRate(preLast30);
+    const postSuccessRate = calcSuccessRate(postLast30);
+    const prePrevSuccess = calcSuccessRate(prePrev30);
+    const postPrevSuccess = calcSuccessRate(postPrev30);
+    const preDelta = formatDelta(preSuccessRate, prePrevSuccess);
+    const postDelta = formatDelta(postSuccessRate, postPrevSuccess);
+
+    const inventory = availabilityData.testInventory;
+    const products = getInventoryProducts();
+    const visibleProducts = availabilityData.inventoryProductFilter && availabilityData.inventoryProductFilter !== 'all'
+        ? products.filter(product => product === availabilityData.inventoryProductFilter)
+        : products;
+    const customerRows = mapInventoryRows(inventory.customerScenario.rows, 'customerScenario');
+    const integrationRows = mapInventoryRows(fitRows, 'integration');
+    const scalePerfRows = mapInventoryRows(inventory.scalePerf.rows, 'scalePerf');
+    const chaosRows = mapInventoryRows(inventory.chaos.rows, 'chaos');
+    const summary = buildInventorySummary(products, {
+        customerScenario: customerRows,
+        integration: integrationRows,
+        scalePerf: scalePerfRows,
+        chaos: chaosRows
+    });
+    const integrationReleaseSummary = buildIntegrationReleaseSummaryFromFit(products);
+    const formatServiceCoverageLabel = (data) => `${data.enabled || 0}/${data.total || 0} services enabled`;
+
+    const scalePerfSummary = buildInventorySummary(getInventoryProducts(), {
+        scalePerf: scalePerfRows
+    });
+    const scalePerfEnabledProducts = new Set();
+    Object.keys(scalePerfSummary).forEach(product => {
+        const bucket = scalePerfSummary[product]?.scalePerf;
+        if (bucket && bucket.enabled > 0) {
+            scalePerfEnabledProducts.add(product);
+        }
+    });
+
+    const getStatus = (row) => normalizeValue(row.Status);
+    const enabledProducts = new Set();
+    const plannedProducts = new Set();
+    let enabledTests = 0;
+    customerRows.forEach(row => {
+        const product = row._product;
+        const status = getStatus(row);
+        if (status === 'enabled') {
+            enabledProducts.add(product);
+            enabledTests += 1;
+        } else if (status === 'not enabled' || status === 'partial') {
+            plannedProducts.add(product);
+        }
+    });
+
+    const chaosEnabledProducts = new Set();
+    let chaosPlannedTests = 0;
+    chaosRows.forEach(row => {
+        const product = row._product;
+        const enabledValue = normalizeValue(row.Enabled);
+        if (enabledValue === 'enabled') {
+            chaosEnabledProducts.add(product);
+        } else if (enabledValue === 'not enabled' || enabledValue === 'tbd' || enabledValue === 'planned') {
+            chaosPlannedTests += 1;
+        } else {
+            const frequency = normalizeValue(row.Frequency);
+            if (frequency && frequency !== 'not enabled' && frequency !== 'tbd') {
+                chaosEnabledProducts.add(product);
+            } else {
+                chaosPlannedTests += 1;
+            }
+        }
+    });
+
+    container.innerHTML = `
+        <div class="availability-exec-scrollable">
+            <div class="exec-summary-section-header">
+                <span class="readiness-section-icon">🧪</span>
+                <span>Hyperforce Runtime Platform Test Inventory</span>
+            </div>
+            <div class="inventory-summary-card">
+                <div class="inventory-summary-header">
+                    <div class="inventory-summary-title-block">
+                        <h3>Preventive Test Coverage for HRP Products</h3>
+                        <div class="inventory-summary-note">Click on individual tests for more information</div>
+                    </div>
+                    <div class="inventory-legend">
+                        <span><span class="inv-dot inv-enabled"></span>Enabled</span>
+                        <span><span class="inv-dot inv-partial"></span>Planned</span>
+                        <span><span class="inv-dot inv-missing"></span>Not Planned</span>
+                    </div>
+                </div>
+                <div class="inventory-summary-table-wrap">
+                    <table class="inventory-summary-table">
+                        <thead>
+                            <tr>
+                                <th>HRP Product</th>
+                                <th onclick="openAvailabilityInventoryTab('customerScenario')" class="inventory-clickable-header">Critical Path Tests</th>
+                                <th onclick="openAvailabilityInventoryTab('integration')" class="inventory-clickable-header">Integration Tests (Pre-Deployment)</th>
+                                <th onclick="openAvailabilityInventoryTab('integration')" class="inventory-clickable-header">Integration Tests (Post-Deployment)</th>
+                                <th onclick="openAvailabilityInventoryTab('scalePerf')" class="inventory-clickable-header">Scale &amp; Perf Tests</th>
+                                <th onclick="openAvailabilityInventoryTab('chaos')" class="inventory-clickable-header">Chaos Tests</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${products.map(product => {
+                                const integrationPost = integrationReleaseSummary[product]?.post || { total: 0, enabled: 0, partial: 0 };
+                                const integrationPre = integrationReleaseSummary[product]?.pre || { total: 0, enabled: 0, partial: 0 };
+                                return `
+                                    <tr>
+                                        <td>${product}</td>
+                                        ${renderSummaryCellWithCounts(summary[product]?.customerScenario || { total: 0, enabled: 0, partial: 0 })}
+                                        ${renderSummaryCellWithCounts(integrationPre, formatServiceCoverageLabel(integrationPre))}
+                                        ${renderSummaryCellWithCounts(integrationPost, formatServiceCoverageLabel(integrationPost))}
+                                        ${renderSummaryCellWithCounts(summary[product]?.scalePerf || { total: 0, enabled: 0, partial: 0 })}
+                                        ${renderSummaryCellWithCounts(summary[product]?.chaos || { total: 0, enabled: 0, partial: 0 })}
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="exec-summary-divider"></div>
+
+            <div class="exec-summary-section-header">
+                <span class="readiness-section-icon">🔗</span>
+                <span>Integration Test Summary for HRP Products</span>
+            </div>
+            <div class="prevention-fit-controls-row">
+                <div class="prevention-fit-controls">
+                    <div class="integration-fit-filter">
+                        <label class="integration-fit-label">Month</label>
+                        <select id="prevention-fit-month-filter"></select>
+                    </div>
+                    <div class="prevention-fit-toggle">
+                        <label class="integration-fit-label">Summarize by</label>
+                        <div class="prevention-fit-toggle-buttons">
+                            <button type="button" data-value="product" class="prevention-fit-toggle-btn">Product</button>
+                            <button type="button" data-value="runType" class="prevention-fit-toggle-btn">Run Type</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="prevention-fit-summary-label" id="prevention-fit-summary-label"></div>
+            </div>
+            <div class="prevention-fit-summary-row">
+                <div class="prevention-fit-table-card">
+                    <div class="inventory-detail-header">
+                        <h3>Integration FIT Summary</h3>
+                        <span id="prevention-fit-month-label"></span>
+                    </div>
+                    <div class="modal-table-scroll">
+                        <table class="availability-modal-table prevention-fit-table">
+                            <thead>
+                                <tr>
+                                    <th id="prevention-fit-col-1">Product</th>
+                                    <th id="prevention-fit-col-2">Number of Tests Ran</th>
+                                    <th id="prevention-fit-col-3">Avg Success</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prevention-fit-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="prevention-fit-chart-card chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">Tests Ran &amp; Success Rate</div>
+                    </div>
+                    <div class="chart-body">
+                        <div class="chart-container">
+                            <canvas id="preventionFitChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="exec-summary-divider"></div>
+
+            <div class="exec-summary-section-header">
+                <span class="readiness-section-icon">📈</span>
+                <span>HRP Test Inventory - Trend</span>
+            </div>
+            <div class="charts-grid" style="margin-bottom: 1.5rem;">
+                <div class="chart-card">
+                    <div class="chart-header clickable-header" onclick="openFitSuccessMonthlyModal()">
+                        <div class="chart-title">📈 FIT Success Rate Trend (6 Months)</div>
+                        <span class="section-badge badge-positive">Improving</span>
+                    </div>
+                    <div class="chart-body">
+                        <div class="chart-container">
+                            <canvas id="fitTrendChartPrevention"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header clickable-header" onclick="openChaosExecutionMonthlyModal()">
+                        <div class="chart-title">🔥 Chaos Test Execution (Last 6 Months)</div>
+                        <span class="section-badge badge-neutral">Monthly</span>
+                    </div>
+                    <div class="chart-body">
+                        <div class="chart-container">
+                            <canvas id="chaosChartPrevention"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    initFitTrendChart('fitTrendChartPrevention');
+    initChaosExecutionChart('chaosChartPrevention');
+    renderPreventionFitSummary();
 }
 
 /**
@@ -624,6 +903,10 @@ function processData() {
             skippedCount++;
             return;
         }
+        if (serviceName.trim().toLowerCase() === 'unknown') {
+            skippedCount++;
+            return;
+        }
         
         // Get service mapping info
         const mapping = serviceMapping.get(serviceName);
@@ -714,6 +997,10 @@ function processData() {
     fkpDashboard.data.blackjackInstances.forEach(instance => {
         const serviceName = instance.label_p_servicename;
         if (!serviceName) {
+            blackjackSkippedCount++;
+            return;
+        }
+        if (serviceName.trim().toLowerCase() === 'unknown') {
             blackjackSkippedCount++;
             return;
         }
@@ -1519,10 +1806,14 @@ function updateViewButtonStates(tabId) {
         // Executive Summary: Exec only
         'exec-summary': { exec: true, developer: false },
         // Availability: Exec + Developer
-        'runtime-availability': { exec: true, developer: true },
+        'runtime-availability-detection': { exec: true, developer: false },
+        'runtime-availability-prevention': { exec: true, developer: true },
+        'runtime-availability-remediation': { exec: true, developer: true },
         'runtime-availability-readiness': { exec: true, developer: true },
-        'runtime-availability-inventory': { exec: true, developer: true },
         'runtime-availability-ingress': { exec: true, developer: true },
+        // Legacy availability tabs
+        'runtime-availability': { exec: true, developer: true },
+        'runtime-availability-inventory': { exec: true, developer: true },
         // Autoscaling: Both
         'runtime-overview': { exec: true, developer: true },
         'runtime-hpa': { exec: true, developer: true },
@@ -1595,6 +1886,15 @@ function setViewMode(type, value) {
  */
 function switchTab(tabId) {
     console.log('📋 Switching to tab:', tabId);
+    const legacyTabMap = {
+        'runtime-availability': 'runtime-availability-detection',
+        'runtime-availability-inventory': 'runtime-availability-prevention',
+        'availability-exec': 'runtime-availability-detection',
+        'availability-baseline': 'runtime-availability-detection'
+    };
+    if (legacyTabMap[tabId]) {
+        tabId = legacyTabMap[tabId];
+    }
     
     // Check if this is a React tab
     const navItem = document.querySelector(`[data-tab="${tabId}"]`);
@@ -1792,21 +2092,34 @@ function updatePageHeader(tabId) {
             title: 'Runtime Scale',
             subtitle: 'Karpenter'
         },
-        'runtime-availability': {
+        'runtime-availability-detection': {
             title: 'Runtime Availability',
-            subtitle: 'Exec Overview'
+            subtitle: 'Detection'
+        },
+        'runtime-availability-prevention': {
+            title: 'Runtime Availability',
+            subtitle: 'Prevention'
+        },
+        'runtime-availability-remediation': {
+            title: 'Runtime Availability',
+            subtitle: 'Remediation'
         },
         'runtime-availability-readiness': {
             title: 'Runtime Availability',
             subtitle: 'HRP Test Readiness (Preventive)'
         },
-        'runtime-availability-inventory': {
-            title: 'Runtime Availability',
-            subtitle: 'HRP Test Inventory'
-        },
         'runtime-availability-ingress': {
             title: 'Runtime Availability',
             subtitle: 'Ingress Alert Quality'
+        },
+        // Legacy tabs
+        'runtime-availability': {
+            title: 'Runtime Availability',
+            subtitle: 'Detection'
+        },
+        'runtime-availability-inventory': {
+            title: 'Runtime Availability',
+            subtitle: 'Prevention'
         },
         'cost-overview': {
             title: 'Cost to Serve',
@@ -2006,7 +2319,7 @@ async function renderExecutiveSummary() {
             : null;
 
         // FIT data for prevention KPIs
-        const fitRows = availabilityData.fitData?.rows || [];
+    const fitRows = getFilteredFitRows();
 
         const normalizeValue = (value) => (value || '').toString().trim().toLowerCase();
         const parseFailureRate = (value) => {
@@ -2066,9 +2379,10 @@ async function renderExecutiveSummary() {
             const date = parseRunDate(r['Run Time']);
             return date && date >= prevThirtyDaysAgo && date < thirtyDaysAgo;
         });
-        const preProductCount = uniqueProductCount(preRows);
+        const preProductCount = new Set(preRows.map(r => getFitProductForService(r.Service)).filter(p => p && p !== 'N/A')).size;
         const preTestsCount = sumTests(preRows);
         const preServiceCount = new Set(preRows.map(r => r.Service).filter(Boolean)).size;
+        const totalHrpServices = Object.keys(availabilityData.fitServiceProductMap || {}).length;
         const preSuccessRate = calcSuccessRate(preLast30);
         const postSuccessRate = calcSuccessRate(postLast30);
         const prePrevSuccess = calcSuccessRate(prePrev30);
@@ -2165,28 +2479,28 @@ async function renderExecutiveSummary() {
                             value: sev0Incidents,
                             sub: sev0Months.length ? `${sev0Incidents} total (${sev0Months.join(', ')})` : `${sev0Incidents} total`,
                             valueClass: 'text-red',
-                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Avg MTTD (Last 30 D)',
                             value: `${avgMttdSev0}<span class="exec-summary-unit">min</span>`,
                             sub: 'SLA Target <10 min',
                             valueClass: slaClass(avgMttdSev0, 10),
-                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Avg MTTR (Last 30 D)',
                             value: `${avgMttrSev0}<span class="exec-summary-unit">min</span>`,
                             sub: 'SLA Target <30 min',
                             valueClass: slaClass(avgMttrSev0, 30),
-                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Days Since Last Incident',
                             value: sev0DaysSince !== null ? `${sev0DaysSince}` : '--',
                             sub: sev0DaysSince !== null ? 'Days since last incident' : 'No Sev0 incidents',
                             valueClass: 'text-red days-number',
-                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         </div>
                     </div>
@@ -2197,28 +2511,28 @@ async function renderExecutiveSummary() {
                             value: sev1Incidents,
                             sub: sev1ServiceCount > 0 ? `${sev1Incidents} total across ${sev1ServiceCount} services` : `${sev1Incidents} total`,
                             valueClass: 'text-orange',
-                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Avg MTTD (Last 30 D)',
                             value: `${avgMttdSev1}<span class="exec-summary-unit">min</span>`,
                             sub: 'SLA Target <10 min',
                             valueClass: slaClass(avgMttdSev1, 10),
-                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Avg MTTR (Last 30 D)',
                             value: `${avgMttrSev1}<span class="exec-summary-unit">min</span>`,
                             sub: 'SLA Target <30 min',
                             valueClass: slaClass(avgMttrSev1, 30),
-                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Days Since Last Incident',
                             value: sev1DaysSince !== null ? `${sev1DaysSince}` : '--',
                             sub: sev1DaysSince !== null ? 'Days since last incident' : 'No Sev1 incidents',
                             valueClass: 'text-orange days-number',
-                            onClick: "switchTab('runtime-availability'); scrollToTabContent('runtime-availability')"
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         </div>
                     </div>
@@ -2231,57 +2545,55 @@ async function renderExecutiveSummary() {
                 <div class="exec-summary-section-card">
                     <div class="exec-summary-kpi-grid columns-4">
                         ${kpiCard({
-                            title: 'Products - Pre-Release Testing',
+                            title: 'Products - Pre-Deployment Testing',
                             value: preProductCount || 0,
-                            sub: preServiceCount
-                                ? `${preTestsCount} tests across ${preServiceCount} services`
-                                : `${preTestsCount} tests across 0 services`,
+                            sub: `${preServiceCount} services enabled across ${totalHrpServices} total HRP services`,
                             valueClass: 'text-blue',
-                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                            onClick: "openAvailabilityInventoryTabFromKpi('integration','PreDeployment')"
                         })}
                         ${kpiCard({
-                            title: 'Pre-Release Test Success Rate (Last 30 D)',
+                            title: 'Pre-Deployment Test Success Rate (Last 30 D)',
                             value: preSuccessRate !== null ? `${preSuccessRate.toFixed(1)}%` : 'TBD',
                             sub: preDelta.text,
                             subClass: preDelta.className,
                             valueClass: preSuccessRate !== null ? 'text-blue' : 'text-blue',
-                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                            onClick: "openAvailabilityInventoryTabFromKpi('integration','PreDeployment')"
                         })}
                         ${kpiCard({
-                            title: 'Post-Release Test Success Rate (Last 30 D)',
+                            title: 'Post-Deployment Test Success Rate (Last 30 D)',
                             value: postSuccessRate !== null ? `${postSuccessRate.toFixed(1)}%` : 'TBD',
                             sub: postDelta.text,
                             subClass: postDelta.className,
                             valueClass: postSuccessRate !== null ? 'text-blue' : 'text-blue',
-                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                            onClick: "openAvailabilityInventoryTabFromKpi('integration','PostDeployment')"
                         })}
                         ${kpiCard({
                             title: 'Products - Scale and Perf Testing',
                             value: scalePerfEnabledProducts.size || 0,
                             sub: scalePerfRows.length ? `${scalePerfRows.length} tests` : '0 tests',
                             valueClass: 'text-blue',
-                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                            onClick: "openAvailabilityInventoryTabFromKpi('scalePerf')"
                         })}
                         ${kpiCard({
-                            title: 'Products - Customer Scenario Testing',
+                            title: 'Products - Critical Path Testing',
                             value: enabledProducts.size || 0,
                             sub: `${plannedProducts.size} planned`,
                             valueClass: 'text-blue',
-                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                            onClick: "openAvailabilityInventoryTabFromKpi('customerScenario')"
                         })}
                         ${kpiCard({
                             title: 'Customer-Release Test Success Rate (Last 30 D)',
                             value: '0%',
                             sub: `${enabledTests} tests enabled`,
                             valueClass: 'text-blue',
-                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                            onClick: "openAvailabilityInventoryTabFromKpi('customerScenario')"
                         })}
                         ${kpiCard({
                             title: 'Products - Chaos Testing',
                             value: chaosEnabledProducts.size || 0,
                             sub: `${chaosPlannedTests} tests planned`,
                             valueClass: 'text-blue',
-                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                            onClick: "openAvailabilityInventoryTabFromKpi('chaos')"
                         })}
                         ${kpiCard({
                             title: 'Chaos Test MTTR',
@@ -2289,7 +2601,7 @@ async function renderExecutiveSummary() {
                             sub: testMttrSub,
                             subClass: 'text-green',
                             valueClass: 'text-blue',
-                            onClick: "switchViewMode('developer'); switchTab('runtime-availability-inventory'); scrollToTabContent('runtime-availability-inventory')"
+                            onClick: "openAvailabilityInventoryTabFromKpi('chaos')"
                         })}
                     </div>
                 </div>
@@ -2494,14 +2806,17 @@ function refreshCurrentTab() {
         case 'runtime-hpa':
             renderAutoscalingDeveloperView();
             break;
-        case 'runtime-availability':
-            renderRuntimeAvailability();
+        case 'runtime-availability-detection':
+            renderAvailabilityDetectionTab();
+            break;
+        case 'runtime-availability-prevention':
+            renderAvailabilityPreventionTab();
+            break;
+        case 'runtime-availability-remediation':
+            renderAvailabilityRemediationTab();
             break;
         case 'runtime-availability-readiness':
             renderAvailabilityReadinessView();
-            break;
-        case 'runtime-availability-inventory':
-            renderAvailabilityInventoryView();
             break;
         case 'runtime-availability-ingress':
             renderAvailabilityIngressView();
@@ -2510,14 +2825,22 @@ function refreshCurrentTab() {
             renderKarpenter();
             break;
         case 'availability-exec':
-            // Legacy tab - redirect to runtime-availability
-            console.warn('⚠️ availability-exec is deprecated, using runtime-availability');
-            switchTab('runtime-availability');
+            // Legacy tab - redirect to Detection
+            console.warn('⚠️ availability-exec is deprecated, using runtime-availability-detection');
+            switchTab('runtime-availability-detection');
             break;
         case 'availability-baseline':
-            // Legacy tab - redirect to runtime-availability
-            console.warn('⚠️ availability-baseline is deprecated, using runtime-availability');
-            switchTab('runtime-availability');
+            // Legacy tab - redirect to Detection
+            console.warn('⚠️ availability-baseline is deprecated, using runtime-availability-detection');
+            switchTab('runtime-availability-detection');
+            break;
+        case 'runtime-availability':
+            console.warn('⚠️ runtime-availability is deprecated, using runtime-availability-detection');
+            switchTab('runtime-availability-detection');
+            break;
+        case 'runtime-availability-inventory':
+            console.warn('⚠️ runtime-availability-inventory is deprecated, using runtime-availability-prevention');
+            switchTab('runtime-availability-prevention');
             break;
     }
 }
@@ -2545,14 +2868,14 @@ function scrollToTabContent(tabId) {
 }
 
 /**
- * Render Runtime Availability tab - scrollable Exec View only
+ * Render Runtime Availability - Detection tab
  */
-async function renderRuntimeAvailability() {
-    console.log('🛡️ Rendering Runtime Availability tab...');
+async function renderAvailabilityDetectionTab() {
+    console.log('🛡️ Rendering Runtime Availability - Detection tab...');
     
-    const container = document.getElementById('runtime-availability-content');
+    const container = document.getElementById('runtime-availability-detection-content');
     if (!container) {
-        console.error('❌ Container runtime-availability-content not found');
+        console.error('❌ Container runtime-availability-detection-content not found');
         return;
     }
     
@@ -2595,9 +2918,9 @@ async function renderRuntimeAvailability() {
         console.log('🛡️ Container element:', container);
         
         // Render comprehensive scrollable Exec View
-        renderAvailabilityExecView(container);
+        renderAvailabilityExecView(container, { includeReadiness: false });
         
-        console.log('✅ Runtime Availability rendered');
+        console.log('✅ Runtime Availability - Detection rendered');
         console.log('🛡️ Container innerHTML length after render:', container.innerHTML.length);
     } catch (error) {
         console.error('❌ Error rendering Availability:', error);
@@ -2612,15 +2935,76 @@ async function renderRuntimeAvailability() {
 }
 
 /**
+ * Render Runtime Availability - Prevention tab
+ */
+function renderAvailabilityPreventionTab() {
+    const container = document.getElementById('runtime-availability-prevention-content');
+    if (!container) {
+        console.error('❌ Container runtime-availability-prevention-content not found');
+        return;
+    }
+
+    if (!availabilityData.loaded) {
+        container.innerHTML = `
+            <div class="placeholder-message" style="text-align: center; padding: 40px;">
+                <div class="placeholder-icon">🧪</div>
+                <h3>Loading Prevention Data...</h3>
+            </div>
+        `;
+        loadAllAvailabilityData().then(renderAvailabilityPreventionTab);
+        return;
+    }
+
+    if (fkpDashboard.state.currentViewMode === 'developer') {
+        const shouldDrill = availabilityData.preventionDevPendingDrill === true;
+        availabilityData.preventionDevEntry = shouldDrill ? 'drill' : 'nav';
+        availabilityData.preventionDevShowDetails = shouldDrill;
+        if (!shouldDrill) {
+            availabilityData.inventoryTestTypeFilter = '';
+            availabilityData.inventoryProductFilter = 'all';
+            availabilityData.integrationFitMonthFilter = '';
+            inventoryActiveTab = '';
+        }
+        availabilityData.preventionDevPendingDrill = false;
+        renderAvailabilityInventoryView({
+            containerId: 'runtime-availability-prevention-content',
+            hideAllSummary: true,
+            defaultTab: 'customerScenario'
+        });
+        return;
+    }
+
+    renderAvailabilityPreventionExecView(container);
+}
+
+/**
+ * Render Runtime Availability - Remediation tab (placeholder)
+ */
+function renderAvailabilityRemediationTab() {
+    const container = document.getElementById('runtime-availability-remediation-content');
+    if (!container) {
+        console.error('❌ Container runtime-availability-remediation-content not found');
+        return;
+    }
+    container.innerHTML = `
+        <div class="placeholder-message" style="text-align: center; padding: 40px;">
+            <div class="placeholder-icon">🛠️</div>
+            <h3>This is under construction</h3>
+        </div>
+    `;
+}
+
+/**
  * Render comprehensive Availability Exec View (scrollable)
  */
-function renderAvailabilityExecView(container) {
+function renderAvailabilityExecView(container, options = {}) {
     console.log('🛡️ renderAvailabilityExecView called, container:', container);
     
     if (!container) {
         console.error('❌ Container is null or undefined');
         return;
     }
+    const { includeReadiness = true } = options;
     
     // Check if data is loaded
     if (!availabilityData.loaded || !availabilityData.summaryMetrics || availabilityData.summaryMetrics.length === 0) {
@@ -2828,7 +3212,7 @@ function renderAvailabilityExecView(container) {
     console.log('🛡️ Monthly chart data:', monthlyChartData);
     
     const readinessTableRows = buildReadinessTableRows(serviceReadiness);
-    const readinessSectionHtml = `
+    const readinessSectionHtml = includeReadiness ? `
             <div class="readiness-section">
                 <div class="readiness-section-header">
                     <div class="readiness-section-title">
@@ -2845,8 +3229,8 @@ function renderAvailabilityExecView(container) {
                             <thead>
                                 <tr>
                                     <th style="text-align: left;">HRP Service</th>
-                                    <th>Pre-Release FIT</th>
-                                    <th>Post-Release FIT</th>
+                                    <th>Pre-Deployment FIT</th>
+                                    <th>Post-Deployment FIT</th>
                                     <th>E2E Critical FIT</th>
                                     <th>Scale &amp; Perf Tests</th>
                                     <th>Chaos Tests</th>
@@ -2881,7 +3265,7 @@ function renderAvailabilityExecView(container) {
                     </div>
                 </div>
             </div>
-    `;
+    ` : '';
     
     // Map services data for MTTD/MTTR charts
     const serviceMetrics = services.map(row => {
@@ -2991,103 +3375,8 @@ function renderAvailabilityExecView(container) {
             <!-- MTTD/MTTR Trend Section Title -->
             <div class="sla-section-title">
                 <h3>📈 MTTD / MTTR Trend</h3>
-                <span class="sla-badge sla-badge-positive">This Month vs Last Month vs Average</span>
             </div>
             
-            <!-- MTTD/MTTR Hero Cards -->
-            <div class="sla-hero-grid">
-                <!-- MTTD Hero -->
-                <div class="sla-metric-hero mttd">
-                    <div class="sla-metric-name">MTTD</div>
-                    
-                    <div class="sla-metric-comparison">
-                        <div class="sla-comparison-card ${!mttdSlaMet ? 'highlight-missed' : 'highlight'}">
-                            <div class="sla-comparison-label">This Month</div>
-                            <div class="sla-comparison-value ${!mttdSlaMet ? 'missed' : ''}">
-                                ${!mttdSlaMet ? '<span class="sla-miss-icon">✗</span>' : ''}
-                                <span>${currentMonth.mttd}<span class="sla-unit"> min</span></span>
-                                ${!mttdSlaMet ? '<span class="sla-miss-text">SLA MISSED</span>' : ''}
-                            </div>
-                        </div>
-                        <div class="sla-comparison-card">
-                            <div class="sla-comparison-label">Last Month</div>
-                            <div class="sla-comparison-value">${lastMonth.mttd}<span class="sla-unit"> min</span></div>
-                        </div>
-                        <div class="sla-comparison-card">
-                            <div class="sla-comparison-label">11mo Average</div>
-                            <div class="sla-comparison-value">${yearAverage.mttd}<span class="sla-unit"> min</span></div>
-                        </div>
-                    </div>
-
-                    <div class="sla-trend-row">
-                        <div class="sla-trend-item">
-                            <span class="sla-trend-label">vs Last Month</span>
-                            <span class="sla-trend-indicator ${mttdVsLast > 0 ? 'negative' : 'positive'}">
-                                <span class="sla-trend-arrow">${mttdVsLast > 0 ? '↑' : '↓'}</span>
-                                <span>${mttdVsLast > 0 ? '+' : ''}${mttdVsLast} min</span>
-                            </span>
-                        </div>
-                        <div class="sla-trend-item">
-                            <span class="sla-trend-label">vs Average</span>
-                            <span class="sla-trend-indicator ${mttdVsAvg > 0 ? 'negative' : 'positive'}">
-                                <span class="sla-trend-arrow">${mttdVsAvg > 0 ? '↑' : '↓'}</span>
-                                <span>${mttdVsAvg > 0 ? '+' : ''}${mttdVsAvg} min</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="sla-target-legend">
-                        <span class="sla-target-icon">✓</span>
-                        <span>SLA Target &lt;${slaTargets.mttd} min</span>
-                    </div>
-                </div>
-
-                <!-- MTTR Hero -->
-                <div class="sla-metric-hero mttr">
-                    <div class="sla-metric-name">MTTR</div>
-                    
-                    <div class="sla-metric-comparison">
-                        <div class="sla-comparison-card ${!mttrSlaMet ? 'highlight-missed' : 'highlight'}">
-                            <div class="sla-comparison-label">This Month</div>
-                            <div class="sla-comparison-value ${!mttrSlaMet ? 'missed' : ''}">
-                                ${!mttrSlaMet ? '<span class="sla-miss-icon">✗</span>' : ''}
-                                <span>${currentMonth.mttr}<span class="sla-unit"> min</span></span>
-                                ${!mttrSlaMet ? '<span class="sla-miss-text">SLA MISSED</span>' : ''}
-                            </div>
-                        </div>
-                        <div class="sla-comparison-card">
-                            <div class="sla-comparison-label">Last Month</div>
-                            <div class="sla-comparison-value">${lastMonth.mttr}<span class="sla-unit"> min</span></div>
-                        </div>
-                        <div class="sla-comparison-card">
-                            <div class="sla-comparison-label">11mo Average</div>
-                            <div class="sla-comparison-value">${yearAverage.mttr}<span class="sla-unit"> min</span></div>
-                        </div>
-                    </div>
-
-                    <div class="sla-trend-row">
-                        <div class="sla-trend-item">
-                            <span class="sla-trend-label">vs Last Month</span>
-                            <span class="sla-trend-indicator ${mttrVsLast > 0 ? 'negative' : 'positive'}">
-                                <span class="sla-trend-arrow">${mttrVsLast > 0 ? '↑' : '↓'}</span>
-                                <span>${mttrVsLast > 0 ? '+' : ''}${mttrVsLast} min</span>
-                            </span>
-                        </div>
-                        <div class="sla-trend-item">
-                            <span class="sla-trend-label">vs Average</span>
-                            <span class="sla-trend-indicator ${mttrVsAvg > 0 ? 'negative' : 'positive'}">
-                                <span class="sla-trend-arrow">${mttrVsAvg > 0 ? '↑' : '↓'}</span>
-                                <span>${mttrVsAvg > 0 ? '+' : ''}${mttrVsAvg} min</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="sla-target-legend">
-                        <span class="sla-target-icon">✓</span>
-                        <span>SLA Target &lt;${slaTargets.mttr} min</span>
-                    </div>
-                </div>
-            </div>
             
             <!-- MTTD/MTTR Trend Chart -->
             <div class="sla-chart-section">
@@ -3129,7 +3418,7 @@ function renderAvailabilityExecView(container) {
                     </div>
                 </div>
             </div>
-            
+
             <!-- Service Impact Breakdown Table -->
             <div class="sla-coverage-section">
                 <div class="sla-coverage-header">
@@ -3172,6 +3461,49 @@ function renderAvailabilityExecView(container) {
                         <!-- Populated by JS -->
                     </tbody>
                 </table>
+            </div>
+
+            <div class="sla-section-divider"></div>
+            <div class="sla-impact-header">
+                <div class="sla-impact-brand">
+                    <div class="sla-impact-logo">📣</div>
+                    <div class="sla-impact-text">
+                        <h2>Detection - Alert Quality</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sla-coverage-section ingress-alert-quality-section">
+                <div class="sla-coverage-header">
+                    <div class="sla-coverage-title">Related Incidents + Alert Quality (Last 6 months)</div>
+                    <div class="ingress-alert-filter">
+                        <label for="ingress-alert-product-filter">HRP Product</label>
+                        <select id="ingress-alert-product-filter"></select>
+                    </div>
+                </div>
+                <div class="ingress-alert-quality-grid">
+                    <div class="ingress-alert-kpis" id="ingress-alert-quality-kpis"></div>
+                    <div class="ingress-alert-chart">
+                        <div class="ingress-alert-chart-title">Probable Causes for False Positives</div>
+                        <div class="ingress-alert-chart-container">
+                            <canvas id="ingressAlertQualityPie"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="ingress-alert-table">
+                    <table class="sla-coverage-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 160px;">Incident</th>
+                                <th style="width: 180px;">Probable Cause</th>
+                                <th>Root Cause Summary</th>
+                                <th style="width: 180px;">Link to Slack Thread</th>
+                                <th style="width: 140px;">HRP Cause or not</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ingress-alert-quality-table"></tbody>
+                    </table>
+                </div>
             </div>
             
             <div class="modal" id="availability-exec-modal" onclick="closeAvailabilityExecModal(event)">
@@ -3234,6 +3566,13 @@ function renderAvailabilityExecView(container) {
         console.log('✅ Service Impact by Service rendered');
     } catch (e) {
         console.error('❌ Error rendering Service Impact by Service:', e);
+    }
+
+    try {
+        renderIngressIncidentAlertQuality();
+        console.log('✅ Ingress alert quality rendered');
+    } catch (e) {
+        console.error('❌ Error rendering ingress alert quality:', e);
     }
     
     console.log('✅ Availability Exec View rendered');
@@ -3384,6 +3723,7 @@ async function renderAvailabilityReadinessView() {
         const criticalPct = totalServices ? Math.round((criticalCount / totalServices) * 100) : 0;
         const chaosPct = totalServices ? Math.round((chaosCount / totalServices) * 100) : 0;
         
+        const modalExists = document.getElementById('availability-readiness-modal');
         container.innerHTML = `
             <div class="availability-dev">
                 <div class="availability-dev-container">
@@ -3394,7 +3734,7 @@ async function renderAvailabilityReadinessView() {
                                 <h1>HRP Test Readiness (Preventive) - Developer View</h1>
                             </div>
                         </div>
-                        <button class="back-link" onclick="openAvailabilityReadinessExecView()">
+                        <button class="back-link" onclick="openAvailabilityPreventionExecView()">
                             <span>←</span>
                             <span>Back to Exec View</span>
                         </button>
@@ -3500,7 +3840,7 @@ async function renderAvailabilityReadinessView() {
                                 <tbody>
                                     <tr>
                                         <td>1</td>
-                                        <td style="text-align:left;">Enable Pre-Release FIT for Mesh</td>
+                                        <td style="text-align:left;">Enable Pre-Deployment FIT for Mesh</td>
                                         <td>Mesh</td>
                                         <td><span class="section-badge badge-negative">High</span></td>
                                         <td>Q1 FY27</td>
@@ -3533,6 +3873,7 @@ async function renderAvailabilityReadinessView() {
                 </div>
             </div>
 
+            ${modalExists ? '' : `
             <div class="modal" id="availability-readiness-modal" onclick="closeAvailabilityReadinessModal(event)">
                 <div class="modal-content" onclick="event.stopPropagation()">
                     <div class="modal-header">
@@ -3544,6 +3885,7 @@ async function renderAvailabilityReadinessView() {
                     </div>
                 </div>
             </div>
+            `}
         `;
         
         initFitTrendChart();
@@ -3562,10 +3904,17 @@ async function renderAvailabilityReadinessView() {
     }
 }
 
-function renderAvailabilityInventoryView() {
-    const container = document.getElementById('runtime-availability-inventory-content');
+let inventoryHideAllSummary = false;
+
+function renderAvailabilityInventoryView(options = {}) {
+    const {
+        containerId = 'runtime-availability-prevention-content',
+        hideAllSummary = false,
+        defaultTab
+    } = options;
+    const container = document.getElementById(containerId);
     if (!container) {
-        console.error('❌ Container runtime-availability-inventory-content not found');
+        console.error(`❌ Container ${containerId} not found`);
         return;
     }
     
@@ -3576,149 +3925,101 @@ function renderAvailabilityInventoryView() {
                 <h3>Loading Test Inventory...</h3>
             </div>
         `;
-        loadAllAvailabilityData().then(renderAvailabilityInventoryView);
+        loadAllAvailabilityData().then(() => renderAvailabilityInventoryView(options));
         return;
     }
+
+    inventoryHideAllSummary = hideAllSummary;
+    const showDetails = availabilityData.preventionDevShowDetails;
+    const initialTab = availabilityData.inventoryTestTypeFilter || (showDetails ? (defaultTab || 'customerScenario') : '');
     
     const inventory = availabilityData.testInventory;
     const products = getInventoryProducts();
+    const fitRows = getFilteredFitRows();
     const customerRows = mapInventoryRows(inventory.customerScenario.rows, 'customerScenario');
-    const integrationRows = mapInventoryRows(inventory.integration.rows, 'integration');
+    const integrationRows = mapInventoryRows(fitRows, 'integration');
     const scalePerfRows = mapInventoryRows(inventory.scalePerf.rows, 'scalePerf');
     const chaosRows = mapInventoryRows(inventory.chaos.rows, 'chaos');
-    const summary = buildInventorySummary(products, {
-        customerScenario: customerRows,
-        integration: integrationRows,
-        scalePerf: scalePerfRows,
-        chaos: chaosRows
-    });
-    const integrationFitSummary = buildIntegrationFitSummary(products);
-    availabilityData.integrationFitSummary = integrationFitSummary;
-    const integrationReleaseCounts = integrationRows.reduce((acc, row) => {
-        const release = (row['Pre-Post Release'] || '').toLowerCase();
-        if (release.includes('post')) acc.post += 1;
-        else if (release.includes('pre')) acc.pre += 1;
-        return acc;
-    }, { pre: 0, post: 0 });
     const testCounts = {
         customerScenario: customerRows.length,
-        integration: integrationRows.length,
+        integration: fitRows.length,
         scalePerf: scalePerfRows.length,
         chaos: chaosRows.length
     };
+    const testTypeCards = [
+        { key: 'customerScenario', label: 'Critical Path Tests', icon: '🧑‍💼' },
+        { key: 'integration', label: 'Integration Tests', icon: '🔗' },
+        { key: 'scalePerf', label: 'Scale & Perf Tests', icon: '📈' },
+        { key: 'chaos', label: 'Chaos Tests', icon: '🔥' }
+    ];
     
     container.innerHTML = `
-        <div class="availability-dev">
-            <div class="availability-dev-container">
-                <header class="header preventive-header">
-                    <div class="header-brand">
-                        <div class="logo">🧪</div>
-                        <div class="header-text">
-                            <h1>Customer & Platform Test Inventory</h1>
-                            <div class="inventory-subtitle">HRP Test Coverage Overview · Click cards to view details</div>
-                        </div>
-                    </div>
-                    <button class="back-link" onclick="openAvailabilityReadinessExecView()">
-                        <span>←</span>
-                        <span>Back to Exec View</span>
-                    </button>
-                </header>
-                
-                <div class="inventory-tabs">
-                    <button class="inventory-tab active" onclick="setInventoryTab('all', this)">
-                        <span class="inventory-tab-title">
-                            <span class="inventory-tab-icon">⚙️</span>
-                            <span class="inventory-tab-label">All Tests - Summary</span>
-                        </span>
-                        <span class="inventory-tab-count"><em>${testCounts.customerScenario + testCounts.integration + testCounts.scalePerf + testCounts.chaos} tests</em></span>
-                    </button>
-                    <button class="inventory-tab" onclick="setInventoryTab('customerScenario', this)">
-                        <span class="inventory-tab-title">
-                            <span class="inventory-tab-icon">🧑‍💼</span>
-                            <span class="inventory-tab-label">Customer Scenario Tests</span>
-                        </span>
-                        <span class="inventory-tab-count"><em>${testCounts.customerScenario} tests</em></span>
-                    </button>
-                    <button class="inventory-tab" onclick="setInventoryTab('integration', this)">
-                        <span class="inventory-tab-title">
-                            <span class="inventory-tab-icon">🔗</span>
-                            <span class="inventory-tab-label">Integration Tests</span>
-                        </span>
-                        <span class="inventory-tab-count"><em>${testCounts.integration} tests (${integrationReleaseCounts.post} Post Deploy + ${integrationReleaseCounts.pre} Pre Deploy)</em></span>
-                    </button>
-                    <button class="inventory-tab" onclick="setInventoryTab('scalePerf', this)">
-                        <span class="inventory-tab-title">
-                            <span class="inventory-tab-icon">📈</span>
-                            <span class="inventory-tab-label">Scale & Perf Tests</span>
-                        </span>
-                        <span class="inventory-tab-count"><em>${testCounts.scalePerf} tests</em></span>
-                    </button>
-                    <button class="inventory-tab" onclick="setInventoryTab('chaos', this)">
-                        <span class="inventory-tab-title">
-                            <span class="inventory-tab-icon">🔥</span>
-                            <span class="inventory-tab-label">Chaos Tests</span>
-                        </span>
-                        <span class="inventory-tab-count"><em>${testCounts.chaos} tests</em></span>
-                    </button>
-                </div>
-
-                <div class="inventory-summary-card" id="inventory-summary-card">
-                    <div class="inventory-summary-header">
-                        <h3>HRP Products · Test Coverage Summary</h3>
-                        <div class="inventory-legend">
-                            <span><span class="inv-dot inv-enabled"></span>Enabled</span>
-                            <span><span class="inv-dot inv-partial"></span>Planned</span>
-                            <span><span class="inv-dot inv-missing"></span>Not Defined</span>
-                        </div>
-                    </div>
-                    <div class="inventory-summary-table-wrap">
-                        <table class="inventory-summary-table">
-                            <thead>
-                                <tr>
-                                    <th>HRP Product</th>
-                                    <th>Customer Tests</th>
-                                    <th>Integration Tests (Post)</th>
-                                    <th>Integration Tests (Pre)</th>
-                                    <th>Scale &amp; Perf Tests</th>
-                                    <th>Chaos Tests</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${products.map(product => `
-                                    <tr>
-                                        <td>${product}</td>
-                                        ${renderSummaryCell(summary, product, 'customerScenario')}
-                                        ${integrationFitSummary[product]?.post ? `<td><span class="inv-pill inv-enabled">✔</span></td>` : `<td><span class="inv-pill inv-missing">—</span></td>`}
-                                        ${integrationFitSummary[product]?.pre ? `<td><span class="inv-pill inv-enabled">✔</span></td>` : `<td><span class="inv-pill inv-missing">—</span></td>`}
-                                        ${renderSummaryCell(summary, product, 'scalePerf')}
-                                        ${renderSummaryCell(summary, product, 'chaos')}
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="product-filter-block" id="inventory-product-block" style="display:none;">
-                    <div class="product-filter-header">
-                        <h3 id="inventory-selected-coverage-title">HRP Product Summary - "Selected Test" Coverage</h3>
-                        <div class="inventory-legend">
-                            <span><span class="inv-dot inv-enabled"></span>Enabled</span>
-                            <span><span class="inv-dot inv-partial"></span>Planned</span>
-                            <span><span class="inv-dot inv-missing"></span>Not Defined</span>
-                        </div>
-                    </div>
-                    <div class="product-filter-row" id="inventory-product-filters"></div>
-                </div>
-
-                <div class="inventory-detail" id="inventory-detail"></div>
+        <div class="availability-dev-content">
+            <div class="tab-header">
+                <h2>Hyperforce Runtime Platform (HRP) - Test Inventory</h2>
+                <p>Product-level coverage and test inventory details</p>
             </div>
+            
+            <div class="exec-summary-kpi-grid columns-4 prevention-testtype-cards">
+                ${testTypeCards.map(card => `
+                    <div class="exec-summary-kpi-card inventory-tab-card inventory-tab-card--${card.key} ${initialTab === card.key ? 'active' : ''}" data-inventory-tab="${card.key}" onclick="setInventoryTab('${card.key}', this)">
+                        <div class="inventory-card-title">${card.icon} ${card.label}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            ${showDetails ? `
+                <div class="autoscaling-filters inventory-filter-bar">
+                    <div class="autoscaling-filter-group">
+                        <label class="autoscaling-filter-label">Select Product</label>
+                        <select id="inventory-product-filter"></select>
+                    </div>
+                    <div class="autoscaling-filter-group" id="integration-fit-runtype-filter-block"></div>
+                    <div class="autoscaling-filter-group" id="integration-fit-month-filter-block"></div>
+                    <div class="autoscaling-filter-actions">
+                        <button class="autoscaling-reset-btn" onclick="resetInventoryFilters()">🔄 Reset Filters</button>
+                    </div>
+                </div>
+                <div class="product-summary-kpis" id="inventory-product-kpis"></div>
+                <div class="inventory-detail" id="inventory-detail"></div>
+            ` : `
+                <div class="inventory-banner">Click on a Preventive Test Inventory to drill down</div>
+            `}
         </div>
     `;
 
-    inventoryActiveTab = 'all';
-    inventorySelectedProducts.clear();
-    renderInventoryDetail('all');
+    const productSelect = document.getElementById('inventory-product-filter');
+    if (productSelect) {
+        productSelect.innerHTML = `
+            <option value="all">All Products</option>
+            ${products.map(product => `<option value="${product}">${normalizeProductName(product)}</option>`).join('')}
+        `;
+        productSelect.value = availabilityData.inventoryProductFilter || 'all';
+        productSelect.addEventListener('change', (e) => {
+            availabilityData.inventoryProductFilter = e.target.value;
+            renderInventoryDetail(inventoryActiveTab);
+        });
+    }
+
+    inventoryActiveTab = initialTab || inventoryActiveTab;
+    if (showDetails) {
+        renderInventoryProductSummary(inventoryActiveTab);
+        renderInventoryDetail(inventoryActiveTab);
+    }
+}
+
+function resetInventoryFilters() {
+    availabilityData.inventoryProductFilter = 'all';
+    availabilityData.inventoryRunTypeFilter = 'all';
+    availabilityData.integrationFitMonthFilter = '';
+    const productSelect = document.getElementById('inventory-product-filter');
+    if (productSelect) productSelect.value = 'all';
+    const runTypeSelect = document.getElementById('integration-fit-runtype-filter');
+    if (runTypeSelect) runTypeSelect.value = 'all';
+    const monthSelect = document.getElementById('integration-fit-month-filter');
+    if (monthSelect) monthSelect.value = '';
+    renderInventoryProductSummary(inventoryActiveTab);
+    renderInventoryDetail(inventoryActiveTab);
 }
 
 function renderAvailabilityIngressView() {
@@ -3796,7 +4097,7 @@ function renderAvailabilityIngressView() {
                             <div class="inventory-subtitle">Tracking False Positives in the Last 90 Days</div>
                         </div>
                     </div>
-                    <button class="back-link" onclick="openAvailabilityReadinessExecView()">
+                    <button class="back-link" onclick="openAvailabilityDetectionExecView()">
                         <span>←</span>
                         <span>Back to Exec View</span>
                     </button>
@@ -3885,39 +4186,264 @@ function renderAvailabilityIngressView() {
     initIngressAccuracyLine(accuracyTrend);
 }
 
+function renderPreventionFitSummary() {
+    const fitRows = getFilteredFitRows();
+    const monthSelect = document.getElementById('prevention-fit-month-filter');
+    const tableBody = document.getElementById('prevention-fit-table-body');
+    const monthLabel = document.getElementById('prevention-fit-month-label');
+    const chartCanvas = document.getElementById('preventionFitChart');
+    const groupButtons = document.querySelectorAll('.prevention-fit-toggle-btn');
+    const summaryLabel = document.getElementById('prevention-fit-summary-label');
+    const col1 = document.getElementById('prevention-fit-col-1');
+    const col2 = document.getElementById('prevention-fit-col-2');
+    if (!monthSelect || !tableBody || !chartCanvas) return;
+
+    const monthKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const monthLabelText = (date) => date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const monthOptions = Array.from(new Set(
+        fitRows.map(r => parseFitRunDate(r['Run Time'])).filter(Boolean).map(monthKey)
+    )).sort().reverse();
+    const labelMap = monthOptions.reduce((acc, key) => {
+        const [year, month] = key.split('-').map(Number);
+        acc[key] = monthLabelText(new Date(year, month - 1, 1));
+        return acc;
+    }, {});
+
+    const currentMonthKey = monthKey(new Date());
+    const defaultMonth = monthOptions.includes(currentMonthKey) ? currentMonthKey : (monthOptions[0] || '');
+    if (!availabilityData.preventionFitMonthFilter) {
+        availabilityData.preventionFitMonthFilter = defaultMonth;
+    }
+
+    monthSelect.innerHTML = monthOptions.map(key => `
+        <option value="${key}"${availabilityData.preventionFitMonthFilter === key ? ' selected' : ''}>${labelMap[key]}</option>
+    `).join('');
+
+    const filteredRows = fitRows.filter(row => {
+        const date = parseFitRunDate(row['Run Time']);
+        return date && monthKey(date) === availabilityData.preventionFitMonthFilter;
+    });
+
+    const normalizeRunType = (raw) => {
+        const cleaned = (raw || '').toString().trim();
+        const val = cleaned.toLowerCase();
+        if (val.includes('predeployment')) return 'PreDeployment';
+        if (val.includes('postdeployment')) return 'PostDeployment';
+        return cleaned || 'Unknown';
+    };
+
+    const groupBy = availabilityData.preventionFitGroupBy || 'product';
+    groupButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === groupBy);
+    });
+
+    const summaryByKey = new Map();
+    filteredRows.forEach(row => {
+        const service = row.Service || 'Unknown';
+        const product = getFitProductForService(service);
+        const runType = normalizeRunType(row['Run Type']);
+        const key = groupBy === 'product' ? product : runType;
+        if (!summaryByKey.has(key)) {
+            summaryByKey.set(key, { key, tests: [], failures: [] });
+        }
+        const bucket = summaryByKey.get(key);
+        const tests = parseInt(row.Tests || 0, 10);
+        if (!Number.isNaN(tests)) bucket.tests.push(tests);
+        const success = parseSuccessRate(row['Success Rate'], row['Failure Rate']);
+        if (success !== null) bucket.failures.push(100 - success);
+    });
+
+    const summaryRows = Array.from(summaryByKey.values()).sort((a, b) => a.key.localeCompare(b.key));
+    const selection = availabilityData.preventionFitSelection || '';
+
+    if (summaryLabel) {
+        if (selection) {
+            summaryLabel.textContent = groupBy === 'product'
+                ? `Summarizing Run Type Details for the month of ${labelMap[availabilityData.preventionFitMonthFilter] || ''}, for the Product: ${selection}`
+                : `Summarizing Product Details for the month of ${labelMap[availabilityData.preventionFitMonthFilter] || ''}, for the RunType: ${selection}`;
+        } else {
+            summaryLabel.textContent = groupBy === 'product'
+                ? 'Click on a Product to view RunType details'
+                : 'Click on a RunType to view Product details';
+        }
+    }
+    if (col1 && col2) {
+        col1.textContent = groupBy === 'product' ? 'Product' : 'Run Type';
+        col2.textContent = 'Number of Tests Ran';
+    }
+
+    const detailMap = new Map();
+    filteredRows.forEach(row => {
+        const service = row.Service || 'Unknown';
+        const product = getFitProductForService(service);
+        const runType = normalizeRunType(row['Run Type']);
+        if (groupBy === 'product' && selection && product !== selection) return;
+        if (groupBy === 'runType' && selection && runType !== selection) return;
+        const key = groupBy === 'product' ? runType : product;
+        if (!detailMap.has(key)) {
+            detailMap.set(key, { key, tests: [], failures: [] });
+        }
+        const bucket = detailMap.get(key);
+        const tests = parseInt(row.Tests || 0, 10);
+        if (!Number.isNaN(tests)) bucket.tests.push(tests);
+        const raw = (row['Failure Rate'] || '').toString().trim().replace('%', '');
+        const failure = parseFloat(raw);
+        if (!Number.isNaN(failure)) bucket.failures.push(failure);
+    });
+
+    const detailRows = Array.from(detailMap.values()).sort((a, b) => a.key.localeCompare(b.key));
+
+    const rowsToRender = selection ? detailRows : summaryRows;
+    tableBody.innerHTML = rowsToRender.map(row => {
+        const testsSum = row.tests.reduce((a, b) => a + b, 0);
+        const avgFailure = row.failures.length ? (row.failures.reduce((a, b) => a + b, 0) / row.failures.length) : null;
+        const avgSuccess = avgFailure !== null ? Math.max(0, 100 - avgFailure) : null;
+        return `
+            <tr>
+                <td class="prevention-fit-clickable" data-key="${row.key}">${row.key}</td>
+                <td class="align-center">${testsSum}</td>
+                <td class="align-center">
+                    <div style="font-weight:700;">${avgSuccess !== null ? `${avgSuccess.toFixed(1)}%` : '—'}</div>
+                    <div class="inventory-summary-note">${avgFailure !== null ? `${avgFailure.toFixed(1)}% failure` : '—'}</div>
+                </td>
+            </tr>
+        `;
+    }).join('') || `<tr><td colspan="3" class="empty-state">No rows</td></tr>`;
+
+    if (monthLabel) {
+        monthLabel.textContent = labelMap[availabilityData.preventionFitMonthFilter] || '';
+    }
+
+    if (preventionFitChart) {
+        preventionFitChart.destroy();
+    }
+
+    const fullLabels = (selection ? detailRows : summaryRows).map(row => row.key);
+    const truncateLabel = (label, max = 28) => label.length > max ? `${label.slice(0, max - 1)}…` : label;
+    const labels = fullLabels.map(l => truncateLabel(l));
+    const testsData = (selection ? detailRows : summaryRows).map(row => row.tests.reduce((a, b) => a + b, 0));
+    const successLabels = (selection ? detailRows : summaryRows).map(row => {
+        if (!row.failures.length) return '—';
+        const avgFailure = row.failures.reduce((a, b) => a + b, 0) / row.failures.length;
+        return `${Math.max(0, 100 - avgFailure).toFixed(1)}%`;
+    });
+
+    const ctx = chartCanvas.getContext('2d');
+    const barHeight = 28;
+    const minHeight = 220;
+    const maxHeight = 520;
+    const desiredHeight = Math.min(maxHeight, Math.max(minHeight, labels.length * barHeight + 60));
+    chartCanvas.style.height = `${desiredHeight}px`;
+
+    preventionFitChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Tests Ran',
+                data: testsData,
+                backgroundColor: '#1b96ff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: (items) => fullLabels[items[0].dataIndex] || ''
+                    }
+                }
+            },
+            scales: {
+                x: { beginAtZero: true },
+                y: { ticks: { autoSkip: false } }
+            }
+        },
+        plugins: [{
+            id: 'success-labels',
+            afterDatasetsDraw(chart) {
+                const { ctx } = chart;
+                ctx.save();
+                ctx.font = '11px Salesforce Sans, Inter, sans-serif';
+                ctx.fillStyle = '#2e844a';
+                ctx.textAlign = 'center';
+                chart.getDatasetMeta(0).data.forEach((bar, index) => {
+                    const label = successLabels[index];
+                    if (!label) return;
+                    ctx.fillText(label, bar.x + 18, bar.y + 4);
+                });
+                ctx.restore();
+            }
+        }]
+    });
+
+    monthSelect.onchange = (e) => {
+        availabilityData.preventionFitMonthFilter = e.target.value;
+        availabilityData.preventionFitSelection = '';
+        renderPreventionFitSummary();
+    };
+    groupButtons.forEach(btn => {
+        btn.onclick = () => {
+            availabilityData.preventionFitGroupBy = btn.dataset.value;
+            availabilityData.preventionFitSelection = '';
+            renderPreventionFitSummary();
+        };
+    });
+    document.querySelectorAll('.prevention-fit-clickable').forEach(cell => {
+        cell.onclick = () => {
+            availabilityData.preventionFitSelection = cell.dataset.key || '';
+            renderPreventionFitSummary();
+        };
+    });
+}
+
 function getInventoryProducts() {
     return [
         'Managed Mesh',
         'Ingress Gateway',
         'Falcon Kubernetes Service',
-        'WIS',
+        'Workload Identity',
         'Vegacache',
         'Message Queue',
         'MAPS'
     ];
 }
 
+function normalizeProductName(product) {
+    if (!product) return product;
+    return product === 'WIS' ? 'Workload Identity' : product;
+}
+
 function getFitProductForService(service) {
     const map = availabilityData.fitServiceProductMap || {};
     const key = (service || '').toLowerCase();
-    return map[key] || '';
+    return normalizeProductName(map[key] || 'N/A');
 }
 
 function mapInventoryRows(rows, type) {
     return rows.map(row => {
         let product = '';
         if (type === 'customerScenario' || type === 'chaos') {
-            product = row.Product || '';
+            product = normalizeProductName(row.Product || '');
         } else if (type === 'integration') {
-            const desc = (row['Test Description'] || '').toLowerCase();
-            product = desc.includes('vegacache') ? 'Vegacache' : 'Falcon Kubernetes Service';
+        const service = row.Service || '';
+        product = normalizeProductName(getFitProductForService(service));
         } else if (type === 'scalePerf') {
             const service = row.Service || '';
-            product = getFitProductForService(service);
+            product = normalizeProductName(getFitProductForService(service));
         }
         if (!product) product = 'Falcon Kubernetes Service';
         return { ...row, _product: product };
     });
+}
+
+function isScalePerfEnabled(row) {
+    const raw = (row['Test Available'] || row['Test available'] || row['Test Available?'] || '').toString().trim();
+    if (!raw) return false;
+    return raw !== '-';
 }
 
 function getRowStatus(row, type) {
@@ -3969,20 +4495,108 @@ function buildIntegrationFitSummary(products) {
     products.forEach(product => {
         summary[product] = { post: 0, pre: 0 };
     });
-    const fitRows = availabilityData.fitData?.rows || [];
+    const fitRows = getFilteredFitRows();
     fitRows.forEach(row => {
-        const product = (row.Product || '').trim();
-        const mapped = summary[product] ? product : product === 'FKP'
-            ? 'Falcon Kubernetes Service'
-            : product === 'Mesh'
-                ? 'Managed Mesh'
-                : '';
+        const service = row.Service || '';
+        const product = getFitProductForService(service);
+        const mapped = summary[product] ? product : '';
         if (!mapped || !summary[mapped]) return;
         const runType = (row['Run Type'] || '').toLowerCase();
         if (runType.includes('postdeployment')) summary[mapped].post += 1;
         if (runType.includes('predeployment')) summary[mapped].pre += 1;
     });
     return summary;
+}
+
+function buildIntegrationReleaseSummary(products, rows) {
+    const summary = {};
+    products.forEach(product => {
+        summary[product] = {
+            post: { total: 0, enabled: 0, partial: 0 },
+            pre: { total: 0, enabled: 0, partial: 0 }
+        };
+    });
+    rows.forEach(row => {
+        const product = summary[row._product] ? row._product : 'Falcon Kubernetes Service';
+        const release = (row['Pre-Post Release'] || '').toLowerCase();
+        const key = release.includes('post') ? 'post' : release.includes('pre') ? 'pre' : 'post';
+        const bucket = summary[product][key];
+        bucket.total += 1;
+        const status = getRowStatus(row, 'integration');
+        if (status === 'enabled') bucket.enabled += 1;
+        if (status === 'partial') bucket.partial += 1;
+    });
+    return summary;
+}
+
+function buildIntegrationReleaseSummaryFromFit(products) {
+    const summary = {};
+    const productServices = {};
+    const serviceProductMap = availabilityData.fitServiceProductMap || {};
+
+    Object.entries(serviceProductMap).forEach(([service, product]) => {
+        if (!productServices[product]) {
+            productServices[product] = new Set();
+        }
+        productServices[product].add(service);
+    });
+
+    products.forEach(product => {
+        const totalServices = productServices[product] ? productServices[product].size : 0;
+        summary[product] = {
+            post: { total: totalServices, enabled: 0, partial: 0 },
+            pre: { total: totalServices, enabled: 0, partial: 0 }
+        };
+    });
+
+    const enabledServices = { pre: {}, post: {} };
+    const fitRows = getFilteredFitRows();
+    fitRows.forEach(row => {
+        const service = (row.Service || '').toLowerCase();
+        const mapped = serviceProductMap[service];
+        if (!mapped || !summary[mapped]) return;
+        const runType = (row['Run Type'] || '').toLowerCase();
+        const key = runType.includes('predeployment') ? 'pre' : runType.includes('postdeployment') ? 'post' : '';
+        if (!key) return;
+        if (!enabledServices[key][mapped]) {
+            enabledServices[key][mapped] = new Set();
+        }
+        enabledServices[key][mapped].add(service);
+    });
+
+    products.forEach(product => {
+        summary[product].pre.enabled = enabledServices.pre[product]?.size || 0;
+        summary[product].post.enabled = enabledServices.post[product]?.size || 0;
+    });
+
+    return summary;
+}
+
+function renderSummaryCellWithCounts(data, countsText = '') {
+    const enabled = data.enabled || 0;
+    const partial = data.partial || 0;
+    const total = data.total || 0;
+    const planned = total - enabled;
+    const countsLabel = countsText || `(${enabled} enabled, ${planned} planned)`;
+    let iconClass = 'inv-missing';
+    let icon = '—';
+    if (total > 0) {
+        if (enabled > 0) {
+            iconClass = 'inv-enabled';
+            icon = '✔';
+        } else if (partial > 0) {
+            iconClass = 'inv-partial';
+            icon = '⚠';
+        }
+    }
+    return `
+        <td>
+            <div class="inv-summary-cell">
+                <span class="inv-pill ${iconClass}">${icon}</span>
+                <span class="inv-counts">${countsLabel}</span>
+            </div>
+        </td>
+    `;
 }
 
 function renderSummaryCell(summary, product, type, isPerf = false) {
@@ -4005,110 +4619,384 @@ function renderSummaryCell(summary, product, type, isPerf = false) {
     return `<td><span class="inv-pill inv-missing">—</span></td>`;
 }
 
-let inventoryActiveTab = 'all';
-const inventorySelectedProducts = new Set();
+let inventoryActiveTab = 'customerScenario';
+
+function openAvailabilityInventoryTab(type, runType) {
+    if (type === 'integration' && runType) {
+        availabilityData.inventoryRunTypeFilter = runType;
+    }
+    availabilityData.preventionDevPendingDrill = true;
+    availabilityData.preventionDevEntry = 'drill';
+    availabilityData.preventionDevShowDetails = true;
+    availabilityData.inventoryTestTypeFilter = type;
+    switchViewMode('developer');
+    switchTab('runtime-availability-prevention');
+    scrollToTabContent('runtime-availability-prevention');
+    window.setTimeout(() => {
+        const btn = document.querySelector(`.inventory-tab-card[data-inventory-tab="${type}"]`);
+        if (btn) {
+            setInventoryTab(type, btn);
+        }
+    }, 50);
+}
+
+function openAvailabilityInventoryTabWithRunType(type, runType) {
+    openAvailabilityInventoryTab(type, runType);
+}
+
+function openAvailabilityInventoryTabFromKpi(type, runType) {
+    availabilityData.preventionDevForceSelect = true;
+    openAvailabilityInventoryTab(type, runType);
+}
 
 function setInventoryTab(type, btn) {
-    inventoryActiveTab = type;
-    document.querySelectorAll('.inventory-tab').forEach(tab => tab.classList.remove('active'));
-    btn.classList.add('active');
-    const summary = document.getElementById('inventory-summary-card');
-    const filterBlock = document.getElementById('inventory-product-block');
-    if (summary) summary.style.display = type === 'all' ? 'block' : 'none';
-    if (filterBlock) filterBlock.style.display = type === 'all' ? 'none' : 'block';
-    if (type !== 'all') {
-        renderProductFilterRow(type);
+    if (availabilityData.preventionDevShowDetails && inventoryActiveTab === type && !availabilityData.preventionDevForceSelect) {
+        availabilityData.preventionDevPendingDrill = false;
+        availabilityData.preventionDevEntry = 'nav';
+        availabilityData.preventionDevShowDetails = false;
+        availabilityData.inventoryTestTypeFilter = '';
+        availabilityData.inventoryProductFilter = 'all';
+        availabilityData.inventoryRunTypeFilter = 'all';
+        availabilityData.integrationFitMonthFilter = '';
+        inventoryActiveTab = '';
+        renderAvailabilityInventoryView({
+            containerId: 'runtime-availability-prevention-content',
+            hideAllSummary: true,
+            defaultTab: 'customerScenario'
+        });
+        return;
     }
+
+    availabilityData.preventionDevForceSelect = false;
+    inventoryActiveTab = type;
+    if (!availabilityData.preventionDevShowDetails) {
+        availabilityData.preventionDevPendingDrill = true;
+        availabilityData.preventionDevEntry = 'drill';
+        availabilityData.preventionDevShowDetails = true;
+        availabilityData.inventoryTestTypeFilter = type;
+        renderAvailabilityInventoryView({
+            containerId: 'runtime-availability-prevention-content',
+            hideAllSummary: true,
+            defaultTab: type
+        });
+        return;
+    }
+    availabilityData.preventionDevEntry = 'drill';
+    availabilityData.preventionDevShowDetails = true;
+    availabilityData.inventoryTestTypeFilter = type;
+    if (type !== 'integration') {
+        availabilityData.inventoryRunTypeFilter = 'all';
+        availabilityData.integrationFitMonthFilter = '';
+    }
+    document.querySelectorAll('.inventory-tab-card').forEach(tab => tab.classList.remove('active'));
+    if (type !== 'all') {
+        const target = btn || document.querySelector(`.inventory-tab-card[data-inventory-tab="${type}"]`);
+        if (target) target.classList.add('active');
+    }
+    const testTypeSelect = document.getElementById('inventory-testtype-filter');
+    if (testTypeSelect) {
+        testTypeSelect.value = type;
+    }
+    renderInventoryProductSummary(type);
     renderInventoryDetail(type);
 }
 
-function toggleInventoryProduct(product, btn) {
-    if (inventorySelectedProducts.has(product)) {
-        inventorySelectedProducts.delete(product);
-        btn.classList.remove('active');
-    } else {
-        inventorySelectedProducts.add(product);
-        btn.classList.add('active');
-    }
-    renderInventoryDetail(inventoryActiveTab);
+ 
+
+function normalizeFitRunType(raw) {
+    const cleaned = (raw || '').toString().trim();
+    const val = cleaned.toLowerCase();
+    if (val.includes('staggergroupvalidation')) return 'StaggerGroup';
+    if (val.includes('predeployment')) return 'PreDeployment';
+    if (val.includes('postdeployment')) return 'PostDeployment';
+    if (val.includes('staggergroup')) return 'StaggerGroup';
+    if (val.includes('stagger group')) return 'StaggerGroup';
+    return cleaned || 'Unknown';
 }
 
-function renderProductFilterRow(type) {
-    const filterRow = document.getElementById('inventory-product-filters');
+function getRunTypeKey(raw) {
+    return normalizeFitRunType(raw).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function parseSuccessRate(raw, failureRaw = '') {
+    if (raw) {
+        const cleaned = raw.toString().trim().replace('%', '');
+        const val = parseFloat(cleaned);
+        if (!Number.isNaN(val)) return val;
+    }
+    if (failureRaw) {
+        const cleaned = failureRaw.toString().trim().replace('%', '');
+        const val = parseFloat(cleaned);
+        if (!Number.isNaN(val)) return Math.max(0, 100 - val);
+    }
+    return null;
+}
+
+function getIntegrationMonthOptions(fitRows) {
+    const parseRunDate = (raw) => parseFitRunDate(raw);
+    const monthKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const monthLabel = (date) => date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const monthOptions = Array.from(new Set(
+        fitRows.map(r => parseRunDate(r['Run Time']))
+            .filter(date => date && date.getFullYear() >= 2000)
+            .map(monthKey)
+    )).sort().reverse();
+    const monthLabels = monthOptions.reduce((acc, key) => {
+        const [year, month] = key.split('-').map(Number);
+        const date = new Date(year, month - 1, 1);
+        acc[key] = monthLabel(date);
+        return acc;
+    }, {});
+    const defaultMonth = monthOptions[0] || '';
+    let filterValue = availabilityData.integrationFitMonthFilter || defaultMonth;
+    if (!monthOptions.includes(filterValue)) {
+        filterValue = defaultMonth;
+    }
+    if (filterValue) {
+        availabilityData.integrationFitMonthFilter = filterValue;
+    }
+    return { monthOptions, monthLabels, filterValue, monthKey };
+}
+
+function buildServiceTotalsFromRows(rows) {
+    const totals = {};
+    rows.forEach(row => {
+        const service = (row.Service || row.service || '').trim();
+        if (!service) return;
+        const product = row._product || getFitProductForService(service);
+        if (!totals[product]) totals[product] = new Set();
+        totals[product].add(service.toLowerCase());
+    });
+    return Object.fromEntries(Object.entries(totals).map(([product, set]) => [product, set.size]));
+}
+
+function renderInventoryProductSummary(type) {
+    const kpiContainer = document.getElementById('inventory-product-kpis');
     const titleEl = document.getElementById('inventory-selected-coverage-title');
-    if (!filterRow) return;
-    if (titleEl) {
-        const label = type === 'customerScenario'
-            ? 'Customer Scenario'
-            : type === 'integration'
-                ? 'Integration'
-                : type === 'scalePerf'
-                    ? 'Scale & Perf'
-                    : type === 'chaos'
-                        ? 'Chaos'
+    if (!kpiContainer) return;
+
+    const label = type === 'customerScenario'
+        ? 'Critical Path'
+        : type === 'integration'
+            ? 'Integration'
+            : type === 'scalePerf'
+                ? 'Scale & Perf'
+                : type === 'chaos'
+                    ? 'Chaos'
+                    : type === 'all'
+                        ? 'All Tests'
                         : 'Selected';
+    if (titleEl) {
         titleEl.textContent = `HRP Product Summary - "${label} Test" Coverage`;
     }
+
     const products = getInventoryProducts();
+    const visibleProducts = availabilityData.inventoryProductFilter && availabilityData.inventoryProductFilter !== 'all'
+        ? products.filter(product => product === availabilityData.inventoryProductFilter)
+        : products;
+    const inventory = availabilityData.testInventory;
+    const fitRows = getFilteredFitRows();
+    const runTypeFilter = availabilityData.inventoryRunTypeFilter || 'all';
+    const matchesRunType = (row) => runTypeFilter === 'all' || normalizeFitRunType(row['Run Type']) === runTypeFilter;
+    const customerRows = mapInventoryRows(inventory.customerScenario.rows, 'customerScenario');
+    const scalePerfRows = mapInventoryRows(inventory.scalePerf.rows, 'scalePerf');
+    const chaosRows = mapInventoryRows(inventory.chaos.rows, 'chaos');
     const summary = buildInventorySummary(products, {
-        customerScenario: mapInventoryRows(availabilityData.testInventory.customerScenario.rows, 'customerScenario'),
-        integration: mapInventoryRows(availabilityData.testInventory.integration.rows, 'integration'),
-        scalePerf: mapInventoryRows(availabilityData.testInventory.scalePerf.rows, 'scalePerf'),
-        chaos: mapInventoryRows(availabilityData.testInventory.chaos.rows, 'chaos')
+        customerScenario: customerRows,
+        integration: mapInventoryRows(fitRows, 'integration'),
+        scalePerf: scalePerfRows,
+        chaos: chaosRows
     });
+
     if (type === 'integration') {
-        const fitSummary = buildIntegrationFitSummary(products);
-        const buildPills = (key) => products.map(product => {
-            const enabled = (fitSummary[product]?.[key] || 0) > 0;
-            const pillClass = enabled ? 'inv-enabled' : 'inv-missing';
-            const icon = enabled ? '✔' : '—';
-            return `
-                <span class="product-pill ${inventorySelectedProducts.has(product) ? 'active' : ''}" onclick="toggleInventoryProduct('${product}', this)">
-                    ${product}
-                    <span class="inv-pill ${pillClass}">${icon}</span>
-                </span>
-            `;
-        }).join('');
-        filterRow.innerHTML = `
-            <div class="inventory-summary-line">
-                <strong>Post-Deployment:</strong>
-                <div class="inventory-summary-pills">${buildPills('post')}</div>
-            </div>
-            <div class="inventory-summary-line">
-                <strong>Pre-Deployment:</strong>
-                <div class="inventory-summary-pills">${buildPills('pre')}</div>
+        const { filterValue, monthKey } = getIntegrationMonthOptions(fitRows);
+        const serviceProductMap = availabilityData.fitServiceProductMap || {};
+        const productServiceTotals = {};
+        Object.entries(serviceProductMap).forEach(([service, product]) => {
+            if (!productServiceTotals[product]) productServiceTotals[product] = new Set();
+            productServiceTotals[product].add(service);
+        });
+        const totalServicesByProduct = Object.fromEntries(
+            Object.entries(productServiceTotals).map(([product, set]) => [product, set.size])
+        );
+        const filteredRows = filterValue
+            ? fitRows.filter(row => {
+                const date = parseFitRunDate(row['Run Time']);
+                return date && monthKey(date) === filterValue;
+            })
+            : [];
+        const allRunTypes = Array.from(new Set(fitRows.map(row => normalizeFitRunType(row['Run Type']))))
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b));
+        const visibleRunTypes = runTypeFilter === 'all' ? allRunTypes : allRunTypes.filter(rt => rt === runTypeFilter);
+
+        const orderedRunTypes = [
+            { key: 'adhoc', label: 'Adhoc' },
+            { key: 'cron', label: 'Cron' },
+            { key: 'predeployment', label: 'Pre Deployment' },
+            { key: 'postdeployment', label: 'Post Deployment' },
+            { key: 'staggergroup', label: 'Stagger Group' }
+        ];
+        kpiContainer.innerHTML = `
+            <div class="exec-summary-kpi-grid columns-4">
+                ${visibleProducts.map(product => {
+                    const productRowsAll = fitRows.filter(row => getFitProductForService(row.Service || '') === product);
+                    const productRows = filteredRows.filter(row => getFitProductForService(row.Service || '') === product);
+                    const totalServices = totalServicesByProduct[product] || 0;
+                    const enabledServicesSet = new Set(productRowsAll.map(row => (row.Service || '').toLowerCase()).filter(Boolean));
+                    const enabledServices = enabledServicesSet.size;
+                    const plannedServices = Math.max(totalServices - enabledServices, 0);
+                    const runTypeLines = orderedRunTypes.map(item => {
+                        const runTypeRowsAll = productRowsAll.filter(row => getRunTypeKey(row['Run Type']) === item.key);
+                        if (!runTypeRowsAll.length) {
+                            return `
+                                <div class="inventory-metric-row">
+                                    <span class="inventory-metric-label">${item.label}</span>
+                                    <span class="inventory-metric-value inventory-metric-blue">N/A</span>
+                                </div>
+                            `;
+                        }
+                        const runTypeServices = new Set(runTypeRowsAll.map(row => (row.Service || '').toLowerCase()).filter(Boolean)).size;
+                        const successValues = runTypeRowsAll.map(row => parseSuccessRate(row['Success Rate'], row['Failure Rate'])).filter(v => v !== null);
+                        const avgSuccess = successValues.length
+                            ? (successValues.reduce((a, b) => a + b, 0) / successValues.length).toFixed(1)
+                            : null;
+                        const runTypeValue = `${runTypeServices}/${totalServices} (${avgSuccess !== null ? `${avgSuccess}% success` : '— success'})`;
+                        return `
+                            <div class="inventory-metric-row">
+                                <span class="inventory-metric-label">${item.label}</span>
+                                <span class="inventory-metric-value inventory-metric-blue">${runTypeValue}</span>
+                            </div>
+                        `;
+                    }).join('');
+                    return `
+                        <div class="exec-summary-kpi-card inventory-product-card">
+                            <div class="inventory-product-title">
+                                ${product}
+                            </div>
+                            <div class="inventory-metric-row">
+                                <span class="inventory-metric-label">Total Services</span>
+                                <span class="inventory-metric-value inventory-metric-blue">${totalServices}</span>
+                            </div>
+                            ${runTypeLines}
+                            <div class="inventory-metric-row">
+                                <span class="inventory-metric-label">Avg FIT Quality</span>
+                                <span class="inventory-metric-value inventory-metric-blue">TBD</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
             </div>
         `;
         return;
     }
-    filterRow.innerHTML = products.map(product => `
-        <button class="product-pill ${inventorySelectedProducts.has(product) ? 'active' : ''}" onclick="toggleInventoryProduct('${product}', this)">
-            ${product}
-            <span class="inv-pill ${getProductStatusClass(summary, product, type)}">${getProductStatusIcon(summary, product, type)}</span>
-        </button>
-    `).join('');
+
+    const dataSourceType = type === 'all' ? 'customerScenario' : type;
+    const serviceTotalsFromMap = {};
+    const serviceProductMap = availabilityData.fitServiceProductMap || {};
+    Object.entries(serviceProductMap).forEach(([service, product]) => {
+        const normalizedProduct = normalizeProductName(product);
+        if (!serviceTotalsFromMap[normalizedProduct]) {
+            serviceTotalsFromMap[normalizedProduct] = new Set();
+        }
+        serviceTotalsFromMap[normalizedProduct].add(service);
+    });
+    const serviceTotals = Object.fromEntries(
+        Object.entries(serviceTotalsFromMap).map(([product, set]) => [product, set.size])
+    );
+    const scalePerfRowsByProduct = mapInventoryRows(scalePerfRows, 'scalePerf');
+    const scalePerfEnabledByProduct = scalePerfRowsByProduct.reduce((acc, row) => {
+        const product = row._product || 'Falcon Kubernetes Service';
+        if (!acc[product]) acc[product] = new Set();
+        if (isScalePerfEnabled(row)) {
+            const service = (row.Service || '').toString().toLowerCase();
+            if (service) acc[product].add(service);
+        }
+        return acc;
+    }, {});
+    kpiContainer.innerHTML = `
+        <div class="exec-summary-kpi-grid columns-4">
+            ${visibleProducts.map(product => {
+                const data = summary[product] ? summary[product][dataSourceType] : { total: 0, enabled: 0, partial: 0 };
+                const totalServices = serviceTotals[product] || 0;
+                if (dataSourceType === 'scalePerf') {
+                    const enabledServices = scalePerfEnabledByProduct[product]?.size || 0;
+                    return `
+                        <div class="exec-summary-kpi-card inventory-product-card">
+                            <div class="inventory-product-title">${product}</div>
+                            <div class="inventory-metric-row">
+                                <span class="inventory-metric-label">Total Services</span>
+                                <span class="inventory-metric-value inventory-metric-blue">${totalServices}</span>
+                            </div>
+                            <div class="inventory-metric-row">
+                                <span class="inventory-metric-label">Services Enabled</span>
+                                <span class="inventory-metric-value inventory-metric-green">${enabledServices}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                if (dataSourceType === 'customerScenario' || dataSourceType === 'chaos') {
+                    const enabledTests = data.enabled || 0;
+                    const plannedTests = Math.max((data.total || 0) - enabledTests, 0);
+                    return `
+                        <div class="exec-summary-kpi-card inventory-product-card">
+                            <div class="inventory-product-title">${product}</div>
+                            <div class="inventory-metric-row">
+                                <span class="inventory-metric-label">Total Services</span>
+                                <span class="inventory-metric-value inventory-metric-blue">${totalServices}</span>
+                            </div>
+                            <div class="inventory-metric-row">
+                                <span class="inventory-metric-label">Total Tests Enabled</span>
+                                <span class="inventory-metric-value inventory-metric-green">${enabledTests}</span>
+                            </div>
+                            <div class="inventory-metric-row">
+                                <span class="inventory-metric-label">Total Tests Planned</span>
+                                <span class="inventory-metric-value inventory-metric-yellow">${plannedTests}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                const enabledTests = data.enabled || 0;
+                const plannedTests = Math.max((data.total || 0) - enabledTests, 0);
+                return `
+                    <div class="exec-summary-kpi-card inventory-product-card">
+                        <div class="inventory-product-title">${product}</div>
+                        <div class="inventory-metric-row">
+                            <span class="inventory-metric-label">Total Services</span>
+                            <span class="inventory-metric-value inventory-metric-blue">${totalServices}</span>
+                        </div>
+                        <div class="inventory-metric-row">
+                            <span class="inventory-metric-label">Total Tests Enabled</span>
+                            <span class="inventory-metric-value inventory-metric-green">${enabledTests}</span>
+                        </div>
+                        <div class="inventory-metric-row">
+                            <span class="inventory-metric-label">Total Tests Planned</span>
+                            <span class="inventory-metric-value inventory-metric-yellow">${plannedTests}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
 }
 
 function renderInventoryDetail(type) {
     const container = document.getElementById('inventory-detail');
     if (!container) return;
-    
-    if (type === 'all') {
-        container.innerHTML = '';
-        return;
-    }
-    
+    let shouldRenderIntegrationTrend = false;
+    const monthFilterBlock = document.getElementById('integration-fit-month-filter-block');
+    const runTypeFilterBlock = document.getElementById('integration-fit-runtype-filter-block');
     const inventory = availabilityData.testInventory;
     const map = {
         customerScenario: {
-            title: 'Customer Scenario Test View',
+            title: 'Critical Path Test View',
             data: inventory.customerScenario,
             columns: ['Product', 'Purpose', 'Status', 'Frequency', 'Details']
         },
         integration: {
-            title: 'Integration Test View (Data to be updated)',
-            data: inventory.integration,
-            columns: ['Pre-Post Release', 'Purpose', 'Test Name', 'Status', 'Test Description']
+            title: 'Integration Test View',
+            data: { headers: [], rows: [] },
+            columns: ['Product', 'Service', 'Run Type', 'Tests', 'Avg Success Rate', 'Last Runtime (Max)']
         },
         scalePerf: {
             title: 'Scale & Perf Test View',
@@ -4121,56 +5009,442 @@ function renderInventoryDetail(type) {
             columns: ['Product', 'Available Test in Chaos platform', 'Risk level', 'Enabled']
         }
     };
-    
-    const selected = map[type];
-    if (!selected) return;
-    
-    const headers = type === 'chaos'
-        ? selected.columns
-        : selected.columns.filter(col => selected.data.headers.includes(col) || col === 'Product');
-    let rows = mapInventoryRows(selected.data.rows, type);
-    if (inventorySelectedProducts.size > 0) {
-        rows = rows.filter(row => inventorySelectedProducts.has(row._product));
-    }
-    if (type === 'chaos') {
-        rows = rows.map(row => {
-            const enabledValue = (row.Enabled || '').toLowerCase();
-            let enabled = 'Planned';
-            if (enabledValue === 'enabled') enabled = 'Enabled';
-            else if (enabledValue === 'not enabled' || enabledValue === 'tbd' || enabledValue === 'planned') enabled = 'Planned';
-            else {
-                const frequency = (row.Frequency || '').toLowerCase();
-                if (frequency && frequency !== 'not enabled' && frequency !== 'tbd') {
-                    enabled = 'Enabled';
-                }
-            }
-            return { ...row, Enabled: enabled };
-        });
-    }
-    
-    const headerRow = headers.map(h => `<th>${h}</th>`).join('');
-    const bodyRows = rows.map(row => {
-        const cells = headers.map(h => {
-            if (h === 'Product') return `<td>${row._product || ''}</td>`;
-            return `<td>${row[h] || ''}</td>`;
-        }).join('');
-        return `<tr>${cells}</tr>`;
-    }).join('');
-    
-    container.innerHTML = `
+
+    const buildTableHtml = (title, subtitle, headers, rows, tableId) => `
         <div class="inventory-detail-card">
             <div class="inventory-detail-header">
-                <h3>${selected.title}</h3>
-                <span>${rows.length} tests</span>
+                <h3>${title}</h3>
+                <div class="inventory-detail-meta">
+                    <span>${subtitle}</span>
+                    <button class="autoscaling-reset-btn inventory-export-btn" onclick="exportInventoryTableToCsv('${tableId}', '${title}')">Export CSV</button>
+                </div>
             </div>
             <div class="modal-table-scroll">
-                <table class="availability-modal-table">
-                    <thead><tr>${headerRow}</tr></thead>
-                    <tbody>${bodyRows || `<tr><td colspan="${headers.length}" class="empty-state">No rows</td></tr>`}</tbody>
+                <table class="availability-modal-table inventory-detail-table" id="${tableId}">
+                    <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                    <tbody>${rows.map(row => {
+                        const cells = headers.map(h => `<td>${row[h] ?? ''}</td>`).join('');
+                        const rowClass = row._rowClass ? ` class="${row._rowClass}"` : '';
+                        return `<tr${rowClass}>${cells}</tr>`;
+                    }).join('') || `<tr><td colspan="${headers.length}" class="empty-state">No rows</td></tr>`}</tbody>
                 </table>
             </div>
+            ${tableId === 'inventory-table-integration' ? `
+                <div class="inventory-table-legend">
+                    <span class="legend-item legend-enabled"><span class="legend-swatch"></span>Enabled</span>
+                    <span class="legend-item legend-stale"><span class="legend-swatch"></span>Active (historical data)</span>
+                    <span class="legend-item legend-missing"><span class="legend-swatch"></span>Not Planned</span>
+                </div>
+            ` : ''}
         </div>
     `;
+
+    const renderStandardSection = (sectionType) => {
+        const selected = map[sectionType];
+        if (!selected) return '';
+        const headers = sectionType === 'chaos'
+            ? selected.columns
+            : selected.columns.filter(col => selected.data.headers.includes(col) || col === 'Product');
+        let rows = mapInventoryRows(selected.data.rows, sectionType);
+        if (availabilityData.inventoryProductFilter && availabilityData.inventoryProductFilter !== 'all') {
+            rows = rows.filter(row => row._product === availabilityData.inventoryProductFilter);
+        }
+        if (sectionType === 'scalePerf') {
+            const serviceProductMap = availabilityData.fitServiceProductMap || {};
+            const serviceList = Object.keys(serviceProductMap)
+                .map(service => ({ service, product: normalizeProductName(serviceProductMap[service]) }))
+                .filter(entry => entry.product);
+            const filteredServiceList = availabilityData.inventoryProductFilter && availabilityData.inventoryProductFilter !== 'all'
+                ? serviceList.filter(entry => entry.product === availabilityData.inventoryProductFilter)
+                : serviceList;
+            const rowsByService = rows.reduce((acc, row) => {
+                const key = (row.Service || '').toString().toLowerCase();
+                if (!key) return acc;
+                acc[key] = row;
+                return acc;
+            }, {});
+            rows = filteredServiceList.map(({ service, product }) => {
+                const key = service.toString().toLowerCase();
+                const existing = rowsByService[key];
+                if (!existing) {
+                    return {
+                        _product: product,
+                        Product: product,
+                        Service: service,
+                        Type: 'N/A',
+                        'Test Available': 'N/A',
+                        Frequency: 'N/A',
+                        Tier: 'N/A',
+                        _rowClass: 'inventory-row-missing'
+                    };
+                }
+                return {
+                    ...existing,
+                    _product: product,
+                    _rowClass: 'inventory-row-enabled'
+                };
+            });
+        }
+        if (sectionType === 'chaos') {
+            rows = rows.map(row => {
+                const enabledValue = (row.Enabled || '').toLowerCase();
+                let enabled = 'Planned';
+                if (enabledValue === 'enabled') enabled = 'Enabled';
+                else if (enabledValue === 'not enabled' || enabledValue === 'tbd' || enabledValue === 'planned') enabled = 'Planned';
+                else {
+                    const frequency = (row.Frequency || '').toLowerCase();
+                    if (frequency && frequency !== 'not enabled' && frequency !== 'tbd') {
+                        enabled = 'Enabled';
+                    }
+                }
+                return { ...row, Enabled: enabled };
+            });
+        }
+        const normalizedRows = rows.map(row => {
+            const normalized = {};
+            headers.forEach(h => {
+                normalized[h] = h === 'Product' ? row._product || '' : row[h] || '';
+            });
+            if (row._rowClass) normalized._rowClass = row._rowClass;
+            return normalized;
+        });
+        if (sectionType === 'scalePerf') {
+            return `
+                <div class="inventory-table-legend">
+                    <div class="inventory-legend-item"><span class="legend-swatch legend-enabled"></span>Enabled</div>
+                    <div class="inventory-legend-item"><span class="legend-swatch legend-missing"></span>Not Planned</div>
+                </div>
+                ${buildTableHtml(selected.title, `${rows.length} services`, headers, normalizedRows, `inventory-table-${sectionType}`)}
+            `;
+        }
+        return buildTableHtml(selected.title, `${rows.length} tests`, headers, normalizedRows, `inventory-table-${sectionType}`);
+    };
+
+    const renderIntegrationSection = (showMonthFilter) => {
+        const fitRows = getFilteredFitRows();
+        const { monthOptions, monthLabels, filterValue, monthKey } = getIntegrationMonthOptions(fitRows);
+        if (monthFilterBlock) {
+            monthFilterBlock.innerHTML = showMonthFilter && monthOptions.length ? `
+                <label class="autoscaling-filter-label">Month</label>
+                <select id="integration-fit-month-filter">
+                    ${monthOptions.map(key => `
+                        <option value="${key}"${filterValue === key ? ' selected' : ''}>${monthLabels[key]}</option>
+                    `).join('')}
+                </select>
+            ` : '';
+        }
+        const allRunTypes = Array.from(new Set(fitRows.map(row => normalizeFitRunType(row['Run Type']))))
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b));
+        if (runTypeFilterBlock) {
+            runTypeFilterBlock.innerHTML = showMonthFilter && allRunTypes.length ? `
+                <label class="autoscaling-filter-label">Run Type</label>
+                <select id="integration-fit-runtype-filter">
+                    <option value="all">All RunTypes</option>
+                    ${allRunTypes.map(rt => `
+                        <option value="${rt}"${availabilityData.inventoryRunTypeFilter === rt ? ' selected' : ''}>${rt}</option>
+                    `).join('')}
+                </select>
+            ` : '';
+        }
+        const runTypeFilter = availabilityData.inventoryRunTypeFilter || 'all';
+        const scopedRows = showMonthFilter && filterValue
+            ? fitRows.filter(r => {
+                const date = parseFitRunDate(r['Run Time']);
+                return date && monthKey(date) === filterValue;
+            })
+            : fitRows;
+        const runTypeScopedRows = runTypeFilter === 'all'
+            ? scopedRows
+            : scopedRows.filter(row => normalizeFitRunType(row['Run Type']) === runTypeFilter);
+
+        const serviceProductMap = availabilityData.fitServiceProductMap || {};
+        const serviceList = Object.keys(serviceProductMap)
+            .map(service => ({ service, product: normalizeProductName(serviceProductMap[service]) }))
+            .filter(entry => entry.product);
+        const filteredServiceList = availabilityData.inventoryProductFilter && availabilityData.inventoryProductFilter !== 'all'
+            ? serviceList.filter(entry => entry.product === availabilityData.inventoryProductFilter)
+            : serviceList;
+
+        const displayRunTypes = runTypeFilter === 'all' ? allRunTypes : [runTypeFilter];
+
+        const rows = filteredServiceList.flatMap(({ service, product }) => {
+            const serviceLower = service.toLowerCase();
+            return displayRunTypes.map(runType => {
+                const serviceRowsAll = fitRows.filter(row =>
+                    (row.Service || '').toLowerCase() === serviceLower &&
+                    normalizeFitRunType(row['Run Type']) === runType
+                );
+                const currentRows = filterValue
+                    ? serviceRowsAll.filter(row => {
+                        const date = parseFitRunDate(row['Run Time']);
+                        return date && monthKey(date) === filterValue;
+                    })
+                    : serviceRowsAll;
+
+                const hasAny = serviceRowsAll.length > 0;
+                const hasCurrent = currentRows.length > 0;
+
+                let useRows = currentRows;
+                let lastRuntimeLabel = '-';
+                let rowClass = '';
+
+                if (filterValue && !hasCurrent && hasAny) {
+                    const previousRows = serviceRowsAll
+                        .map(row => ({ row, date: parseFitRunDate(row['Run Time']) }))
+                        .filter(entry => entry.date && monthKey(entry.date) < filterValue)
+                        .sort((a, b) => b.date - a.date);
+                    if (previousRows.length) {
+                        const latestDate = previousRows[0].date;
+                        useRows = previousRows.filter(entry => entry.date.getTime() === latestDate.getTime()).map(entry => entry.row);
+                        lastRuntimeLabel = latestDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        rowClass = 'inventory-row-stale';
+                    }
+                }
+
+                if (hasCurrent) {
+                    const latestCurrent = currentRows
+                        .map(r => parseFitRunDate(r['Run Time']))
+                        .filter(Boolean)
+                        .sort((a, b) => b - a)[0];
+                    lastRuntimeLabel = latestCurrent ? latestCurrent.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : lastRuntimeLabel;
+                    rowClass = 'inventory-row-enabled';
+                } else if (!lastRuntimeLabel || lastRuntimeLabel === '-') {
+                    const fallback = serviceRowsAll
+                        .map(r => parseFitRunDate(r['Run Time']))
+                        .filter(date => date && (!filterValue || monthKey(date) < filterValue))
+                        .sort((a, b) => b - a)[0];
+                    lastRuntimeLabel = fallback
+                        ? fallback.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        : '-';
+                }
+
+                if (!hasAny) {
+                    rowClass = 'inventory-row-missing';
+                }
+
+                const testsValues = useRows.map(r => parseInt(r.Tests || 0, 10)).filter(v => !Number.isNaN(v));
+                const successValues = useRows.map(r => parseSuccessRate(r['Success Rate'], r['Failure Rate'])).filter(v => v !== null);
+                const avgTests = testsValues.length ? Math.round(testsValues.reduce((a, b) => a + b, 0) / testsValues.length) : '-';
+                const avgSuccess = successValues.length
+                    ? `${(successValues.reduce((a, b) => a + b, 0) / successValues.length).toFixed(1)}%`
+                    : '-';
+
+                return {
+                    Product: product,
+                    Service: service,
+                    'Run Type': runType,
+                    Tests: avgTests,
+                    'Avg Success Rate': avgSuccess,
+                    'Last Runtime (Max)': lastRuntimeLabel,
+                    _rowClass: rowClass
+                };
+            });
+        });
+
+        const subtitle = showMonthFilter && filterValue && monthLabels[filterValue]
+            ? `${rows.length} services • ${monthLabels[filterValue]}`
+            : `${rows.length} services`;
+        const shouldShowTrend = availabilityData.inventoryProductFilter !== 'all' || runTypeFilter !== 'all';
+        const trendHtml = shouldShowTrend ? `
+            <div class="inventory-detail-card">
+                <div class="inventory-detail-header">
+                    <h3>Trend of Integration Tests over time</h3>
+                </div>
+                <div class="chart-body">
+                    <div class="chart-container">
+                        <canvas id="integrationTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        ` : '';
+        const tableHtml = `
+            ${trendHtml}
+            <div class="inventory-table-legend">
+                <div class="inventory-legend-item"><span class="legend-swatch legend-enabled"></span>Enabled (selected month)</div>
+                <div class="inventory-legend-item"><span class="legend-swatch legend-historical"></span>Active (historical data)</div>
+                <div class="inventory-legend-item"><span class="legend-swatch legend-missing"></span>Not Planned</div>
+            </div>
+            ${buildTableHtml(map.integration.title, subtitle, map.integration.columns, rows, 'inventory-table-integration')}
+        `;
+
+        const monthSelect = document.getElementById('integration-fit-month-filter');
+        if (monthSelect) {
+            monthSelect.addEventListener('change', (e) => {
+                availabilityData.integrationFitMonthFilter = e.target.value;
+                renderInventoryDetail('integration');
+            });
+        }
+        const runTypeSelect = document.getElementById('integration-fit-runtype-filter');
+        if (runTypeSelect) {
+            runTypeSelect.addEventListener('change', (e) => {
+                availabilityData.inventoryRunTypeFilter = e.target.value;
+                renderInventoryProductSummary('integration');
+                renderInventoryDetail('integration');
+            });
+        }
+        shouldRenderIntegrationTrend = shouldShowTrend;
+        return tableHtml;
+    };
+
+    if (type === 'integration') {
+        container.innerHTML = renderIntegrationSection(true);
+        if (shouldRenderIntegrationTrend) {
+            renderIntegrationTrendChart();
+        } else if (integrationTrendChart) {
+            integrationTrendChart.destroy();
+            integrationTrendChart = null;
+        }
+        return;
+    }
+
+    if (monthFilterBlock) {
+        monthFilterBlock.innerHTML = '';
+    }
+    if (runTypeFilterBlock) {
+        runTypeFilterBlock.innerHTML = '';
+    }
+
+    if (type === 'all') {
+        container.innerHTML = [
+            renderStandardSection('customerScenario'),
+            renderIntegrationSection(false),
+            renderStandardSection('scalePerf'),
+            renderStandardSection('chaos')
+        ].join('');
+        if (shouldRenderIntegrationTrend) {
+            renderIntegrationTrendChart();
+        } else if (integrationTrendChart) {
+            integrationTrendChart.destroy();
+            integrationTrendChart = null;
+        }
+        return;
+    }
+
+    container.innerHTML = renderStandardSection(type);
+}
+
+function exportInventoryTableToCsv(tableId, title) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    const rows = Array.from(table.querySelectorAll('tr'));
+    const csv = rows.map(row => {
+        const cells = Array.from(row.querySelectorAll('th, td')).map(cell => {
+            const text = (cell.textContent || '').trim().replace(/"/g, '""');
+            return `"${text}"`;
+        });
+        return cells.join(',');
+    }).join('\n');
+    const safeTitle = (title || 'inventory').replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${safeTitle}_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function renderIntegrationTrendChart() {
+    const canvas = document.getElementById('integrationTrendChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const fitRows = getFilteredFitRows();
+    const months = Array.from(new Set(
+        fitRows.map(r => parseFitRunDate(r['Run Time']))
+            .filter(Boolean)
+            .map(date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`)
+    )).sort();
+    const labels = months.map(key => {
+        const [year, month] = key.split('-').map(Number);
+        const date = new Date(year, month - 1, 1);
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    });
+
+    const productFilter = availabilityData.inventoryProductFilter || 'all';
+    const runTypeFilter = availabilityData.inventoryRunTypeFilter || 'all';
+    const allRunTypes = Array.from(new Set(fitRows.map(row => normalizeFitRunType(row['Run Type']))))
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+    const allProducts = getInventoryProducts();
+
+    let series = [];
+    if (productFilter !== 'all' && runTypeFilter !== 'all') {
+        series = [{ label: `${productFilter} · ${runTypeFilter}`, product: productFilter, runType: runTypeFilter }];
+    } else if (productFilter !== 'all') {
+        series = allRunTypes.map(rt => ({ label: rt, product: productFilter, runType: rt }));
+    } else if (runTypeFilter !== 'all') {
+        series = allProducts.map(prod => ({ label: prod, product: prod, runType: runTypeFilter }));
+    } else {
+        return;
+    }
+
+    const datasets = series.map((item, index) => {
+        const data = months.map(monthKey => {
+            const monthRows = fitRows.filter(row => {
+                const date = parseFitRunDate(row['Run Time']);
+                if (!date) return false;
+                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                if (key !== monthKey) return false;
+                const product = getFitProductForService(row.Service || '');
+                if (item.product && item.product !== product) return false;
+                if (item.runType && normalizeFitRunType(row['Run Type']) !== item.runType) return false;
+                return true;
+            });
+            if (!monthRows.length) return null;
+            const successValues = monthRows
+                .map(row => parseSuccessRate(row['Success Rate'], row['Failure Rate']))
+                .filter(v => v !== null);
+            if (!successValues.length) return null;
+            return Number((successValues.reduce((a, b) => a + b, 0) / successValues.length).toFixed(1));
+        });
+        const colors = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0ea5e9', '#9333ea', '#16a34a'];
+        return {
+            label: item.label,
+            data,
+            borderColor: colors[index % colors.length],
+            backgroundColor: colors[index % colors.length],
+            tension: 0.2,
+            spanGaps: true,
+            pointRadius: 3,
+            pointHoverRadius: 4
+        };
+    });
+
+    datasets.push({
+        label: 'Target 95%',
+        data: months.map(() => 95),
+        borderColor: '#94a3b8',
+        backgroundColor: '#94a3b8',
+        borderDash: [6, 6],
+        pointRadius: 0,
+        tension: 0
+    });
+
+    if (integrationTrendChart) {
+        integrationTrendChart.destroy();
+    }
+
+    integrationTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: true, position: 'bottom' }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: { callback: (val) => `${val}%` }
+                }
+            }
+        }
+    });
 }
 
 function getProductStatusClass(summary, product, tab) {
@@ -4224,6 +5498,144 @@ function getProductStatus(summary, product, tab) {
 
 let ingressDonutChart = null;
 let ingressAccuracyChart = null;
+let ingressAlertQualityChart = null;
+
+function renderIngressIncidentAlertQuality() {
+    const tableBody = document.getElementById('ingress-alert-quality-table');
+    const kpiContainer = document.getElementById('ingress-alert-quality-kpis');
+    const chartCanvas = document.getElementById('ingressAlertQualityPie');
+    const productFilter = document.getElementById('ingress-alert-product-filter');
+    if (!tableBody || !kpiContainer || !chartCanvas) return;
+
+    const rows = availabilityData.ingressIncidentAnalysis?.rows || [];
+    const products = getInventoryProducts();
+    if (productFilter) {
+        if (!availabilityData.ingressAlertProductFilter) {
+            availabilityData.ingressAlertProductFilter = 'Ingress Gateway';
+        }
+        productFilter.innerHTML = products.map(product => `
+            <option value="${product}">${normalizeProductName(product)}</option>
+        `).join('');
+        productFilter.value = availabilityData.ingressAlertProductFilter;
+        productFilter.onchange = (e) => {
+            availabilityData.ingressAlertProductFilter = e.target.value;
+            renderIngressIncidentAlertQuality();
+        };
+    }
+
+    const activeProduct = availabilityData.ingressAlertProductFilter || 'Ingress Gateway';
+    const hasIngressData = activeProduct === 'Ingress Gateway';
+    if (!rows.length || !hasIngressData) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="empty-state">No Data</td></tr>';
+        kpiContainer.innerHTML = '<div class="empty-state">No Data</div>';
+        if (ingressAlertQualityChart) {
+            ingressAlertQualityChart.destroy();
+            ingressAlertQualityChart = null;
+        }
+        return;
+    }
+
+    const normalizedRows = rows.map(row => ({
+        date: row.Date || '',
+        incident: row.Incident || '',
+        ingressIssue: (row['Ingress Issue'] || '').toString().trim(),
+        rootCause: row['Root Cause'] || '',
+        causeCategory: row['Probable Cause Category'] || 'Unknown',
+        link: row['Slack Thread Link'] || ''
+    }));
+
+    const total = normalizedRows.length;
+    const ingressCount = normalizedRows.filter(row => row.ingressIssue.toLowerCase() === 'yes').length;
+    const nonIngressCount = total - ingressCount;
+
+    kpiContainer.innerHTML = `
+        <div class="ingress-kpi-card">
+            <div class="ingress-kpi-label">Total Alerts</div>
+            <div class="ingress-kpi-value">${total}</div>
+        </div>
+        <div class="ingress-kpi-card success">
+            <div class="ingress-kpi-label">Confirmed Ingress Issues</div>
+            <div class="ingress-kpi-value">${ingressCount}</div>
+        </div>
+        <div class="ingress-kpi-card warning">
+            <div class="ingress-kpi-label">False Positives</div>
+            <div class="ingress-kpi-value">${nonIngressCount}</div>
+        </div>
+    `;
+
+    const bucketMap = new Map();
+    normalizedRows
+        .filter(row => row.ingressIssue.toLowerCase() !== 'yes')
+        .forEach(row => {
+            const key = row.causeCategory || 'Unknown';
+            bucketMap.set(key, (bucketMap.get(key) || 0) + 1);
+        });
+    const labels = Array.from(bucketMap.keys());
+    const data = labels.map(label => bucketMap.get(label));
+    const colors = [
+        '#2563eb', '#0ea5e9', '#22c55e', '#f59e0b', '#ef4444',
+        '#8b5cf6', '#14b8a6', '#f97316', '#64748b', '#84cc16'
+    ];
+
+    if (!labels.length) {
+        if (ingressAlertQualityChart) {
+            ingressAlertQualityChart.destroy();
+            ingressAlertQualityChart = null;
+        }
+        return;
+    }
+
+    if (ingressAlertQualityChart) {
+        ingressAlertQualityChart.destroy();
+    }
+    const percentLabelPlugin = {
+        id: 'percentLabels',
+        afterDraw(chart) {
+            const { ctx } = chart;
+            const dataset = chart.data.datasets[0];
+            const total = dataset.data.reduce((sum, v) => sum + v, 0) || 1;
+            chart.getDatasetMeta(0).data.forEach((arc, index) => {
+                const value = dataset.data[index];
+                if (!value) return;
+                const percent = ((value / total) * 100).toFixed(1);
+                const { x, y } = arc.tooltipPosition();
+                ctx.save();
+                ctx.fillStyle = '#1f2933';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${percent}%`, x, y);
+                ctx.restore();
+            });
+        }
+    };
+
+    ingressAlertQualityChart = new Chart(chartCanvas.getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels,
+            datasets: [{ data, backgroundColor: labels.map((_, i) => colors[i % colors.length]) }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', align: 'start' }
+            }
+        },
+        plugins: [percentLabelPlugin]
+    });
+
+    tableBody.innerHTML = normalizedRows.map(row => `
+        <tr>
+            <td>${row.incident || '-'}</td>
+            <td>${row.causeCategory || '-'}</td>
+            <td>${row.rootCause || '-'}</td>
+            <td>${row.link ? `<a class="ingress-alert-link" href="${row.link}" target="_blank" rel="noopener noreferrer">Slack Thread</a>` : '-'}</td>
+            <td>${row.ingressIssue || '-'}</td>
+        </tr>
+    `).join('');
+}
 
 function initIngressDonut(distributionRows) {
     const canvas = document.getElementById('ingress-alert-donut');
@@ -4885,7 +6297,27 @@ function openAvailabilityReadinessDeveloperView() {
 
 function openAvailabilityReadinessExecView() {
     switchViewMode('exec');
-    switchTab('runtime-availability');
+    switchTab('runtime-availability-detection');
+    scrollToTabContent('runtime-availability-detection');
+}
+
+function openAvailabilityDetectionExecView() {
+    switchViewMode('exec');
+    switchTab('runtime-availability-detection');
+    scrollToTabContent('runtime-availability-detection');
+}
+
+function openAvailabilityPreventionExecView() {
+    availabilityData.preventionDevPendingDrill = false;
+    availabilityData.preventionDevEntry = 'nav';
+    availabilityData.preventionDevShowDetails = false;
+    availabilityData.inventoryTestTypeFilter = '';
+    availabilityData.inventoryProductFilter = 'all';
+    availabilityData.integrationFitMonthFilter = '';
+    inventoryActiveTab = '';
+    switchViewMode('exec');
+    switchTab('runtime-availability-prevention');
+    scrollToTabContent('runtime-availability-prevention');
 }
 
 function showCardDetail(cardKey) {
@@ -4978,7 +6410,23 @@ function closeAvailabilityReadinessModal(event) {
 }
 
 function openFitSuccessMonthlyModal() {
-    const modal = document.getElementById('availability-readiness-modal');
+    let modal = document.getElementById('availability-readiness-modal');
+    if (!modal) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal" id="availability-readiness-modal" onclick="closeAvailabilityReadinessModal(event)">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3 id="availability-readiness-modal-title">Card Details</h3>
+                        <button class="modal-close" onclick="closeAvailabilityReadinessModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="availability-readiness-modal-body">
+                        <div class="modal-text">Select a card to view details.</div>
+                    </div>
+                </div>
+            </div>
+        `);
+        modal = document.getElementById('availability-readiness-modal');
+    }
     const titleEl = document.getElementById('availability-readiness-modal-title');
     const bodyEl = document.getElementById('availability-readiness-modal-body');
     if (!modal || !titleEl || !bodyEl) return;
@@ -4990,7 +6438,23 @@ function openFitSuccessMonthlyModal() {
 }
 
 function openChaosExecutionMonthlyModal() {
-    const modal = document.getElementById('availability-readiness-modal');
+    let modal = document.getElementById('availability-readiness-modal');
+    if (!modal) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal" id="availability-readiness-modal" onclick="closeAvailabilityReadinessModal(event)">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3 id="availability-readiness-modal-title">Card Details</h3>
+                        <button class="modal-close" onclick="closeAvailabilityReadinessModal()">&times;</button>
+                    </div>
+                    <div class="modal-body" id="availability-readiness-modal-body">
+                        <div class="modal-text">Select a card to view details.</div>
+                    </div>
+                </div>
+            </div>
+        `);
+        modal = document.getElementById('availability-readiness-modal');
+    }
     const titleEl = document.getElementById('availability-readiness-modal-title');
     const bodyEl = document.getElementById('availability-readiness-modal-body');
     if (!modal || !titleEl || !bodyEl) return;
@@ -5077,8 +6541,8 @@ function buildFitSuccessInventoryModal() {
                     <thead>
                         <tr>
                             <th>Service</th>
-                            <th>Pre-Release FIT</th>
-                            <th>Post-Release FIT</th>
+                            <th>Pre-Deployment FIT</th>
+                            <th>Post-Deployment FIT</th>
                             <th>Total Tests (30d)</th>
                             <th>Successful</th>
                             <th>Failed</th>
@@ -5568,7 +7032,7 @@ function buildReleaseConfidenceModal() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Pre-Release FIT Coverage</td>
+                            <td>Pre-Deployment FIT Coverage</td>
                             <td>35%</td>
                             <td>83%</td>
                             <td>29.1%</td>
@@ -5835,8 +7299,8 @@ function buildExecMttrModal() {
     };
 }
 
-function initFitTrendChart() {
-    const canvas = document.getElementById('fitTrendChart');
+function initFitTrendChart(canvasId = 'fitTrendChart') {
+    const canvas = document.getElementById(canvasId);
     if (!canvas || typeof Chart === 'undefined') return;
     const ctx = canvas.getContext('2d');
     
@@ -5890,8 +7354,8 @@ function initFitTrendChart() {
     });
 }
 
-function initChaosExecutionChart() {
-    const canvas = document.getElementById('chaosChart');
+function initChaosExecutionChart(canvasId = 'chaosChart') {
+    const canvas = document.getElementById(canvasId);
     if (!canvas || typeof Chart === 'undefined') return;
     const ctx = canvas.getContext('2d');
     
@@ -8847,6 +10311,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners for sidebar navigation
     document.querySelectorAll('.nav-subitem').forEach(item => {
         item.addEventListener('click', function() {
+            if (this.getAttribute('data-disabled') === 'true') {
+                if (this.getAttribute('data-tab') === 'runtime-availability-remediation') {
+                    this.setAttribute('title', 'This is under construction');
+                }
+                return;
+            }
             const tabName = this.getAttribute('data-tab');
             console.log('🔄 Tab clicked:', tabName);
             switchTab(tabName);
@@ -11957,6 +13427,17 @@ let availabilityData = {
     fitData: { headers: [], rows: [] },
     fitServiceProductMap: {},
     integrationFitSummary: {},
+    integrationFitMonthFilter: 'last30',
+    inventoryProductFilter: 'all',
+    inventoryTestTypeFilter: '',
+    preventionDevEntry: 'nav',
+    preventionDevShowDetails: false,
+    preventionDevPendingDrill: false,
+    preventionDevForceSelect: false,
+    inventoryRunTypeFilter: 'all',
+    preventionFitMonthFilter: '',
+    preventionFitGroupBy: 'product',
+    preventionFitSelection: '',
     ingressAlerts: { headers: [], rows: [] },
     ingressDistribution: { headers: [], rows: [] },
     ingressAccuracy: { headers: [], rows: [] },
@@ -12012,6 +13493,53 @@ function parseCSVWithHeaders(csvText) {
     });
     return { headers, rows };
 }
+
+function normalizeCsvHeaders(data) {
+    const headers = (data.headers || []).map(h => (h || '').replace(/^\uFEFF/, '').trim());
+    const headerMap = {};
+    (data.headers || []).forEach((h, i) => {
+        headerMap[h] = headers[i] || h;
+    });
+    const rows = (data.rows || []).map(row => {
+        const normalized = {};
+        Object.entries(row || {}).forEach(([key, value]) => {
+            const cleanKey = (headerMap[key] || key || '').replace(/^\uFEFF/, '').trim();
+            normalized[cleanKey] = value;
+        });
+        return normalized;
+    });
+    return { headers, rows };
+}
+
+function parseFitRunDate(raw) {
+    if (!raw) return null;
+    const cleaned = raw.toString().replace(' @ ', ' ').trim();
+    if (!cleaned) return null;
+    const date = new Date(cleaned);
+    if (Number.isNaN(date.getTime())) return null;
+    if (date.getFullYear() < 2000) return null;
+    return date;
+}
+
+const excludedFitServices = new Set([
+    'caasla',
+    'caaspc',
+    'caasvb',
+    'hawking-istiod',
+    'sfcd-argo-workflows',
+    'hawking-istio-operator'
+]);
+
+function getFilteredFitRows() {
+    const rows = availabilityData.fitData?.rows || [];
+    return rows.filter(row => {
+        const service = (row.Service || '').trim().toLowerCase();
+        return service && !excludedFitServices.has(service);
+    });
+}
+
+let preventionFitChart = null;
+let integrationTrendChart = null;
 
 function parseCSVLineRespectQuotes(line) {
     const values = [];
@@ -12100,6 +13628,7 @@ async function loadAllAvailabilityData() {
     try {
         // Load all 6 CSV files in parallel - URL encode filenames to handle spaces
         const basePath = 'assets/data/availability/';
+        const encodedBasePath = basePath.split('/').map(part => encodeURIComponent(part)).join('/');
         const files = [
             'Csv Tables - summary_metrics.csv',
             'Csv Tables - monthly_trend.csv',
@@ -12115,7 +13644,8 @@ async function loadAllAvailabilityData() {
             'integration_test_view.csv',
             'scale_perf_test_view.csv',
             'chaos_tests_view.csv',
-            'HRP Availability Scorecard - Data Collection - FIT Data.csv'
+            'integration_tests_fit.csv',
+            'ingress_incident_analysis.csv'
         ];
         
         const encodedPaths = files.map(file => {
@@ -12156,17 +13686,9 @@ async function loadAllAvailabilityData() {
         availabilityData.testInventory.integration = parseCSVWithHeadersRobust(csvTexts[11]);
         availabilityData.testInventory.scalePerf = parseCSVWithHeadersRobust(csvTexts[12]);
         availabilityData.testInventory.chaos = parseCSVWithHeadersMultiline(csvTexts[13]);
-        availabilityData.fitData = parseCSVWithHeadersRobust(csvTexts[14]);
+        availabilityData.fitData = normalizeCsvHeaders(parseCSVWithHeadersRobust(csvTexts[14]));
+        availabilityData.ingressIncidentAnalysis = parseCSVWithHeadersRobust(csvTexts[15]);
 
-        const fitMap = {};
-        availabilityData.fitData.rows.forEach(row => {
-            const service = (row.Service || '').trim().toLowerCase();
-            const product = (row.Product || '').trim();
-            if (!service || !product) return;
-            if (!fitMap[service]) {
-                fitMap[service] = product;
-            }
-        });
         const fitOverrides = {
             'anypoint-operator': 'Managed Mesh',
             'kaaskeywatcher': 'Falcon Kubernetes Service',
@@ -12178,14 +13700,33 @@ async function loadAllAvailabilityData() {
             'policy-distribution': 'WIS'
         };
         const normalizedMap = {};
-        Object.entries({ ...fitMap, ...fitOverrides }).forEach(([service, product]) => {
+        try {
+            const mapResponse = await fetch(encodedBasePath + 'fit_service_product_map.json');
+            if (mapResponse.ok) {
+                const mapJson = await mapResponse.json();
+                Object.entries(mapJson || {}).forEach(([service, product]) => {
+                    const key = (service || '').toLowerCase();
+                    if (!key) return;
+                    normalizedMap[key] = product;
+                });
+            }
+        } catch (e) {
+            console.warn('⚠️ Could not load fit_service_product_map.json');
+        }
+        Object.entries(fitOverrides).forEach(([service, product]) => {
             const key = (service || '').toLowerCase();
             if (!key) return;
-            if (product === 'FKP') normalizedMap[key] = 'Falcon Kubernetes Service';
-            else if (product === 'Mesh') normalizedMap[key] = 'Managed Mesh';
-            else normalizedMap[key] = product;
+            normalizedMap[key] = product;
         });
-        availabilityData.fitServiceProductMap = normalizedMap;
+        const finalizedMap = {};
+        Object.entries(normalizedMap).forEach(([service, product]) => {
+            if (!service) return;
+            if (product === 'FKP') finalizedMap[service] = 'Falcon Kubernetes Service';
+            else if (product === 'Mesh') finalizedMap[service] = 'Managed Mesh';
+            else if (product === 'STRIDE') finalizedMap[service] = 'WIS';
+            else finalizedMap[service] = product;
+        });
+        availabilityData.fitServiceProductMap = finalizedMap;
         
         availabilityData.loaded = true;
         
@@ -12694,7 +14235,7 @@ async function loadProjectionsData() {
     const PROJECTED_QUARTERS = ['FY27Q1', 'FY27Q2', 'FY27Q3', 'FY27Q4'];
     
     // Load roadmap CSV
-    const roadmapResponse = await fetch('assets/data/FY26 Platform Backlog - Customer Adoption Roadmap - SoT.csv');
+    const roadmapResponse = await fetch('assets/data/services_with_self_managed_prod.csv');
     const roadmapText = await roadmapResponse.text();
     const roadmapData = parseCSVWithQuotes(roadmapText);
     

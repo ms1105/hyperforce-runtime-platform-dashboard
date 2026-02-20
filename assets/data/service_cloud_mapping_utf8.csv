@@ -47,6 +47,7 @@ agent-svc-gsm,Tenyx - Platform,Agentforce Engines and Experiences,AI Cloud,Mural
 agent-svc-messaging,Agentforce Web Experience,Agentforce Engines and Experiences,AI Cloud,Muralidhar Krishnaprasad
 agent-svc-reasoner,Chatbot Runtime,Agentforce Engines and Experiences,AI Cloud,Muralidhar Krishnaprasad
 agent-telemetry,Central Perf Services - AI,Central Performance,Central Performance,Meir Amiel
+agent-vpe,Unified Context Engineering,AIForce,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 agentforce-eval,Shared Q4 (Perf) & CTS - AI Cloud,AI Cloud Management Shared,AI Cloud,Muralidhar Krishnaprasad
 agentic-api-service,Agentic API Access,Integration and Events,Platform Services,Muralidhar Krishnaprasad
 agentic-it-services-canonical-api-service,ITSM Maurya,Service Cloud TAM Expansion SoR,Service,Meir Amiel
@@ -139,6 +140,7 @@ anypoint-operator,Mesh API Runtime,HyperForce Runtime Platform,HPS,Paul Constant
 anypoint-platform-ui,MS UX Engineering,UX Foundations,UX Central,Kat Holmes
 anypoint-ui,MS UX Engineering,UX Foundations,UX Central,Kat Holmes
 api-catalog-backend-service,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+api-console-proxy-service,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 api-designer-dc-projects-service,MS API Designer and Catalog,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 api-designer-dc-ui,MS API Designer and Catalog,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 api-designer-dc-xapi-service,MS API Designer and Catalog,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -555,6 +557,7 @@ armada2-servicecrd,fedx-cp,Developer Productivity Experience,Reliable AI-Driven 
 arsenal,Data Protection,SDB,HPS,Paul Constantinides
 art-broker,Team Spearhead,Service Cloud,Service,Meir Amiel
 art-provider,Team Spearhead,Service Cloud,Service,Meir Amiel
+artano,HCA HSM Management,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 ask-iam-svc,EntSecIAM-Auto-IAM,Enterprise Security,Security & Compliance,Jim Wiese
 ast-controller,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 ast-scan-worker,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
@@ -702,6 +705,7 @@ cc-ecom-app-operator,CC ECOM App Operator,CC Digital,Commerce,Meir Amiel
 cc-ecom-app-runtime-dev,CC ECOM App,CC Digital,Commerce,Meir Amiel
 cc-ecom-app-runtime-prd,CC ECOM App,CC Digital,Commerce,Meir Amiel
 cc-ecom-app-runtime-stg,CC ECOM App,CC Digital,Commerce,Meir Amiel
+cc-ecom-control-plane,CC ECOM App,CC Digital,Commerce,Meir Amiel
 cc-ecom-db-operator,CC ECOM DB Operator,CC Digital,Commerce,Meir Amiel
 cc-ecom-jwa-operator,CC ECOM JWA Operator,CC Digital,Commerce,Meir Amiel
 cc-ecom-shared-fs,CC ECOM SharedFS,CC Digital,Commerce,Meir Amiel
@@ -860,6 +864,7 @@ cloudhub-autoscaler-svc,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Kri
 cloudhub-deployer-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-heraldmem-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-heraldmsg-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+cloudhub-offline-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-platformt-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-platformrt-service,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 cloudhub-rpim,MS CloudHub,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -1013,6 +1018,7 @@ delphi-app,Delphi,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 demeter,Hyperforce Governance Configuration and Orchestration,SDB,HPS,Paul Constantinides
 deploy-falcon-gating,FEDX Sample Apps,Hyperforce Solutions Engineering,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 deploy-webserver-anypoint,MS Anypoint Webserver,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+descheduler,Einstein ML Services,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 design-center-git-http-service,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 design-center-projects-db-migrations,MS Design Center Projects,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 design-center-projects-infra,MS Phoenix,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -1343,6 +1349,7 @@ fwe-platform-ft,CRE Field Service DevOps,Field Service Edge,Field Service,Meir A
 fwe-portal,FSL - Resource - Scheduling Hawks,Field Service Lightning,Field Service,Meir Amiel
 fwe-push,CRE Field Service DevOps,Field Service Edge,Field Service,Meir Amiel
 fwe-territory-optimization,Optimization Engineering,Field Service Lightning,Field Service,Meir Amiel
+g-2-g,CP CE-CloudInfra-PRB,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
 gadget-diagnostics-service,Proactive Monitoring Engineering,Hyperscale Core CRM,HPS,Paul Constantinides
 gadget-monitoring-service,Proactive Monitoring Engineering,Hyperscale Core CRM,HPS,Paul Constantinides
 gadget-watch,Proactive Monitoring Engineering,Hyperscale Core CRM,HPS,Paul Constantinides
@@ -1411,6 +1418,7 @@ heimdall-core,Falcon Portal,MAGIC,Reliable AI-Driven Developer eXperience (RADX)
 heimdall-ui,Falcon Portal,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 helm-archive-replicator,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 helm-extractor,SFCD Stargate,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+helm-provisioning-job,CDP_Fabric,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 hfa-agg,Hyperforce Fabric Availability,ACP - Autonomous Control Plane,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 high-scale-flow,C360 High Scale Flow,C360 Flow,Marketing,Meir Amiel
 hinax-bot,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Jim Wiese
@@ -1463,11 +1471,16 @@ ignite-api-experience-securityhub,IAM - Enterprise IGA,Enterprise Security,Secur
 ignite-api-process,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-process-ilm,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-active-directory,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-cisco,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-gsuite,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-sf-gus,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-idm,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-iiq,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-notifications,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-okta,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-sf-org62,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-sf-orgcs,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-sf-orgesc,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-slack,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-zscaler,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-iiq,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
@@ -1606,6 +1619,7 @@ localization-orchestration-service,Digital Translation Management Service,Market
 logexporter-service,Monitoring Agent - Logging,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 log-governance-service,Governed Product Usage,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 log-proxy,Identity Sync,Identity Services,Platform Services,Muralidhar Krishnaprasad
+logs-opensearch-dashboards-service,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 logs-opensearch-infra,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 logs-processor,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 louper,govcloud compliance automation,GIA,GIA,Jim Wiese
@@ -2383,6 +2397,7 @@ rosssal,SFCD ROSS,Continuous Deployment,Reliable AI-Driven Developer eXperience 
 rosstest,SFCD ROSS,Continuous Deployment,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 rosstest1,SFCD ROSS,Continuous Deployment,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 rossui,SFCD ROSS,Continuous Deployment,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+rpa-e2e-test-service,RPA Control Plane,Automation Platform,MuleSoft,Muralidhar Krishnaprasad
 rpa-robot-service,RPA Control Plane,Automation Platform,MuleSoft,Muralidhar Krishnaprasad
 rpa-management-service-application,RPA Control Plane,Automation Platform,MuleSoft,Muralidhar Krishnaprasad
 rtf,Nexus & Artifactory Infrastructure,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -2601,6 +2616,7 @@ sfmaps-s2,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
 sfmaps-territories,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
 sfmaps-territories-worker,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
 sfmaps-tokenizer,SFMaps - Off-Platform,Salesforce Maps,Sales,Meir Amiel
+sfmp-k8s,Log Analytics Scrum Team,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 sfr-sagemaker-serving,Salesforce Research Environments,Salesforce AI Research,Salesforce AI Research,Silvio Savarese
 sfs-eso-data-fetch,FSL - Resource - Scheduling Platform,Field Service Lightning,Field Service,Meir Amiel
 sfs-eso-data-translate,FSL - Resource - Scheduling Platform,Field Service Lightning,Field Service,Meir Amiel
@@ -2680,6 +2696,7 @@ sqlconcurrencythrottler,SFMC Database Service Engineering,Engagement Platform,Ma
 sre-agent,Falcon SRE US,Site Reliability Engineering,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 sre-feature-flag-service,MS SRE,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 sre-hf-data-collector-service,MS SRE,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+sre-tools-ai-transcriber,CP Site Reliability Engineering,Site Reliability Engineering,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 ss-warefodog3-prod1,Site Switching,SDB,HPS,Paul Constantinides
 ssdb-service,Super Secure Database,SDB,HPS,Paul Constantinides
 ssr-api,FIRE-Salesforce Service Registry,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -2924,6 +2941,7 @@ thb-flow-action-handler,ThunderBird - Krishna (IVR),Service Cloud Thunderbird,Se
 thb-freeswitch-core,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
 thb-gatling-load-generator-poc,ThunderBird - Garuda ( Voice Call Recording ),Service Cloud Thunderbird,Service,Meir Amiel
 thb-global-channelline-api,ThunderBird - Admin Experience & Number Management,Service Cloud Thunderbird,Service,Meir Amiel
+thb-hep-agent,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
 thb-homer,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
 thb-iva-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
 thb-iva-controller-api,ThunderBird Cauvery (IVA),Service Cloud Thunderbird,Service,Meir Amiel
@@ -2938,6 +2956,8 @@ thb-metering-service,ThunderBird - Digital Voice (Active),Service Cloud Thunderb
 thb-mfm-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
 thb-mfm-uploader-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
 thb-native-recording-api,ThunderBird - Godavari (Native Call Recording),Service Cloud Thunderbird,Service,Meir Amiel
+thb-picserver,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
+thb-qxip-license-server,ThunderBird - Native Voice - Team-1,Service Cloud Thunderbird,Service,Meir Amiel
 thb-rbbn-sbc,ThunderBird - DevOps and Infra,Service Cloud Thunderbird,Service,Meir Amiel
 thb-rbbn-sbc-afv,ThunderBird - DevOps and Infra,Service Cloud Thunderbird,Service,Meir Amiel
 thb-speech-service,ThunderBird - Raven ( Transcription and Text to Speech ),Service Cloud Thunderbird,Service,Meir Amiel

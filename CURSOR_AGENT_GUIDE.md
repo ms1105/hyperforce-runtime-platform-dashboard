@@ -43,7 +43,6 @@
 |--------|------|-----------|-------------|
 | `runtime-availability` | Exec Overview | Exec | Availability exec scorecard (incidents2.csv) |
 | `runtime-availability-inventory` | HRP Test Inventory | Developer | Test inventory by product/test (first Developer tab) |
-| `runtime-availability-ingress` | Ingress Alert Quality | Developer | Ingress alert KPIs + charts |
 | `runtime-availability-readiness` | HRP Test Readiness (Preventive) | Developer | Readiness table + KPIs |
 
 ### Runtime Scale Tabs
@@ -231,7 +230,7 @@ The **Projections & Roadmap** tab (Exec View only) shows FKP adoption projection
 ### Data Sources
 | File | Purpose |
 |------|---------|
-| `assets/data/FY26 Platform Backlog - Customer Adoption Roadmap - SoT.csv` | Service ETAs, decommission dates |
+| `assets/data/services_with_self_managed_prod.csv` | Service ETAs, decommission dates |
 | `fkp_adoption.csv` | Current quarter Commercial/GIA instances |
 | `fkp_adoption_prev_q.csv` | Previous quarter data (FY26Q3 baseline) |
 | `assets/data/blackjack_adoption_normalized.csv` | BlackJack current instances |
@@ -392,10 +391,11 @@ my-service,FY26Q2,FY26Q3,TBD,ARM support
 | `assets/data/availability/Ingress incidents - False Positive Analysis - slack.csv` | Ingress alert quality KPIs |
 | `assets/data/availability/ingress_alert_distribution.csv` | Ingress alert donut chart |
 | `assets/data/availability/ingress_alert_accuracy_trend.csv` | Ingress accuracy trend chart |
+| `assets/data/availability/ingress_incident_analysis.csv` | Ingress incident analysis table (Slack-derived) |
 
 ### HRP Test Inventory Logic (Developer View)
 - Product legend: **Enabled**, **Planned**, **Not Defined**
-- Customer Scenario: **Enabled** only when `Status = Enabled`; **Planned** when `Status = Not Enabled` or `Partial`
+- Critical Path (formerly Customer Scenario): **Enabled** only when `Status = Enabled`; **Planned** when `Status = Not Enabled` or `Partial`
 - Chaos: use `Enabled` column if present; fallback to `Frequency` (multiline CSV parsing needed)
 - Scale & Perf product mapping uses FIT `Service → Product` map
   - Normalize FIT labels: `FKP → Falcon Kubernetes Service`, `Mesh → Managed Mesh`, `STRIDE → WIS`
@@ -405,6 +405,26 @@ my-service,FY26Q2,FY26Q3,TBD,ARM support
   - Integration detail has Post/Pre pill rows under “HRP Product Summary - "Integration Test" Coverage”
 - Scale & Perf summary column is combined (no separate Scale/Perf columns)
 - Product summary header is dynamic: `HRP Product Summary - "<Selected Test>" Coverage`
+
+---
+
+## 🧭 Detection - Alert Quality (Exec View)
+
+- Section lives under Detection Exec → Service Impact Analysis, labeled **Detection - Alert Quality**
+- Data source: `assets/data/availability/ingress_incident_analysis.csv`
+- KPI block: Total Alerts, Confirmed Ingress Issues, False Positives
+- Pie chart: **Probable Causes for False Positives** only (Ingress Issue = No)
+- Table columns: Incident, Probable Cause, Root Cause Summary, Link to Slack Thread, HRP Cause or not
+- HRP Product filter: defaults to **Ingress Gateway**; other products show **No Data**
+
+---
+
+## 🧪 Prevention Updates (Exec + Dev)
+
+- Exec summary table label updated to **Critical Path Tests**
+- Prevention Developer View card label updated to **Critical Path Tests**
+- Integration trend chart renders only when Product or RunType is selected; uses FIT success rate (fallback to 100 - failure rate)
+- `renderInventoryProductSummary` must define `visibleProducts` locally to avoid ReferenceError
 
 ---
 

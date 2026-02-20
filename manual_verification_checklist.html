@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prevention Tab - Manual Verification Checklist</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .navigation {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .nav-step {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            font-size: 15px;
+        }
+        .nav-number {
+            background: #667eea;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 12px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .section-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .section-number {
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .section-body {
+            padding: 20px;
+        }
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            margin: 12px 0;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .check-item:hover {
+            background: #e9ecef;
+        }
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            margin-right: 12px;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+        .check-label {
+            flex: 1;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .check-label strong {
+            color: #667eea;
+        }
+        .expected {
+            background: #d4edda;
+            color: #155724;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+        .code-ref {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            margin-top: 6px;
+            display: inline-block;
+        }
+        .critical {
+            border-left: 4px solid #dc3545;
+        }
+        .priority-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .progress {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 15px 30px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 20px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            font-weight: 600;
+            color: #667eea;
+        }
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .summary h3 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Prevention Tab Verification</h1>
+            <p>Runtime Availability → Prevention Exec View</p>
+        </div>
+
+        <div class="navigation">
+            <div class="nav-step">
+                <div class="nav-number">1</div>
+                <div>Open <strong>http://localhost:8006</strong> in a new browser tab</div>
+            </div>
+            <div class="nav-step">
+                <div class="nav-number">2</div>
+                <div>Click <strong>"Runtime Availability"</strong> in left sidebar (🛡️ icon)</div>
+            </div>
+            <div class="nav-step">
+                <div class="nav-number">3</div>
+                <div>Click <strong>"Prevention"</strong> sub-item</div>
+            </div>
+            <div class="nav-step">
+                <div class="nav-number">4</div>
+                <div>Ensure <strong>"📊 Exec View"</strong> toggle is active (top right)</div>
+            </div>
+        </div>
+
+        <div class="progress">
+            <span class="progress-text" id="progress-text">0 / 17 checks completed</span>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <span class="progress-text" id="progress-percent">0%</span>
+        </div>
+
+        <div class="content">
+            <!-- Section 1 -->
+            <div class="section">
+                <div class="section-header">
+                    <div style="display: flex; align-items: center;">
+                        <div class="section-number">1</div>
+                        <span>Preventive Test Coverage Table (First Section)</span>
+                    </div>
+                    <span class="priority-badge">CRITICAL</span>
+                </div>
+                <div class="section-body">
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-1-1">
+                        <label for="check-1-1" class="check-label">
+                            This section appears <strong>FIRST</strong> (before Integration Test Summary)
+                        </label>
+                    </div>
+
+                    <div class="check-item critical">
+                        <input type="checkbox" class="checkbox" id="check-1-2">
+                        <label for="check-1-2" class="check-label">
+                            Subheader text is exactly: <strong>"Click on individual tests for more information"</strong>
+                            <div class="expected">Expected: "Click on individual tests for more information"</div>
+                            <div class="code-ref">Code: line 514 in fkp-dashboard.js</div>
+                        </label>
+                    </div>
+
+                    <div class="check-item critical">
+                        <input type="checkbox" class="checkbox" id="check-1-3">
+                        <label for="check-1-3" class="check-label">
+                            Column 3 header is: <strong>"Integration Tests (Pre-Deployment)"</strong>
+                            <div class="expected">Expected: "Integration Tests (Pre-Deployment)"</div>
+                            <div class="code-ref">Code: line 528</div>
+                        </label>
+                    </div>
+
+                    <div class="check-item critical">
+                        <input type="checkbox" class="checkbox" id="check-1-4">
+                        <label for="check-1-4" class="check-label">
+                            Column 4 header is: <strong>"Integration Tests (Post-Deployment)"</strong>
+                            <div class="expected">Expected: "Integration Tests (Post-Deployment)"</div>
+                            <div class="code-ref">Code: line 529</div>
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-1-5">
+                        <label for="check-1-5" class="check-label">
+                            Pre-Deployment column comes <strong>BEFORE</strong> Post-Deployment column
+                        </label>
+                    </div>
+
+                    <div class="check-item critical">
+                        <input type="checkbox" class="checkbox" id="check-1-6">
+                        <label for="check-1-6" class="check-label">
+                            Pre-Deployment cells show format: <strong>"X/Y services enabled"</strong>
+                            <div class="expected">Example: "5/10 services enabled" or "3/8 services enabled"</div>
+                            <div class="code-ref">Code: lines 457, 542</div>
+                        </label>
+                    </div>
+
+                    <div class="check-item critical">
+                        <input type="checkbox" class="checkbox" id="check-1-7">
+                        <label for="check-1-7" class="check-label">
+                            Post-Deployment cells show format: <strong>"X/Y services enabled"</strong>
+                            <div class="expected">Example: "5/10 services enabled" or "3/8 services enabled"</div>
+                            <div class="code-ref">Code: lines 457, 543</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2 -->
+            <div class="section">
+                <div class="section-header">
+                    <div style="display: flex; align-items: center;">
+                        <div class="section-number">2</div>
+                        <span>Integration Test Summary (Second Section)</span>
+                    </div>
+                    <span class="priority-badge">CRITICAL</span>
+                </div>
+                <div class="section-body">
+                    <div class="check-item critical">
+                        <input type="checkbox" class="checkbox" id="check-2-1">
+                        <label for="check-2-1" class="check-label">
+                            Section header is: <strong>"Integration Test Summary for HRP Products"</strong>
+                            <div class="expected">Expected: "Integration Test Summary for HRP Products"</div>
+                            <div class="code-ref">Code: line 558</div>
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-2-2">
+                        <label for="check-2-2" class="check-label">
+                            Section appears <strong>AFTER</strong> Preventive Test Coverage table
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-2-3">
+                        <label for="check-2-3" class="check-label">
+                            Section appears <strong>BEFORE</strong> HRP Test Inventory - Trend
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-2-4">
+                        <label for="check-2-4" class="check-label">
+                            Contains Integration FIT Summary table
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-2-5">
+                        <label for="check-2-5" class="check-label">
+                            Contains "Tests Ran & Success Rate" chart
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3 -->
+            <div class="section">
+                <div class="section-header">
+                    <div style="display: flex; align-items: center;">
+                        <div class="section-number">3</div>
+                        <span>HRP Test Inventory - Trend (Third Section)</span>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <div class="check-item critical">
+                        <input type="checkbox" class="checkbox" id="check-3-1">
+                        <label for="check-3-1" class="check-label">
+                            Section header is: <strong>"HRP Test Inventory - Trend"</strong>
+                            <div class="expected">Expected: "HRP Test Inventory - Trend"</div>
+                            <div class="code-ref">Code: line 611</div>
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-3-2">
+                        <label for="check-3-2" class="check-label">
+                            Section appears <strong>BELOW</strong> Integration Test Summary
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-3-3">
+                        <label for="check-3-3" class="check-label">
+                            Contains <strong>"FIT Success Rate Trend (6 Months)"</strong> chart
+                            <div class="code-ref">Canvas ID: fitTrendChartPrevention (line 621)</div>
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-3-4">
+                        <label for="check-3-4" class="check-label">
+                            Contains <strong>"Chaos Test Execution (Last 6 Months)"</strong> chart
+                            <div class="code-ref">Canvas ID: chaosChartPrevention (line 632)</div>
+                        </label>
+                    </div>
+
+                    <div class="check-item">
+                        <input type="checkbox" class="checkbox" id="check-3-5">
+                        <label for="check-3-5" class="check-label">
+                            Both charts are visible and rendered (not blank)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary">
+                <h3>📊 Verification Summary</h3>
+                <p id="summary-text">Check all items above to complete verification</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Based on code analysis of <code>assets/js/fkp-dashboard.js</code> (lines 377-643)</p>
+            <p style="margin-top: 8px;">Expected Result: <strong>100% Match</strong> (All checks should pass)</p>
+        </div>
+    </div>
+
+    <script>
+        const checkboxes = document.querySelectorAll('.checkbox');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const progressPercent = document.getElementById('progress-percent');
+        const summaryText = document.getElementById('summary-text');
+        const totalChecks = checkboxes.length;
+
+        function updateProgress() {
+            const checkedCount = document.querySelectorAll('.checkbox:checked').length;
+            const percentage = Math.round((checkedCount / totalChecks) * 100);
+            
+            progressFill.style.width = percentage + '%';
+            progressText.textContent = `${checkedCount} / ${totalChecks} checks completed`;
+            progressPercent.textContent = percentage + '%';
+            
+            if (checkedCount === totalChecks) {
+                summaryText.innerHTML = '✅ <strong>All checks passed!</strong> The Prevention tab structure matches expectations.';
+                summaryText.style.color = '#155724';
+            } else if (checkedCount > 0) {
+                summaryText.innerHTML = `⏳ <strong>${checkedCount} of ${totalChecks} checks completed.</strong> Keep verifying...`;
+                summaryText.style.color = '#856404';
+            } else {
+                summaryText.innerHTML = '📋 Check all items above to complete verification';
+                summaryText.style.color = '#6c757d';
+            }
+        }
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateProgress);
+        });
+
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>

@@ -2172,16 +2172,17 @@ async function renderExecutiveSummary() {
         // Runtime Availability metrics
         const incidents = availabilityData.incidents || [];
         const now = new Date();
-        const latestIncidentDate = getLatestIncidentDate(incidents);
-        const elevenMonthStart = new Date(latestIncidentDate);
-        elevenMonthStart.setMonth(elevenMonthStart.getMonth() - 10);
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        now.setHours(23, 59, 59, 999);
+        const twelveMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        twelveMonthStart.setMonth(twelveMonthStart.getMonth() - 11);
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const msPerDay = 24 * 60 * 60 * 1000;
 
         const getIncidentsInWindow = (severity) => incidents.filter(inc => {
             const incDate = new Date(inc.detected_date);
             if (Number.isNaN(incDate.getTime())) return false;
-            return inc.severity === severity && incDate >= elevenMonthStart && incDate <= latestIncidentDate;
+            return inc.severity === severity && incDate >= twelveMonthStart && incDate <= now;
         });
 
         const getRecentIncidents = (severity) => incidents.filter(inc => {
@@ -2447,6 +2448,15 @@ async function renderExecutiveSummary() {
         const testMttrHours = 4.2;
         const testMttrSub = '↓ 1.3 hrs improvement';
 
+        const detectionModalTypeForTitle = (title) => {
+            const normalized = (title || '').toLowerCase();
+            if (normalized.includes('sev0')) return 'sev0';
+            if (normalized.includes('sev1')) return 'sev1';
+            if (normalized.includes('mttd')) return 'mttd';
+            if (normalized.includes('mttr')) return 'mttr';
+            return null;
+        };
+
         const kpiCard = ({
             title,
             value,
@@ -2475,25 +2485,25 @@ async function renderExecutiveSummary() {
                     <div class="exec-summary-kpi-row sev0-row">
                         <div class="exec-summary-kpi-grid columns-4">
                         ${kpiCard({
-                            title: 'Sev0 Incidents (11MO)',
+                            title: 'Sev0 Incidents (12MO)',
                             value: sev0Incidents,
                             sub: sev0Months.length ? `${sev0Incidents} total (${sev0Months.join(', ')})` : `${sev0Incidents} total`,
                             valueClass: 'text-red',
-                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
+                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Sev0 Incidents')}')`
                         })}
                         ${kpiCard({
                             title: 'Avg MTTD (Last 30 D)',
                             value: `${avgMttdSev0}<span class="exec-summary-unit">min</span>`,
                             sub: 'SLA Target <10 min',
                             valueClass: slaClass(avgMttdSev0, 10),
-                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
+                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Avg MTTD')}')`
                         })}
                         ${kpiCard({
                             title: 'Avg MTTR (Last 30 D)',
                             value: `${avgMttrSev0}<span class="exec-summary-unit">min</span>`,
                             sub: 'SLA Target <30 min',
                             valueClass: slaClass(avgMttrSev0, 30),
-                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
+                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Avg MTTR')}')`
                         })}
                         ${kpiCard({
                             title: 'Days Since Last Incident',
@@ -2507,25 +2517,25 @@ async function renderExecutiveSummary() {
                     <div class="exec-summary-kpi-row sev1-row">
                         <div class="exec-summary-kpi-grid columns-4">
                         ${kpiCard({
-                            title: 'Sev1 Incidents (11MO)',
+                            title: 'Sev1 Incidents (12MO)',
                             value: sev1Incidents,
                             sub: sev1ServiceCount > 0 ? `${sev1Incidents} total across ${sev1ServiceCount} services` : `${sev1Incidents} total`,
                             valueClass: 'text-orange',
-                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
+                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Sev1 Incidents')}')`
                         })}
                         ${kpiCard({
                             title: 'Avg MTTD (Last 30 D)',
                             value: `${avgMttdSev1}<span class="exec-summary-unit">min</span>`,
                             sub: 'SLA Target <10 min',
                             valueClass: slaClass(avgMttdSev1, 10),
-                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
+                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Avg MTTD')}')`
                         })}
                         ${kpiCard({
                             title: 'Avg MTTR (Last 30 D)',
                             value: `${avgMttrSev1}<span class="exec-summary-unit">min</span>`,
                             sub: 'SLA Target <30 min',
                             valueClass: slaClass(avgMttrSev1, 30),
-                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
+                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Avg MTTR')}')`
                         })}
                         ${kpiCard({
                             title: 'Days Since Last Incident',
@@ -2919,6 +2929,12 @@ async function renderAvailabilityDetectionTab() {
         
         // Render comprehensive scrollable Exec View
         renderAvailabilityExecView(container, { includeReadiness: false });
+
+        if (availabilityData.pendingDetectionModal) {
+            const modalType = availabilityData.pendingDetectionModal;
+            availabilityData.pendingDetectionModal = null;
+            setTimeout(() => openAvailabilityExecModal(modalType), 0);
+        }
         
         console.log('✅ Runtime Availability - Detection rendered');
         console.log('🛡️ Container innerHTML length after render:', container.innerHTML.length);
@@ -3029,13 +3045,25 @@ function renderAvailabilityExecView(container, options = {}) {
     const incidents = availabilityData.incidents || [];
     const serviceReadiness = availabilityData.serviceReadiness || [];
     
-    // Calculate KPI metrics from incidents2.csv
-    // Count Sev0 and Sev1 incidents
-    const sev0Incidents = incidents.filter(inc => inc.severity === 'Sev0').length;
-    const sev1Incidents = incidents.filter(inc => inc.severity === 'Sev1').length;
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    const twelveMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    twelveMonthStart.setMonth(twelveMonthStart.getMonth() - 11);
+    const thirtyDaysAgo = new Date(now);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const window12Incidents = incidents.filter(inc => {
+        const incDate = new Date(inc.detected_date);
+        if (Number.isNaN(incDate.getTime())) return false;
+        return incDate >= twelveMonthStart && incDate <= now;
+    });
+
+        // Calculate KPI metrics from incidents_e360_total.csv (last 12 months)
+    const sev0Incidents = window12Incidents.filter(inc => inc.severity === 'Sev0').length;
+    const sev1Incidents = window12Incidents.filter(inc => inc.severity === 'Sev1').length;
     
     // Get Sev0 incident months for trend text
-    const sev0IncidentMonths = incidents
+    const sev0IncidentMonths = window12Incidents
         .filter(inc => inc.severity === 'Sev0')
         .map(inc => {
             const date = new Date(inc.detected_date);
@@ -3044,16 +3072,14 @@ function renderAvailabilityExecView(container, options = {}) {
         .join(', ');
     
     // Count unique services with Sev1 incidents
-    const sev1Services = new Set(incidents.filter(inc => inc.severity === 'Sev1').map(inc => inc.prb_owner)).size;
+    const sev1Services = new Set(window12Incidents.filter(inc => inc.severity === 'Sev1').map(inc => inc.prb_owner)).size;
     
-    // Calculate Avg MTTD and MTTR for last 30 days
-    // Get current date and 30 days ago
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    
+    // Calculate Avg MTTD and MTTR for last 30 days (Sev0/Sev1 only)
     const recentIncidents = incidents.filter(inc => {
         const incDate = new Date(inc.detected_date);
-        return incDate >= thirtyDaysAgo && incDate <= now;
+        if (Number.isNaN(incDate.getTime())) return false;
+        return (inc.severity === 'Sev0' || inc.severity === 'Sev1') &&
+            incDate >= thirtyDaysAgo && incDate <= now;
     });
     
     // Calculate averages for 30-day period
@@ -3086,7 +3112,7 @@ function renderAvailabilityExecView(container, options = {}) {
     const mttdMetric = { target: 10 };
     const mttrMetric = { target: 30 };
     
-    console.log('🛡️ Calculated from incidents2.csv:', {
+        console.log('🛡️ Calculated from incidents_e360_total.csv:', {
         sev0Incidents,
         sev1Incidents,
         avgMttd,
@@ -3097,23 +3123,33 @@ function renderAvailabilityExecView(container, options = {}) {
     // Calculate monthly MTTD/MTTR for hero cards
     // Group incidents by month
     const incidentsByMonth = {};
-    incidents.forEach(inc => {
+    const monthKeys = [];
+    const monthLabels = [];
+    for (let i = 0; i < 12; i++) {
+        const d = new Date(twelveMonthStart.getFullYear(), twelveMonthStart.getMonth() + i, 1);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        monthKeys.push(monthKey);
+        monthLabels.push(d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+        incidentsByMonth[monthKey] = { name: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), incidents: [], key: monthKey };
+    }
+    window12Incidents.forEach(inc => {
         const date = new Date(inc.detected_date);
+        if (Number.isNaN(date.getTime())) return;
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const monthName = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        if (!incidentsByMonth[monthKey]) {
-            incidentsByMonth[monthKey] = { name: monthName, incidents: [], key: monthKey };
+        if (incidentsByMonth[monthKey]) {
+            incidentsByMonth[monthKey].incidents.push(inc);
         }
-        incidentsByMonth[monthKey].incidents.push(inc);
     });
     
-    // Sort months and get current and last month
-    const sortedMonths = Object.keys(incidentsByMonth).sort().reverse();
-    const currentMonthKey = sortedMonths[0];
-    const lastMonthKey = sortedMonths[1];
+    const currentMonthKey = monthKeys[monthKeys.length - 1];
+    const lastMonthKey = monthKeys[monthKeys.length - 2];
     
     const currentMonthData = incidentsByMonth[currentMonthKey] || { name: 'N/A', incidents: [] };
     const lastMonthData = incidentsByMonth[lastMonthKey] || { name: 'N/A', incidents: [] };
+
+    const startLabel = incidentsByMonth[monthKeys[0]]?.name || monthLabels[0] || '';
+    const endLabel = incidentsByMonth[monthKeys[monthKeys.length - 1]]?.name || monthLabels[monthLabels.length - 1] || '';
+    const rangeLabel = startLabel && endLabel ? `${startLabel} - ${endLabel} (12 months)` : 'Last 12 months';
     
     // Calculate current month metrics
     const calcMonthMetrics = (monthData) => {
@@ -3137,8 +3173,8 @@ function renderAvailabilityExecView(container, options = {}) {
     const lastMonth = { ...calcMonthMetrics(lastMonthData), name: lastMonthData.name };
     
     // Calculate 11-month weighted average (total sum / total incidents)
-    const allValidMttd = incidents.filter(i => parseFloat(i.ttd_min) > 0);
-    const allValidMttr = incidents.filter(i => parseFloat(i.ttr_min) > 0);
+    const allValidMttd = window12Incidents.filter(i => parseFloat(i.ttd_min) > 0);
+    const allValidMttr = window12Incidents.filter(i => parseFloat(i.ttr_min) > 0);
     
     const yearAverage = {
         mttd: allValidMttd.length > 0 
@@ -3174,10 +3210,7 @@ function renderAvailabilityExecView(container, options = {}) {
         mttrSlaMet
     });
     
-    // Calculate monthly MTTD/MTTR for trend chart
-    const monthOrder = ['2025-03', '2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01'];
-    const monthLabels = ["Mar '25", "Apr '25", "May '25", "Jun '25", "Jul '25", "Aug '25", "Sep '25", "Oct '25", "Nov '25", "Dec '25", "Jan '26"];
-    
+    // Calculate monthly MTTD/MTTR for trend chart (last 12 months)
     const monthlyChartData = {
         labels: monthLabels,
         mttd: [],
@@ -3185,7 +3218,7 @@ function renderAvailabilityExecView(container, options = {}) {
         incidents: []
     };
     
-    monthOrder.forEach(monthKey => {
+    monthKeys.forEach(monthKey => {
         const monthData = incidentsByMonth[monthKey];
         if (monthData && monthData.incidents.length > 0) {
             const incs = monthData.incidents;
@@ -3315,12 +3348,12 @@ function renderAvailabilityExecView(container, options = {}) {
     container.innerHTML = `
         <div class="availability-exec-scrollable">
             <!-- Header -->
-            <div class="availability-dashboard-header">
+        <div class="availability-dashboard-header">
                 <div class="availability-dashboard-brand">
                     <div class="availability-dashboard-logo">⚡</div>
                     <div class="availability-dashboard-text">
                         <h1 class="availability-dashboard-title">HRP Availability Scorecard - Exec View</h1>
-                        <div class="availability-dashboard-subtitle">Hyperforce Runtime Platform • Data: Mar 2025 - Jan 2026 (11 months)</div>
+                    <div class="availability-dashboard-subtitle">Hyperforce Runtime Platform • Data: ${rangeLabel}</div>
                     </div>
                 </div>
                 <div class="availability-header-badges">
@@ -3332,12 +3365,12 @@ function renderAvailabilityExecView(container, options = {}) {
             <!-- Exec KPI Summary Cards -->
             <div class="avail-summary-grid">
                 <div class="avail-summary-card critical" onclick="openAvailabilityExecModal('sev0')">
-                    <div class="avail-card-label">Sev0 Incidents (11mo)</div>
+                    <div class="avail-card-label">Sev0 Incidents (12mo)</div>
                     <div class="avail-card-value critical">${sev0Incidents}</div>
                     <div class="avail-card-trend">${sev0Trend}</div>
                 </div>
                 <div class="avail-summary-card warning" onclick="openAvailabilityExecModal('sev1')">
-                    <div class="avail-card-label">Sev1 Incidents (11mo)</div>
+                    <div class="avail-card-label">Sev1 Incidents (12mo)</div>
                     <div class="avail-card-value warning">${sev1Incidents}</div>
                     <div class="avail-card-trend">${sev1Trend}</div>
                 </div>
@@ -3350,11 +3383,6 @@ function renderAvailabilityExecView(container, options = {}) {
                     <div class="avail-card-label">Avg MTTR (30d)</div>
                     <div class="avail-card-value ${avgMttr > mttrMetric.target ? 'critical' : 'info'}">${avgMttr}<span class="avail-unit">min</span></div>
                     <div class="avail-card-trend positive">SLA Target &lt;${mttrMetric.target} min</div>
-                </div>
-                <div class="avail-summary-card success" onclick="openAvailabilityExecModal('readiness')">
-                    <div class="avail-card-label">HRP Test<br>Readiness Score</div>
-                    <div class="avail-card-value success">${observabilityCoverage}<span class="avail-unit">%</span></div>
-                    <div class="avail-card-trend"></div>
                 </div>
             </div>
             
@@ -3555,14 +3583,14 @@ function renderAvailabilityExecView(container, options = {}) {
     
     // Render Service Impact Analysis tables
     try {
-        renderServiceImpactBreakdown(incidents);
+        renderServiceImpactBreakdown(window12Incidents);
         console.log('✅ Service Impact Breakdown rendered');
     } catch (e) {
         console.error('❌ Error rendering Service Impact Breakdown:', e);
     }
     
     try {
-        renderServiceImpactByService(incidents);
+        renderServiceImpactByService(window12Incidents);
         console.log('✅ Service Impact by Service rendered');
     } catch (e) {
         console.error('❌ Error rendering Service Impact by Service:', e);
@@ -7073,7 +7101,7 @@ function openAvailabilityExecModal(type) {
         sev1: buildExecSev1Modal,
         mttd: buildExecMttdModal,
         mttr: buildExecMttrModal,
-        readiness: buildExecReadinessModal
+        // readiness modal removed
     };
     
     const builder = builders[type];
@@ -7083,6 +7111,12 @@ function openAvailabilityExecModal(type) {
     titleEl.textContent = content.title;
     bodyEl.innerHTML = content.body;
     modal.style.display = 'block';
+}
+
+function openDetectionExecModal(type) {
+    availabilityData.pendingDetectionModal = type;
+    switchTab('runtime-availability-detection');
+    scrollToTabContent('runtime-availability-detection');
 }
 
 function closeAvailabilityExecModal(event) {
@@ -7115,47 +7149,16 @@ function formatDetectedDate(date) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function buildExecReadinessModal() {
-    const rows = availabilityData.serviceReadiness || [];
-    const serviceRows = rows.filter(row => (row.Service || '').toLowerCase() !== 'total');
-    const tableRows = serviceRows.map(row => {
-        const service = row.Service || 'Unknown';
-        const totalPoints = row['Total Points'] || '0';
-        const maxPoints = row['Max Possible Points'] || '12';
-        const percent = row['Service Score Rounded'] || '';
-        const score = `${totalPoints}/${maxPoints}${percent ? ` (${percent})` : ''}`;
-        return `<tr><td>${service}</td><td class="mono align-center">${score}</td></tr>`;
-    }).join('');
-    
-    return {
-        title: 'HRP Test Readiness Score — Service Scores',
-        body: `
-            <div class="fit-modal">
-                <table class="availability-modal-table">
-                    <thead>
-                        <tr>
-                            <th>Service</th>
-                            <th>Test Readiness Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows || `<tr><td colspan="2" class="empty-state">No readiness data available</td></tr>`}
-                    </tbody>
-                </table>
-            </div>
-        `
-    };
-}
-
 function buildExecSev0Modal() {
     const incidents = availabilityData.incidents || [];
-    const latest = getLatestIncidentDate(incidents);
-    const start = new Date(latest);
-    start.setMonth(start.getMonth() - 10);
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    start.setMonth(start.getMonth() - 11);
     
     const rows = incidents.filter(inc => {
         const date = new Date(inc.detected_date);
-        return inc.severity === 'Sev0' && date >= start && date <= latest;
+        return inc.severity === 'Sev0' && date >= start && date <= now;
     });
     
     const tableRows = rows.map(inc => {
@@ -7166,7 +7169,7 @@ function buildExecSev0Modal() {
     }).join('');
     
     return {
-        title: 'Sev0 Incidents — Last 11 Months',
+        title: 'Sev0 Incidents — Last 12 Months',
         body: `
             <div class="fit-modal">
                 <table class="availability-modal-table">
@@ -7188,14 +7191,15 @@ function buildExecSev0Modal() {
 
 function buildExecSev1Modal() {
     const incidents = availabilityData.incidents || [];
-    const latest = getLatestIncidentDate(incidents);
-    const start = new Date(latest);
-    start.setMonth(start.getMonth() - 10);
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    start.setMonth(start.getMonth() - 11);
     
     const counts = {};
     incidents.forEach(inc => {
         const date = new Date(inc.detected_date);
-        if (inc.severity !== 'Sev1' || date < start || date > latest) return;
+        if (inc.severity !== 'Sev1' || date < start || date > now) return;
         const service = inc.prb_owner || 'Unknown';
         counts[service] = (counts[service] || 0) + 1;
     });
@@ -7206,7 +7210,7 @@ function buildExecSev1Modal() {
         .join('');
     
     return {
-        title: 'Sev1 Incidents — By Service (Last 11 Months)',
+        title: 'Sev1 Incidents — By Service (Last 12 Months)',
         body: `
             <div class="fit-modal">
                 <table class="availability-modal-table">
@@ -7227,18 +7231,20 @@ function buildExecSev1Modal() {
 
 function buildExecMttdModal() {
     const incidents = availabilityData.incidents || [];
-    const latest = getLatestIncidentDate(incidents);
-    const start = new Date(latest);
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    const start = new Date(now);
     start.setDate(start.getDate() - 30);
     
     const rows = incidents.filter(inc => {
         const date = new Date(inc.detected_date);
-        return date >= start && date <= latest && parseFloat(inc.ttd_min) > 0;
+        return (inc.severity === 'Sev0' || inc.severity === 'Sev1') &&
+            date >= start && date <= now && parseFloat(inc.ttd_min) > 0;
     });
     
     const tableRows = rows.map(inc => {
         const date = formatDetectedDate(new Date(inc.detected_date));
-        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${Math.round(parseFloat(inc.ttd_min))}</td><td class="align-center">${date}</td></tr>`;
+        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${Math.round(parseFloat(inc.ttd_min))}</td><td class="align-center">${date}</td><td class="align-center">${inc.severity || '-'}</td></tr>`;
     }).join('');
     
     return {
@@ -7251,10 +7257,11 @@ function buildExecMttdModal() {
                             <th>Service</th>
                             <th>MTTD (min)</th>
                             <th>Detected Date</th>
+                            <th>Severity</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${tableRows || `<tr><td colspan="3" class="empty-state">No incidents found in last 30 days</td></tr>`}
+                        ${tableRows || `<tr><td colspan="4" class="empty-state">No incidents found in last 30 days</td></tr>`}
                     </tbody>
                 </table>
             </div>
@@ -7264,18 +7271,20 @@ function buildExecMttdModal() {
 
 function buildExecMttrModal() {
     const incidents = availabilityData.incidents || [];
-    const latest = getLatestIncidentDate(incidents);
-    const start = new Date(latest);
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+    const start = new Date(now);
     start.setDate(start.getDate() - 30);
     
     const rows = incidents.filter(inc => {
         const date = new Date(inc.detected_date);
-        return date >= start && date <= latest && parseFloat(inc.ttr_min) > 0;
+        return (inc.severity === 'Sev0' || inc.severity === 'Sev1') &&
+            date >= start && date <= now && parseFloat(inc.ttr_min) > 0;
     });
     
     const tableRows = rows.map(inc => {
         const date = formatDetectedDate(new Date(inc.detected_date));
-        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${Math.round(parseFloat(inc.ttr_min))}</td><td class="align-center">${date}</td></tr>`;
+        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${Math.round(parseFloat(inc.ttr_min))}</td><td class="align-center">${date}</td><td class="align-center">${inc.severity || '-'}</td></tr>`;
     }).join('');
     
     return {
@@ -7288,10 +7297,11 @@ function buildExecMttrModal() {
                             <th>Service</th>
                             <th>MTTR (min)</th>
                             <th>Detected Date</th>
+                            <th>Severity</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${tableRows || `<tr><td colspan="3" class="empty-state">No incidents found in last 30 days</td></tr>`}
+                        ${tableRows || `<tr><td colspan="4" class="empty-state">No incidents found in last 30 days</td></tr>`}
                     </tbody>
                 </table>
             </div>
@@ -13422,7 +13432,7 @@ let availabilityData = {
     services: [],          // services.csv - MTTD/MTTR by service, coverage matrix
     themes: [],            // themes.csv - Investment themes
     slaData: [],           // sla_data.csv - SLA goals table
-    incidents: [],         // incidents2.csv - Raw incident data for KPI calculations
+    incidents: [],         // incidents_e360_total.csv - Raw incident data for Detection calculations
     serviceReadiness: [],  // hrp_service_readiness_score_data.csv - Readiness score table
     fitData: { headers: [], rows: [] },
     fitServiceProductMap: {},
@@ -13447,6 +13457,7 @@ let availabilityData = {
         scalePerf: { headers: [], rows: [] },
         chaos: { headers: [], rows: [] }
     },
+    pendingDetectionModal: null,
     loaded: false
 };
 
@@ -13635,7 +13646,7 @@ async function loadAllAvailabilityData() {
             'Csv Tables - services.csv',
             'Csv Tables - themes.csv',
             'Csv Tables - sla_data.csv',
-            'incidents2.csv',
+            'incidents_e360_total.csv',
             'hrp_service_readiness_score_data.csv',
             'Ingress incidents - False Positive Analysis - slack.csv',
             'ingress_alert_distribution.csv',

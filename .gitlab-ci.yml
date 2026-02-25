@@ -5,28 +5,25 @@ pages:
   script:
     - echo "Deploying static files to GitLab Pages"
     - mkdir -p public
-    # Copy all HTML files
-    - cp *.html public/ 2>/dev/null || true
-    # Copy assets directory
-    - cp -r assets public/ 2>/dev/null || true
-    # Copy dist directory contents if it exists
-    - cp -r dist/* public/ 2>/dev/null || true
-    # List what was copied for debugging
-    - echo "Files in public directory:"
-    - ls -la public/ || true
-    - echo "Assets directory:"
-    - ls -la public/assets/ || true
-    - echo "Assets/data directory:"
-    - ls -la public/assets/data/ || true
-    - echo "Verifying Cost to Serve data files exist:"
-    - ls -la public/assets/data/cts-data.json || echo "WARNING: cts-data.json not found!"
-    - ls -la public/assets/data/hcp-cts-forecast-actuals.json || echo "WARNING: hcp-cts-forecast-actuals.json not found!"
-    - echo "Verifying Core CPU CSV files exist:"
-    - ls -la public/assets/data/core-cpu/ || echo "WARNING: core-cpu directory not found!"
-    - ls -lh public/assets/data/core-cpu/*.csv 2>/dev/null | head -10 || echo "WARNING: Core CPU CSV files not found!"
+    # Copy index.html first (required)
+    - cp index.html public/index.html
+    # Copy any other root HTML
+    - for f in *.html; do [ "$f" != "index.html" ] && [ -f "$f" ] && cp "$f" public/; done 2>/dev/null || true
+    # Copy assets (required)
+    - cp -r assets public/
+    # Optional: merge dist into public if it exists
+    - if [ -d dist ] && [ -n "$(ls -A dist 2>/dev/null)" ]; then cp -r dist/* public/; fi
+    # Validate artifact (fail fast so we never publish broken deploy)
+    - test -f public/index.html || (echo "ERROR: public/index.html missing" && exit 1)
+    - test -d public/assets || (echo "ERROR: public/assets missing" && exit 1)
+    - test -d public/assets/css || (echo "ERROR: public/assets/css missing" && exit 1)
+    - test -d public/assets/js || (echo "ERROR: public/assets/js missing" && exit 1)
+    - echo "Artifact valid. Contents:"
+    - ls -la public/
+    - ls -la public/assets/ | head -20
   artifacts:
     paths:
       - public
   only:
-    - master
     - main
+    - master

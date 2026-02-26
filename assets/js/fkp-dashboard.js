@@ -12705,10 +12705,10 @@ function renderKarpenterDeveloperView(container) {
         if (prevMonthData) {
             improvement = latestMonthData.avgCpu - prevMonthData.avgCpu;
             if (improvement > 0) {
-                improvementLabel = '↑ Improved Avg. CPU Allocation rate';
+                improvementLabel = '↑ Improved';
                 improvementClass = 'improved';
             } else if (improvement < 0) {
-                improvementLabel = '↓ Regressed Avg. CPU Allocation rate';
+                improvementLabel = '↓ Regressed';
                 improvementClass = 'regressed';
             } else {
                 improvementLabel = '→ No Change';

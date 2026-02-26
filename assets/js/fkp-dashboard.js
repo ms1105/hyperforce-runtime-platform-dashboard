@@ -12705,10 +12705,10 @@ function renderKarpenterDeveloperView(container) {
         if (prevMonthData) {
             improvement = latestMonthData.avgCpu - prevMonthData.avgCpu;
             if (improvement > 0) {
-                improvementLabel = '↑ Improved Packing';
+                improvementLabel = '↑ Improved CPU Allocation rate';
                 improvementClass = 'improved';
             } else if (improvement < 0) {
-                improvementLabel = '↓ Regressed Packing';
+                improvementLabel = '↓ Regressed CPU Allocation rate';
                 improvementClass = 'regressed';
             } else {
                 improvementLabel = '→ No Change';
@@ -12825,8 +12825,8 @@ function renderKarpenterDeveloperView(container) {
                         <tr>
                             <th>Cluster</th>
                             <th>Month</th>
-                            <th>Avg CPU (%)</th>
-                            <th>Bin Packing Improvement</th>
+                            <th>Avg. CPU Allocation rate (%)</th>
+                            <th>CPU Allocation rate Improvement</th>
                             <th>Avg. CPU Allocation rate Indicator</th>
                         </tr>
                     </thead>
@@ -13057,7 +13057,7 @@ async function showClusterNodes(clusterName, monthCode, clusterAvgCpu, environme
                     <button onclick="closeClusterNodesModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; padding: 0.5rem;">&times;</button>
                 </div>
                 <div style="margin-bottom: 1rem; color: #64748b; font-size: 0.875rem;">
-                    Month: <strong>${displayMonthName}</strong> | Cluster Avg CPU: <strong>${avgCpu.toFixed(1)}%</strong>
+                    Month: <strong>${displayMonthName}</strong> | Cluster Avg. CPU Allocation rate: <strong>${avgCpu.toFixed(1)}%</strong>
                 </div>
                 <div style="margin-bottom: 1rem;">
                     <span style="display: inline-block; padding: 0.25rem 0.75rem; background: #dcfce7; color: #166534; border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem;">
@@ -13077,7 +13077,7 @@ async function showClusterNodes(clusterName, monthCode, clusterAvgCpu, environme
                     <thead>
                         <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                             <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569; font-size: 0.875rem;">Device Name</th>
-                            <th style="padding: 0.75rem; text-align: right; font-weight: 600; color: #475569; font-size: 0.875rem;">Avg CPU (%)</th>
+                            <th style="padding: 0.75rem; text-align: right; font-weight: 600; color: #475569; font-size: 0.875rem;">Avg. CPU Allocation rate (%)</th>
                             <th style="padding: 0.75rem; text-align: center; font-weight: 600; color: #475569; font-size: 0.875rem;">Status</th>
                         </tr>
                     </thead>

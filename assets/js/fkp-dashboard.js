@@ -2669,24 +2669,24 @@ async function renderExecutiveSummary() {
                             onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
                         })}
                     </div>
-                    <!-- Row 3: Bin-Packing Efficiency -->
+                    <!-- Row 3: Avg. CPU Allocation rate -->
                     <div class="exec-summary-kpi-grid columns-3" style="margin-top: 1rem;">
                         ${kpiCard({
-                            title: 'Avg Bin-Packing Efficiency - FI',
+                            title: 'Avg. CPU Allocation rate - FI',
                             value: `${avgFi.toFixed(1)}%`,
                             sub: 'Avg across FI',
                             valueClass: 'text-green',
                             onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
                         ${kpiCard({
-                            title: 'Avg Bin-Packing Efficiency - FD',
+                            title: 'Avg. CPU Allocation rate - FD',
                             value: `${avgFd.toFixed(1)}%`,
                             sub: 'Avg across FD',
                             valueClass: 'text-green',
                             onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
                         ${kpiCard({
-                            title: 'Avg Bin-Packing Efficiency - Cluster',
+                            title: 'Avg. CPU Allocation rate - Cluster',
                             value: `${avgCluster.toFixed(1)}%`,
                             sub: 'Avg across clusters',
                             valueClass: 'text-green',
@@ -12528,7 +12528,7 @@ function renderKarpenterExecView(container) {
             <div class="karpenter-metrics-grid">
                 <div class="karpenter-metric-card">
                     <div class="karpenter-metric-header">
-                        <span class="karpenter-metric-label">Avg. Bin-Packing Efficiency - FI</span>
+                        <span class="karpenter-metric-label">Avg. CPU Allocation rate - FI</span>
                         <span class="karpenter-metric-icon">📊</span>
                     </div>
                     <div class="karpenter-metric-value">${avgFI}%</div>
@@ -12539,7 +12539,7 @@ function renderKarpenterExecView(container) {
                 
                 <div class="karpenter-metric-card">
                     <div class="karpenter-metric-header">
-                        <span class="karpenter-metric-label">Avg. Bin-Packing Efficiency - FD</span>
+                        <span class="karpenter-metric-label">Avg. CPU Allocation rate - FD</span>
                         <span class="karpenter-metric-icon">⚙️</span>
                     </div>
                     <div class="karpenter-metric-value">${avgFD}%</div>
@@ -12550,7 +12550,7 @@ function renderKarpenterExecView(container) {
                 
                 <div class="karpenter-metric-card">
                     <div class="karpenter-metric-header">
-                        <span class="karpenter-metric-label">Avg. Bin-Packing Efficiency - Cluster</span>
+                        <span class="karpenter-metric-label">Avg. CPU Allocation rate - Cluster</span>
                         <span class="karpenter-metric-icon">🖥️</span>
                     </div>
                     <div class="karpenter-metric-value">${avgCluster}%</div>
@@ -12561,7 +12561,7 @@ function renderKarpenterExecView(container) {
                 
                 <div class="karpenter-metric-card">
                     <div class="karpenter-metric-header">
-                        <span class="karpenter-metric-label">Avg. Bin-Packing Efficiency - Environment</span>
+                        <span class="karpenter-metric-label">Avg. CPU Allocation rate - Environment</span>
                         <span class="karpenter-metric-icon">🌐</span>
                     </div>
                     <div class="karpenter-metric-value">${avgEnv}%</div>
@@ -12576,9 +12576,9 @@ function renderKarpenterExecView(container) {
                 <!-- Trend Chart -->
                 <div class="karpenter-chart-card">
                     <div class="karpenter-chart-header">
-                        <h3>Bin-Packing Efficiency Trends (CPU Allocation Rate)</h3>
+                        <h3>Avg. CPU Allocation rate Trends (CPU Allocation Rate)</h3>
                         <div class="karpenter-chart-legend">
-                            <span class="legend-item"><span class="legend-dot trend"></span> Bin-Packing Efficiency (%) - CPU Allocation Rate</span>
+                            <span class="legend-item"><span class="legend-dot trend"></span> Avg. CPU Allocation rate (%) - CPU Allocation Rate</span>
                         </div>
                     </div>
                     <div class="karpenter-trend-chart" id="karpenter-trend-chart">
@@ -12589,7 +12589,7 @@ function renderKarpenterExecView(container) {
                 <!-- Environment Bar Chart -->
                 <div class="karpenter-chart-card">
                     <div class="karpenter-chart-header">
-                        <h3>Efficiency by Environment</h3>
+                        <h3>Avg. CPU Allocation rate by Environment</h3>
                         <div class="karpenter-chart-legend">
                             <span class="legend-item"><span class="legend-dot env"></span> CPU Allocation Rate (%)</span>
                         </div>
@@ -12786,7 +12786,7 @@ function renderKarpenterDeveloperView(container) {
         : clusterLatest.slice(-5).reverse(); // Otherwise, last 5 reversed
     
     // Build heatmaps
-    const allClustersHeatmap = renderHeatmap(clusterLatest, 'Bin-Packing Efficiency Heatmap - All Clusters');
+    const allClustersHeatmap = renderHeatmap(clusterLatest, 'Avg. CPU Allocation rate Heatmap - All Clusters');
     const top5MostHeatmap = renderHeatmap(top5MostEfficient, 'Top 5 - Most Efficient Clusters');
     const top5LeastHeatmap = renderHeatmap(top5LeastEfficient, 'Top 5 - Least Efficient Clusters');
     
@@ -12827,7 +12827,7 @@ function renderKarpenterDeveloperView(container) {
                             <th>Month</th>
                             <th>Avg CPU (%)</th>
                             <th>Bin Packing Improvement</th>
-                            <th>Bin Packing Efficiency Indicator</th>
+                            <th>Avg. CPU Allocation rate Indicator</th>
                         </tr>
                     </thead>
                     <tbody>

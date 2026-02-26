@@ -12705,10 +12705,10 @@ function renderKarpenterDeveloperView(container) {
         if (prevMonthData) {
             improvement = latestMonthData.avgCpu - prevMonthData.avgCpu;
             if (improvement > 0) {
-                improvementLabel = '↑ Improved CPU Allocation rate';
+                improvementLabel = '↑ Improved Avg. CPU Allocation rate';
                 improvementClass = 'improved';
             } else if (improvement < 0) {
-                improvementLabel = '↓ Regressed CPU Allocation rate';
+                improvementLabel = '↓ Regressed Avg. CPU Allocation rate';
                 improvementClass = 'regressed';
             } else {
                 improvementLabel = '→ No Change';
@@ -12826,7 +12826,7 @@ function renderKarpenterDeveloperView(container) {
                             <th>Cluster</th>
                             <th>Month</th>
                             <th>Avg. CPU Allocation rate (%)</th>
-                            <th>CPU Allocation rate Improvement</th>
+                            <th>Avg. CPU Allocation rate Improvement</th>
                             <th>Avg. CPU Allocation rate Indicator</th>
                         </tr>
                     </thead>

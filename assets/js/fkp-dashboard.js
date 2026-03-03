@@ -1903,6 +1903,10 @@ function switchTab(tabId) {
     if (execSummaryContent) {
         execSummaryContent.style.display = tabId === 'exec-summary' ? 'block' : 'none';
     }
+    const tabContentEl = document.querySelector('.content-area .tab-content');
+    if (tabContentEl) {
+        tabContentEl.style.display = tabId === 'exec-summary' ? 'none' : 'block';
+    }
 
     if (tabId === 'exec-summary') {
         const headerControls = document.querySelector('.header-controls');
@@ -2013,7 +2017,11 @@ function switchTab(tabId) {
     
     // Refresh content (only for non-React tabs)
     if (!isReactTab) {
-        refreshCurrentTab();
+        try {
+            refreshCurrentTab();
+        } catch (err) {
+            console.error('❌ Error refreshing tab content:', err);
+        }
     }
 }
 
@@ -2128,6 +2136,14 @@ function updatePageHeader(tabId) {
         'cost-hcp': {
             title: 'Cost to Serve',
             subtitle: 'Overview'
+        },
+        'cost-to-serve-overview': {
+            title: 'Cost to Serve',
+            subtitle: 'Overview'
+        },
+        'cost-to-serve-details': {
+            title: 'Cost to Serve',
+            subtitle: 'Details'
         },
         'selfserve-overview': {
             title: 'Self Serve',
@@ -2851,6 +2867,12 @@ function refreshCurrentTab() {
         case 'runtime-availability-inventory':
             console.warn('⚠️ runtime-availability-inventory is deprecated, using runtime-availability-prevention');
             switchTab('runtime-availability-prevention');
+            break;
+        case 'cost-to-serve-overview':
+        case 'cost-to-serve-details':
+            if (typeof window.loadCostToServeDataIfNeeded === 'function') {
+                window.loadCostToServeDataIfNeeded();
+            }
             break;
     }
 }
@@ -10318,9 +10340,76 @@ function exportIntegrationsToCSV() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📋 DOM Content Loaded - Setting up event listeners...');
     
-    // Event listeners for sidebar navigation
+    // Capture-phase delegation so sidebar clicks always work (even if per-element listeners fail)
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        document.addEventListener('click', function sidebarClickCapture(e) {
+            if (!sidebar.contains(e.target)) return;
+            const subitem = e.target.closest('.nav-subitem');
+            if (subitem) {
+                if (subitem.getAttribute('data-disabled') === 'true') {
+                    if (subitem.getAttribute('data-tab') === 'runtime-availability-remediation') {
+                        subitem.setAttribute('title', 'This is under construction');
+                    }
+                    return;
+                }
+                const tabName = subitem.getAttribute('data-tab');
+                if (tabName) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔄 Tab clicked (delegate):', tabName);
+                    try {
+                        switchTab(tabName);
+                        document.querySelectorAll('.nav-subitem').forEach(i => i.classList.remove('active'));
+                        subitem.classList.add('active');
+                        updateSidebarSection(tabName);
+                    } catch (err) {
+                        console.error('❌ Error switching tab:', err);
+                    }
+                }
+                return;
+            }
+            const mainItem = e.target.closest('.nav-item.main-item');
+            if (mainItem) {
+                const tabName = mainItem.getAttribute('data-tab');
+                if (tabName) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    try {
+                        if (tabName === 'exec-summary') {
+                            setExecSummaryView();
+                        } else {
+                            switchTab(tabName);
+                        }
+                        document.querySelectorAll('.nav-subitems').forEach(list => list.classList.remove('active'));
+                        document.querySelectorAll('.nav-item.main-item').forEach(m => m.classList.remove('active'));
+                        mainItem.classList.add('active');
+                    } catch (err) {
+                        console.error('❌ Error on main nav click:', err);
+                    }
+                    return;
+                }
+                // Section expand/collapse (e.g. Runtime Scale, Runtime Availability) - no data-tab
+                const section = mainItem.getAttribute('data-section');
+                const subitems = section ? document.getElementById(section + '-subitems') : null;
+                const wasActive = subitems && subitems.classList.contains('active');
+                e.preventDefault();
+                e.stopPropagation();
+                document.querySelectorAll('.nav-subitems').forEach(list => list.classList.remove('active'));
+                document.querySelectorAll('.nav-item.main-item').forEach(m => m.classList.remove('active'));
+                if (subitems && !wasActive) {
+                    subitems.classList.add('active');
+                    mainItem.classList.add('active');
+                }
+                return;
+            }
+        }, true);
+        console.log('📋 Sidebar click delegation (capture) attached');
+    }
+    
+    // Event listeners for sidebar navigation (keep for compatibility)
     document.querySelectorAll('.nav-subitem').forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', function(e) {
             if (this.getAttribute('data-disabled') === 'true') {
                 if (this.getAttribute('data-tab') === 'runtime-availability-remediation') {
                     this.setAttribute('title', 'This is under construction');
@@ -10329,28 +10418,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             const tabName = this.getAttribute('data-tab');
             console.log('🔄 Tab clicked:', tabName);
-            switchTab(tabName);
-            
-            // Update sidebar active states
-            document.querySelectorAll('.nav-subitem').forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-            updateSidebarSection(tabName);
+            try {
+                switchTab(tabName);
+                document.querySelectorAll('.nav-subitem').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                updateSidebarSection(tabName);
+            } catch (err) {
+                console.error('❌ Error switching tab:', err);
+            }
         });
     });
     
     // Handle main nav item click (expand/collapse)
     document.querySelectorAll('.nav-item.main-item').forEach(item => {
-        item.addEventListener('click', function() {
+        item.addEventListener('click', function(e) {
             const tabName = this.getAttribute('data-tab');
             if (tabName) {
-                if (tabName === 'exec-summary') {
-                    setExecSummaryView();
-                } else {
-                    switchTab(tabName);
+                try {
+                    if (tabName === 'exec-summary') {
+                        setExecSummaryView();
+                    } else {
+                        switchTab(tabName);
+                    }
+                    document.querySelectorAll('.nav-subitems').forEach(list => list.classList.remove('active'));
+                    document.querySelectorAll('.nav-item.main-item').forEach(main => main.classList.remove('active'));
+                    this.classList.add('active');
+                } catch (err) {
+                    console.error('❌ Error on main nav click:', err);
                 }
-                document.querySelectorAll('.nav-subitems').forEach(list => list.classList.remove('active'));
-                document.querySelectorAll('.nav-item.main-item').forEach(main => main.classList.remove('active'));
-                this.classList.add('active');
                 return;
             }
             
@@ -11944,8 +12039,146 @@ let karpenterFilterState = {
     fd: 'all',
     environment: 'all',
     cluster: 'all',
-    month: 'all'
+    month: 'all',
+    duration: '30'
 };
+
+/**
+ * Round to 2 decimals for avg. CPU allocation rate % (cluster_packing_percent).
+ * e.g. 14.828398815660400 → 14.82
+ */
+function roundAvgCpuPercent(value) {
+    const n = parseFloat(value);
+    if (isNaN(n)) return 0;
+    return Math.round(n * 100) / 100;
+}
+
+/**
+ * Build Karpenter rows from one monthly CSV. CSV columns: report_date, environment_type, falcon_instance, functional_domain, k8s_cluster, karpenter_status, cluster_packing_percent
+ * Uses cluster_packing_percent as avg. CPU allocation rate %, rounded to 2 decimals.
+ */
+function buildKarpenterRowsFromMonthlyCSV(csvText, monthCode, monthName) {
+    const raw = parseCSV(csvText);
+    if (!raw.length) return [];
+
+    const envMap = (et) => {
+        if (!et) return 'other';
+        const e = String(et).toLowerCase();
+        return e === 'stage' ? 'staging' : e;
+    };
+
+    return raw.map(row => {
+        const avgCpu = roundAvgCpuPercent(row.cluster_packing_percent);
+        const environment = envMap(row.environment_type);
+        const efficiencyIndicator = getEfficiencyIndicator(avgCpu, environment);
+        return {
+            month: monthCode,
+            month_name: monthName,
+            falcon_instance: (row.falcon_instance || '').trim(),
+            functional_domain: (row.functional_domain || '').trim(),
+            environment: environment,
+            cluster: (row.k8s_cluster || '').trim(),
+            avg_cpu: avgCpu,
+            node_count: 1,
+            avg_pod_count: 0,
+            efficiency_indicator: efficiencyIndicator
+        };
+    });
+}
+
+/** Monthly files from Cpu allocation rate monthly files: Apr 2025 through Feb 2026 (source of truth for Karpenter) */
+const KARPENTER_MONTHLY_FILES = [
+    { file: 'April%20cpu%20allocation%20rate%202025.csv', month: '2025-04', monthName: 'April' },
+    { file: 'May%20cpu%20allocation%20rate%202025.csv', month: '2025-05', monthName: 'May' },
+    { file: 'June%20cpu%20allocation%20rate%202025.csv', month: '2025-06', monthName: 'June' },
+    { file: 'July%20cpu%20allocation%20rate%202025.csv', month: '2025-07', monthName: 'July' },
+    { file: 'August%20cpu%20allocation%20rate%202025.csv', month: '2025-08', monthName: 'August' },
+    { file: 'Sep%20cpu%20allocation%20rate%202025.csv', month: '2025-09', monthName: 'September' },
+    { file: 'Oct%20cpu%20allocation%20rate%202025.csv', month: '2025-10', monthName: 'October' },
+    { file: 'Nov%20cpu%20allocation%20rate%202025.csv', month: '2025-11', monthName: 'November' },
+    { file: 'Dec%20cpu%20allocation%20rate%202025.csv', month: '2025-12', monthName: 'December' },
+    { file: 'Jan%20cpu%20allocation%20rate%202026.csv', month: '2026-01', monthName: 'January' },
+    { file: 'Feb%20cpu%20allocation%20rate%202026.csv', month: '2026-02', monthName: 'February' }
+];
+
+const KARPENTER_MONTHLY_BASE = 'Cpu%20allocation%20rate%20monthly%20files/';
+
+/**
+ * Build Karpenter data structures from April 2025 CPU allocation rate CSV.
+ * CSV columns: report_date, environment_type, falcon_instance, functional_domain, k8s_cluster, karpenter_status, cluster_packing_percent
+ * @deprecated Use loadKarpenterDataFromMonthlyFiles which loads Apr 2025 - Feb 2026
+ */
+function buildKarpenterDataFromAprilCSV(csvText) {
+    const raw = parseCSV(csvText);
+    if (!raw.length) return null;
+
+    const month = '2025-04';
+    const monthName = 'April';
+    const envMap = (et) => {
+        if (!et) return 'other';
+        const e = String(et).toLowerCase();
+        return e === 'stage' ? 'staging' : e;
+    };
+
+    const mainSummary = [];
+    const seenFi = new Set();
+    const seenFd = new Set();
+    const seenEnv = new Set();
+    const seenCluster = new Set();
+
+    raw.forEach(row => {
+        const avgCpu = roundAvgCpuPercent(row.cluster_packing_percent);
+        const environment = envMap(row.environment_type);
+        const efficiencyIndicator = getEfficiencyIndicator(avgCpu, environment);
+
+        const rec = {
+            month: month,
+            month_name: monthName,
+            falcon_instance: (row.falcon_instance || '').trim(),
+            functional_domain: (row.functional_domain || '').trim(),
+            environment: environment,
+            cluster: (row.k8s_cluster || '').trim(),
+            avg_cpu: avgCpu,
+            node_count: 1,
+            avg_pod_count: 0,
+            efficiency_indicator: efficiencyIndicator
+        };
+        mainSummary.push(rec);
+
+        seenFi.add(rec.falcon_instance);
+        seenFd.add(rec.functional_domain);
+        seenEnv.add(rec.environment);
+        seenCluster.add(rec.cluster);
+    });
+
+    const clusterSummary = mainSummary.slice();
+
+    const filterOptions = {
+        falcon_instances: [...seenFi].filter(Boolean).sort(),
+        functional_domains: [...seenFd].filter(Boolean).sort(),
+        environments: [...seenEnv].filter(Boolean).sort(),
+        clusters: [...seenCluster].filter(Boolean).sort(),
+        months: [month]
+    };
+
+    const avgCpuOverall = mainSummary.length ? mainSummary.reduce((s, r) => s + r.avg_cpu, 0) / mainSummary.length : 0;
+    const monthlySummary = [{ month: month, month_name: monthName, avg_cpu: avgCpuOverall }];
+    const clusterTrend = [{ month: month, month_name: monthName, avg_cpu: avgCpuOverall }];
+    const environmentSummary = [];
+    const fiSummary = [];
+    const fdSummary = [];
+
+    return {
+        mainSummary,
+        clusterSummary,
+        filterOptions,
+        monthlySummary,
+        environmentSummary,
+        fiSummary,
+        fdSummary,
+        clusterTrend
+    };
+}
 
 /**
  * Load all Karpenter data files
@@ -11957,6 +12190,71 @@ async function loadKarpenterData() {
     }
     
     console.log('📦 Loading Karpenter data...');
+    
+    // Source of truth: Cpu allocation rate monthly files (Apr 2025 - Feb 2026). cluster_packing_percent = avg. CPU allocation rate %, 2 decimals.
+    try {
+        const results = await Promise.allSettled(
+            KARPENTER_MONTHLY_FILES.map(({ file, month, monthName }) =>
+                fetch(KARPENTER_MONTHLY_BASE + file).then(r => r.ok ? r.text() : Promise.reject(new Error(r.status)))
+                    .then(text => buildKarpenterRowsFromMonthlyCSV(text, month, monthName))
+            )
+        );
+        
+        const allRows = [];
+        const seenFi = new Set();
+        const seenFd = new Set();
+        const seenEnv = new Set();
+        const seenCluster = new Set();
+        const seenMonths = new Set();
+        
+        results.forEach((result, i) => {
+            if (result.status === 'fulfilled' && Array.isArray(result.value) && result.value.length > 0) {
+                allRows.push(...result.value);
+                result.value.forEach(r => {
+                    if (r.falcon_instance) seenFi.add(r.falcon_instance);
+                    if (r.functional_domain) seenFd.add(r.functional_domain);
+                    if (r.environment) seenEnv.add(r.environment);
+                    if (r.cluster) seenCluster.add(r.cluster);
+                    if (r.month) seenMonths.add(r.month);
+                });
+            }
+        });
+        
+        if (allRows.length > 0) {
+            const monthsSorted = [...seenMonths].sort();
+            karpenterData.mainSummary = allRows;
+            karpenterData.clusterSummary = allRows.slice();
+            karpenterData.filterOptions = {
+                falcon_instances: [...seenFi].sort(),
+                functional_domains: [...seenFd].sort(),
+                environments: [...seenEnv].sort(),
+                clusters: [...seenCluster].sort(),
+                months: monthsSorted
+            };
+            const avgCpuOverall = allRows.reduce((s, r) => s + r.avg_cpu, 0) / allRows.length;
+            karpenterData.monthlySummary = monthsSorted.map(m => {
+                const monthRows = allRows.filter(r => r.month === m);
+                const name = monthRows[0]?.month_name || m;
+                const avg = monthRows.length ? monthRows.reduce((s, r) => s + r.avg_cpu, 0) / monthRows.length : 0;
+                return { month: m, month_name: name, avg_cpu: roundAvgCpuPercent(avg) };
+            });
+            karpenterData.clusterTrend = karpenterData.monthlySummary.slice();
+            karpenterData.environmentSummary = [];
+            karpenterData.fiSummary = [];
+            karpenterData.fdSummary = [];
+            karpenterData.loaded = true;
+            console.log('✅ Karpenter data loaded from Cpu allocation rate monthly files (Apr 2025 - Feb 2026):', {
+                main: karpenterData.mainSummary.length,
+                months: monthsSorted.length,
+                filterOptions: Object.keys(karpenterData.filterOptions)
+            });
+            console.log('📦 Months in filterOptions:', karpenterData.filterOptions.months);
+            populateKarpenterFilters();
+            return;
+        }
+    } catch (e) {
+        console.log('📦 Monthly files not used, falling back to karpenter assets:', e.message);
+    }
     
     try {
         const baseUrl = 'assets/data/karpenter';
@@ -12072,6 +12370,7 @@ function applyKarpenterFilters() {
     karpenterFilterState.environment = document.getElementById('karpenter-env-filter')?.value || 'all';
     karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
     karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
+    karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
     
     console.log('📦 Karpenter filters applied:', karpenterFilterState);
     
@@ -12082,22 +12381,26 @@ function applyKarpenterFilters() {
  * Reset Karpenter filters
  */
 function resetKarpenterFilters() {
-    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all' };
+    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all', duration: '30' };
     
     document.getElementById('karpenter-fi-filter').value = 'all';
     document.getElementById('karpenter-fd-filter').value = 'all';
     document.getElementById('karpenter-env-filter').value = 'all';
     document.getElementById('karpenter-cluster-filter').value = 'all';
     document.getElementById('karpenter-month-filter').value = 'all';
+    const durationEl = document.getElementById('karpenter-duration-filter');
+    if (durationEl) durationEl.value = '30';
     
     renderKarpenter();
 }
 
 /**
  * Filter Karpenter data based on current filter state
+ * Duration filter: 7 = last 1 month, 15 = last 2 months, 30 = all months (by month code order)
+ * @param {boolean} applyDuration - If false, duration filter is skipped (used for trend chart so all months show)
  */
-function filterKarpenterData(data, includeMonth = true) {
-    return data.filter(row => {
+function filterKarpenterData(data, includeMonth = true, applyDuration = true) {
+    let out = data.filter(row => {
         // FI filter - check multiple column name variations
         if (karpenterFilterState.fi !== 'all') {
             const rowFI = row.falcon_instance || row.falconInstance || row.FI || row.fi || row.falcon_instance_name;
@@ -12130,6 +12433,23 @@ function filterKarpenterData(data, includeMonth = true) {
         
         return true;
     });
+
+    // Apply duration filter: restrict to last N months (data is monthly)
+    if (!applyDuration) {
+        return out;
+    }
+    const duration = karpenterFilterState.duration || '30';
+    const durationMonths = duration === '7' ? 1 : duration === '15' ? 2 : 0; // 0 = all months
+    if (durationMonths > 0 && out.length > 0) {
+        const months = [...new Set(out.map(r => r.month || r.Month || r.month_code))].filter(Boolean).sort();
+        const allowedMonths = new Set(months.slice(-durationMonths));
+        out = out.filter(row => {
+            const m = row.month || row.Month || row.month_code;
+            return m && allowedMonths.has(m);
+        });
+    }
+
+    return out;
 }
 
 /**
@@ -12167,10 +12487,22 @@ async function renderKarpenter() {
  */
 function renderKarpenterExecView(container) {
     console.log('📦 Rendering Karpenter Exec View...');
+    
+    // Always sync filter state from DOM so avg FI/FD/Cluster/Environment reflect current dropdown selection
+    karpenterFilterState.fi = document.getElementById('karpenter-fi-filter')?.value || 'all';
+    karpenterFilterState.fd = document.getElementById('karpenter-fd-filter')?.value || 'all';
+    karpenterFilterState.environment = document.getElementById('karpenter-env-filter')?.value || 'all';
+    karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
+    karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
+    karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
+    
     console.log('📦 Current filter state:', karpenterFilterState);
     
     // Use main_summary which has ALL filter columns for proper cross-filtering
-    const filteredData = filterKarpenterData(karpenterData.mainSummary, true);
+    const filteredData = filterKarpenterData(karpenterData.mainSummary, true, true);
+    
+    // For trend chart only: use data without duration filter so all months (including Sep, Oct) show
+    const dataForTrendMonths = filterKarpenterData(karpenterData.mainSummary, true, false);
     
     // Check which months are in the filtered data
     const monthsInData = [...new Set(filteredData.map(r => r.month))].sort();
@@ -12246,8 +12578,12 @@ function renderKarpenterExecView(container) {
         // For trend calculation, we ALWAYS need data for both April and target month
         // This ensures we can compare April baseline vs selected/latest month
         const selectedMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : null;
+        // Use latest month in data (e.g. 2026-02) when "All Months" is selected, so cards show Feb 2026 avg
+        const monthsInData = [...new Set(karpenterData.mainSummary.map(r => r.month))].sort();
+        const latestMonthInData = monthsInData.length > 0 ? monthsInData[monthsInData.length - 1] : '2025-10';
+        const targetMonth = selectedMonth || latestMonthInData;
         
-        // Get data for trend calculation: always include April and target month (with all other filters applied)
+        // Get data for trend calculation: only April (baseline) and target month (latest or selected)
         let dataForTrend = karpenterData.mainSummary.filter(row => {
             // Apply all current filters EXCEPT month filter (using same logic as filterKarpenterData)
             // FI filter
@@ -12274,11 +12610,8 @@ function renderKarpenterExecView(container) {
                 if (rowCluster && rowCluster !== karpenterFilterState.cluster) return false;
             }
             
-            // Determine target month: use selected month if specified, otherwise use October (latest)
-            const targetMonth = selectedMonth || '2025-10';
+            // Include only April (baseline) and target month (latest or selected)
             const rowMonth = row.month || row.Month || row.month_code;
-            
-            // Include both April and target month for comparison
             if (rowMonth !== '2025-04' && rowMonth !== targetMonth) return false;
             return true;
         });
@@ -12317,25 +12650,26 @@ function renderKarpenterExecView(container) {
         });
         
         // Determine which month to use for average and trend calculation
-        // When "All Months" is selected, use October (2025-10) as the target month
-        const targetMonth = selectedMonth || '2025-10';
+        const latestAvailableMonth = months.length > 0 ? months[months.length - 1] : null;
         
-        // Overall average: if month selected, use that month; otherwise use October (latest)
+        // Overall average: if month selected, use that month; otherwise use latest available
         let avg;
         if (selectedMonth && monthlyAvgs[selectedMonth] !== undefined) {
-            avg = monthlyAvgs[selectedMonth].toFixed(1);
+            avg = Number(monthlyAvgs[selectedMonth]).toFixed(2);
+        } else if (latestAvailableMonth && monthlyAvgs[latestAvailableMonth] !== undefined) {
+            avg = Number(monthlyAvgs[latestAvailableMonth]).toFixed(2);
         } else if (monthlyAvgs['2025-10'] !== undefined) {
             // Use October when "All Months" is selected
-            avg = monthlyAvgs['2025-10'].toFixed(1);
+            avg = Number(monthlyAvgs['2025-10']).toFixed(2);
         } else {
             // Fallback: use latest available month
             const latestMonth = months[months.length - 1];
             if (latestMonth && monthlyAvgs[latestMonth] !== undefined) {
-                avg = monthlyAvgs[latestMonth].toFixed(1);
+                avg = Number(monthlyAvgs[latestMonth]).toFixed(2);
             } else {
                 const allAvgs = Object.values(monthlyAvgs);
                 avg = allAvgs.length > 0 
-                    ? (allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length).toFixed(1)
+                    ? (allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length).toFixed(2)
                     : '--';
             }
         }
@@ -12343,7 +12677,7 @@ function renderKarpenterExecView(container) {
         // Trend: ALWAYS compare October (or selected month) vs April baseline
         let trend = 0;
         const aprilMonth = '2025-04';
-        const targetMonthForTrend = selectedMonth || '2025-10'; // Use October when "All Months" selected
+        const targetMonthForTrend = selectedMonth || latestAvailableMonth || '2025-10';
         
         // Compare target month vs April baseline
         if (monthlyAvgs[aprilMonth] !== undefined && monthlyAvgs[targetMonthForTrend] !== undefined) {
@@ -12380,9 +12714,9 @@ function renderKarpenterExecView(container) {
     const trendCluster = clusterMetrics.trend;
     const trendEnv = envMetrics.trend;
     
-    // Build trend chart data: Average % across all FIs, FDs, Clusters for each month (April to October)
+    // Build trend chart data: Average % across all FIs, FDs, Clusters for each month (April 2025 to February 2026)
     // This aggregates data respecting all current filters
-    const monthOrder = ['April', 'May', 'June', 'July', 'August', 'September', 'October'];
+    const monthOrder = ['April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February'];
     const monthCodeMap = {
         'April': '2025-04',
         'May': '2025-05',
@@ -12390,15 +12724,19 @@ function renderKarpenterExecView(container) {
         'July': '2025-07',
         'August': '2025-08',
         'September': '2025-09',
-        'October': '2025-10'
+        'October': '2025-10',
+        'November': '2025-11',
+        'December': '2025-12',
+        'January': '2026-01',
+        'February': '2026-02'
     };
     
     // Calculate average for each month from filtered data
     // First, calculate raw averages for each month
     const rawTrendData = monthOrder.map(monthName => {
         const monthCode = monthCodeMap[monthName];
-        // Filter data for this specific month (but respect other filters)
-        const monthData = filteredData.filter(r => r.month === monthCode);
+        // Filter data for this specific month (use full timeline so Sep/Oct etc. show)
+        const monthData = dataForTrendMonths.filter(r => r.month === monthCode);
         
         if (monthData.length === 0) {
             return null;
@@ -12418,61 +12756,19 @@ function renderKarpenterExecView(container) {
     
     console.log('📦 Raw trend data before adjustment:', rawTrendData.map(d => `${d.month}: ${d.value.toFixed(2)}%`));
     
-    // Ensure trend shows upward progression from April to October
-    if (rawTrendData.length === 0) {
-        return [];
-    }
-    
-    // Find April baseline
-    const aprilData = rawTrendData.find(d => d.month === 'April');
-    const aprilBaseline = aprilData ? aprilData.value : rawTrendData[0].value;
-    
-    // Calculate target improvement: ensure October is at least 5-8% higher than April
-    const targetImprovementPercent = Math.max(5, Math.min(8, aprilBaseline * 0.1)); // 5-8% improvement
-    const targetOctoberValue = aprilBaseline + (aprilBaseline * targetImprovementPercent / 100);
-    
-    // Build adjusted trend data to ensure upward trend
+    // Use raw averages; cap at 100% and smooth outliers so the line doesn't spike off the chart
     const trendData = [];
-    let previousValue = aprilBaseline;
-    
-    rawTrendData.forEach((rawData, index) => {
-        let adjustedValue = rawData.value;
-        
-        if (rawData.month === 'April') {
-            // Keep April as baseline
-            adjustedValue = aprilBaseline;
-        } else {
-            // Calculate expected value based on linear progression from April to October
-            const monthsFromApril = index;
-            const totalMonths = rawTrendData.length - 1; // Exclude April
-            const expectedValue = aprilBaseline + ((targetOctoberValue - aprilBaseline) * (monthsFromApril / totalMonths));
-            
-            // Ensure each month is at least as high as the previous month
-            // And ensure we're progressing toward the target October value
-            adjustedValue = Math.max(
-                rawData.value,           // Use actual value if it's higher
-                previousValue + 0.3,     // At least 0.3% improvement from previous month
-                expectedValue * 0.95     // At least 95% of expected value (allows some variation)
-            );
-            
-            // Cap at reasonable maximum (don't exceed 100%)
-            adjustedValue = Math.min(adjustedValue, 100);
-            
-            // Ensure October reaches at least the target value
-            if (rawData.month === 'October') {
-                adjustedValue = Math.max(adjustedValue, targetOctoberValue);
-            }
-        }
-        
-        trendData.push({
-            month: rawData.month,
-            value: adjustedValue
-        });
-        
-        previousValue = adjustedValue;
+    let prevValue = null;
+    rawTrendData.forEach(d => {
+        const v = roundAvgCpuPercent(d.value);
+        const capped = Math.min(100, v);
+        // If value is over 100% (data anomaly), use previous month's value so the line doesn't spike
+        const value = v > 100 ? (prevValue !== null ? prevValue : 100) : capped;
+        prevValue = value;
+        trendData.push({ month: d.month, value });
     });
     
-    console.log('📦 Trend data (adjusted for upward trend):', trendData.map(d => `${d.month}: ${d.value.toFixed(2)}%`));
+    console.log('📦 Trend data (actual):', trendData.map(d => `${d.month}: ${d.value}%`));
     
     // Build environment bar chart data - aggregate by environment from filtered data
     const envAgg = {};
@@ -12505,7 +12801,7 @@ function renderKarpenterExecView(container) {
         envAgg[key].count += 1;
     });
     // Define environment order: Dev, Test, Perf, Stage, Esvc, Prod
-    const envOrder = ['Dev', 'Test', 'Perf', 'Stage', 'Esvc', 'Prod'];
+    const envOrder = ['Prod', 'Esvc', 'Stage', 'Test', 'Perf', 'Dev'];
     const envOrderMap = {};
     envOrder.forEach((env, idx) => {
         envOrderMap[env.toLowerCase()] = idx;
@@ -12573,26 +12869,22 @@ function renderKarpenterExecView(container) {
             
             <!-- Charts Row -->
             <div class="karpenter-charts-row">
-                <!-- Trend Chart -->
-                <div class="karpenter-chart-card">
-                    <div class="karpenter-chart-header">
-                        <h3>Avg. CPU Allocation rate Trends (CPU Allocation Rate)</h3>
-                        <div class="karpenter-chart-legend">
-                            <span class="legend-item"><span class="legend-dot trend"></span> Avg. CPU Allocation rate (%) - CPU Allocation Rate</span>
-                        </div>
+                <!-- Trend Chart - minimal layout like Availability section -->
+                <div class="karpenter-trend-section">
+                    <div class="karpenter-trend-section-header">
+                        <span class="karpenter-trend-title">Avg. CPU Allocation rate Trends</span>
+                        <span class="karpenter-trend-legend"><span class="legend-dot"></span> Avg. CPU Allocation rate (%)</span>
                     </div>
                     <div class="karpenter-trend-chart" id="karpenter-trend-chart">
                         ${renderKarpenterTrendChart(trendData)}
                     </div>
                 </div>
                 
-                <!-- Environment Bar Chart -->
-                <div class="karpenter-chart-card">
-                    <div class="karpenter-chart-header">
-                        <h3>Avg. CPU Allocation rate by Environment</h3>
-                        <div class="karpenter-chart-legend">
-                            <span class="legend-item"><span class="legend-dot env"></span> CPU Allocation Rate (%)</span>
-                        </div>
+                <!-- Environment Bar Chart - minimal layout, no card -->
+                <div class="karpenter-env-bar-section">
+                    <div class="karpenter-env-bar-header">
+                        <span class="karpenter-env-bar-title">Avg. CPU Allocation rate by Environment</span>
+                        <span class="karpenter-env-bar-legend"><span class="legend-dot"></span> Avg. CPU Allocation rate (%)</span>
                     </div>
                     <div class="karpenter-bar-chart" id="karpenter-bar-chart">
                         ${renderKarpenterBarChart(envBarData)}
@@ -12628,7 +12920,15 @@ function getEfficiencyIndicator(avgCpu, environment) {
 function renderKarpenterDeveloperView(container) {
     console.log('📦 Rendering Karpenter Developer View...');
     
-    // Get filtered cluster data
+    // Sync filter state from DOM so table and heatmaps reflect current dropdown selection
+    karpenterFilterState.fi = document.getElementById('karpenter-fi-filter')?.value || 'all';
+    karpenterFilterState.fd = document.getElementById('karpenter-fd-filter')?.value || 'all';
+    karpenterFilterState.environment = document.getElementById('karpenter-env-filter')?.value || 'all';
+    karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
+    karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
+    karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
+    
+    // Get filtered cluster data based on current filter state
     let filteredData = filterKarpenterData(karpenterData.clusterSummary, true);
     
     // Group by cluster and find latest month for each
@@ -12762,7 +13062,7 @@ function renderKarpenterDeveloperView(container) {
             return `
                 <div class="karpenter-heatmap-tile ${cluster.efficiencyClass}" onclick="showClusterNodes('${cluster.cluster}', '${cluster.month}', '${cluster.avgCpu}', '${environment}', '${monthName}')" style="cursor: pointer;">
                     <div class="heatmap-cluster-name">${cluster.cluster}</div>
-                    <div class="heatmap-efficiency-pct">${cluster.avgCpu.toFixed(1)}%</div>
+                    <div class="heatmap-efficiency-pct">${cluster.avgCpu.toFixed(2)}%</div>
                 </div>
             `;
         }).join('');
@@ -13200,162 +13500,113 @@ function calculateKarpenterTrend(data, field) {
 }
 
 /**
- * Render Karpenter trend line chart - Clean, Professional Implementation
- */
-/**
- * Render Karpenter trend line chart - Shows average % across all FIs, FDs, Clusters
- * Updates dynamically based on filters (FI, FD, Cluster, Environment)
- * Only shows April to October
+ * Render Karpenter trend line chart - Reference layout: smooth curve, full grid, Month YYYY labels, clean white
  */
 function renderKarpenterTrendChart(data) {
     if (!data || data.length === 0) {
         return '<div class="no-data" style="padding: 2rem; text-align: center; color: #64748b;">No trend data available for selected filters</div>';
     }
     
-    // Chart dimensions - smaller height, matching bar chart style
-    const width = 1000;
-    const height = 320; // Reduced height
-    const paddingLeft = 70;
-    const paddingRight = 30;
-    const paddingTop = 0; // No top padding - axis starts at top
-    const paddingBottom = 0; // No bottom padding - axis at bottom
-    const plotWidth = width - paddingLeft - paddingRight;
-    const plotHeight = height - paddingTop - paddingBottom;
+    const shortMonth = { January: 'Jan', February: 'Feb', March: 'Mar', April: 'Apr', May: 'May', June: 'Jun', July: 'Jul', August: 'Aug', September: 'Sep', October: 'Oct', November: 'Nov', December: 'Dec' };
+    const monthYear = (name) => {
+        const y = (name === 'January' || name === 'February' || name === 'March') ? '2026' : '2025';
+        return (shortMonth[name] || name) + ' ' + y;
+    };
     
-    // Calculate data range for Y-axis - ALWAYS 0% to 100% with 8% increments
-    const values = data.map(d => d.value);
-    // Y-axis always goes from 0% to 100%
-    const chartMin = 0;
-    const chartMax = 100;
-    const chartRange = chartMax - chartMin;
+    const chartWidth = 800;
+    const chartHeight = 260;
+    const paddingTop = 28;
+    const paddingBottom = 36;
+    const paddingLeft = 56;
+    const paddingRight = 28;
+    const plotWidth = chartWidth - paddingLeft - paddingRight;
+    const plotHeight = chartHeight - paddingTop - paddingBottom;
+    const baselineY = paddingTop + plotHeight;
     
-    // Define axis boundaries - NO GAPS, axes connect at exact corners
-    const axisTop = 0; // Start at very top - no gap
-    const axisBottom = height; // End at very bottom - no gap
-    const axisHeight = axisBottom - axisTop;
+    // Fixed Y-axis: 0% at bottom, 100% at top (ascending), 20% steps like environment chart
+    const yTicks = []; // 0, 20, 40, 60, 80, 100
+    for (let i = 0; i <= 5; i++) {
+        const val = i * 20;
+        const y = paddingTop + plotHeight - (val / 100) * plotHeight;
+        yTicks.push({ val, y });
+    }
     
-    // Generate points - use axis boundaries for positioning, first point at Y-axis, last at right edge
     const pointSpacing = data.length > 1 ? plotWidth / (data.length - 1) : 0;
     const points = data.map((d, i) => {
-        // First point starts exactly at Y-axis (paddingLeft), last point extends to right edge
         const x = paddingLeft + (i * pointSpacing);
-        // Map value to axis height (from axisTop to axisBottom) - 0% at bottom, 100% at top
-        const y = axisTop + axisHeight - (((d.value - chartMin) / chartRange) * axisHeight);
-        return { x, y, value: d.value, month: d.month };
+        const v = Math.max(0, Math.min(100, d.value));
+        const y = paddingTop + plotHeight - (v / 100) * plotHeight;
+        return { x, y, value: d.value, month: d.month, label: monthYear(d.month) };
     });
     
-    const linePath = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
-    
-    // Create area path for shaded region under the line
-    // Start at first point, follow the line, then go down to X-axis, then back to start
-    const areaPath = points.length > 0 
-        ? `M ${points[0].x},${axisBottom} L ${points.map(p => `${p.x},${p.y}`).join(' L ')} L ${points[points.length - 1].x},${axisBottom} Z`
-        : '';
-    
-    // Y-axis labels - ALWAYS 0% to 100% with 20% increments: 0%, 20%, 40%, 60%, 80%, 100%
-    // Position labels with small offset from edges to avoid clipping
-    const labelOffsetTop = 8;
-    const labelOffsetBottom = 8;
-    // Always show 0% to 100% in 20% increments (6 ticks total: 0, 20, 40, 60, 80, 100)
-    const yTickCount = 6; // 0%, 20%, 40%, 60%, 80%, 100%
-    const yLabels = [];
-    const yPositions = [];
-    for (let i = 0; i < yTickCount; i++) {
-        // Values: Start from top (100%) and go down to bottom (0%)
-        // i=0 should be 100% (top), i=yTickCount-1 should be 0% (bottom)
-        const value = 100 - (i * 20);
-        // Position labels with small offset from top/bottom edges
-        const y = labelOffsetTop + (axisHeight - labelOffsetTop - labelOffsetBottom) / (yTickCount - 1) * i;
-        yLabels.push(`${value}%`);
-        yPositions.push(y);
+    // Smooth curve: Catmull-Rom style cubic Bezier through points
+    function smoothPath(points, toAreaBaseline) {
+        if (points.length === 0) return '';
+        if (points.length === 1) return toAreaBaseline ? `M ${points[0].x},${baselineY} L ${points[0].x},${points[0].y} Z` : `M ${points[0].x},${points[0].y}`;
+        const tension = 0.35;
+        const p = (i) => {
+            if (i < 0) return { x: 2 * points[0].x - points[1].x, y: 2 * points[0].y - points[1].y };
+            if (i >= points.length) return { x: 2 * points[points.length - 1].x - points[points.length - 2].x, y: 2 * points[points.length - 1].y - points[points.length - 2].y };
+            return points[i];
+        };
+        let path = `M ${points[0].x},${points[0].y}`;
+        for (let i = 0; i < points.length - 1; i++) {
+            const p0 = p(i - 1), p1 = points[i], p2 = points[i + 1], p3 = p(i + 2);
+            const cp1x = p1.x + (p2.x - p0.x) * tension;
+            const cp1y = p1.y + (p2.y - p0.y) * tension;
+            const cp2x = p2.x - (p3.x - p1.x) * tension;
+            const cp2y = p2.y - (p3.y - p1.y) * tension;
+            path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
+        }
+        if (toAreaBaseline) {
+            path += ` L ${points[points.length - 1].x},${baselineY} L ${points[0].x},${baselineY} Z`;
+        }
+        return path;
     }
     
-    // Grid lines - use same positioning as labels but extend full width
-    const gridLines = [];
-    for (let i = 1; i < yTickCount - 1; i++) {
-        const y = yPositions[i];
-        // Grid lines extend from Y-axis to right edge
-        gridLines.push(`<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,4" />`);
-    }
+    const linePath = smoothPath(points, false);
+    const areaPath = smoothPath(points, true);
+    
+    // Horizontal grid lines at 20%, 40%, 60%, 80% (not 0 and 100)
+    const hGridLines = yTicks.slice(1, -1).map(t =>
+        `<line x1="${paddingLeft}" y1="${t.y}" x2="${paddingLeft + plotWidth}" y2="${t.y}" stroke="#e5e7eb" stroke-width="1" />`
+    ).join('');
+    // Vertical grid lines at each data point
+    const vGridLines = points.map(p =>
+        `<line x1="${p.x}" y1="${paddingTop}" x2="${p.x}" y2="${baselineY}" stroke="#e5e7eb" stroke-width="1" />`
+    ).join('');
     
     return `
-        <div class="chart-container">
-            <div class="chart-y-axis">
-                ${yLabels.map(label => `<span class="y-label">${label}</span>`).join('')}
-            </div>
-            <div class="chart-main">
-                <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" class="trend-svg">
-                    <defs>
-                        <linearGradient id="trendLineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#22c55e"/>
-                            <stop offset="100%" style="stop-color:#16a34a"/>
-                        </linearGradient>
-                        <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3"/>
-                            <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.1"/>
-                        </linearGradient>
-                    </defs>
-                    <!-- Grid lines -->
-                    ${gridLines.join('')}
-                    <!-- Y-axis line removed - using CSS border-right on .chart-y-axis instead (like bar chart) -->
-                    <!-- X-axis - connects to Y-axis at bottom, extends full width with NO GAPS -->
-                    <line x1="${paddingLeft}" y1="${axisBottom}" x2="${paddingLeft + plotWidth}" y2="${axisBottom}" stroke="#64748b" stroke-width="2" />
-                    <!-- Shaded area under trend line -->
-                    <path d="${areaPath}" fill="url(#areaGradient)" opacity="0.2" class="trend-area" />
-                    <!-- Trend line -->
-                    <path d="${linePath}" fill="none" stroke="url(#trendLineGradient)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="trend-line-path" />
-                    <!-- Data points -->
-                    ${points.map((p, idx) => `
-                        <g class="trend-point" data-index="${idx}">
-                            <circle cx="${p.x}" cy="${p.y}" r="6" fill="#22c55e" stroke="#ffffff" stroke-width="2" class="point-circle" />
-                            <circle cx="${p.x}" cy="${p.y}" r="15" fill="transparent" class="point-hit" style="cursor: pointer;" />
-                            <text x="${p.x}" y="${p.y - 20}" text-anchor="middle" font-size="12" fill="#1e293b" font-weight="700" class="point-value" opacity="1">${p.value.toFixed(1)}%</text>
-                        </g>
-                    `).join('')}
-                    <!-- X-axis labels -->
-                    ${points.map(p => `
-                        <text x="${p.x}" y="${axisBottom + 15}" text-anchor="middle" font-size="13" fill="#475569" font-weight="600">${p.month}</text>
-                    `).join('')}
-                </svg>
-            </div>
-        </div>
+        <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%; min-height: 240px;" class="karpenter-trend-svg" id="karpenter-trend-svg">
+            <defs>
+                <linearGradient id="karpenterTrendGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.05" />
+                </linearGradient>
+            </defs>
+            <!-- Grid: horizontal then vertical -->
+            ${hGridLines}
+            ${vGridLines}
+            <!-- Area fill under smooth curve -->
+            <path d="${areaPath}" fill="url(#karpenterTrendGradient)" />
+            <!-- Smooth trend line -->
+            <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            <!-- Data point markers -->
+            ${points.map((p, i) => `
+                <g class="karpenter-trend-point" data-index="${i}">
+                    <circle cx="${p.x}" cy="${p.y}" r="5" fill="#22c55e" stroke="white" stroke-width="2" />
+                    <circle cx="${p.x}" cy="${p.y}" r="14" fill="transparent" style="cursor: pointer;" />
+                    <text x="${p.x}" y="${p.y - 14}" text-anchor="middle" font-size="11" fill="#1e293b" font-weight="600">${p.value.toFixed(1)}%</text>
+                </g>
+            `).join('')}
+            <!-- X-axis line -->
+            <line x1="${paddingLeft}" y1="${baselineY}" x2="${paddingLeft + plotWidth}" y2="${baselineY}" stroke="#d1d5db" stroke-width="1" />
+            <!-- X-axis labels: Month YYYY below plot -->
+            ${points.map(p => `<text x="${p.x}" y="${chartHeight - 10}" text-anchor="middle" font-size="11" fill="#6b7280" font-weight="500">${p.label}</text>`).join('')}
+            <!-- Y-axis labels: 0%, 20%, 40%, 60%, 80%, 100% ascending (like environment chart) -->
+            ${yTicks.map(t => `<text x="${paddingLeft - 12}" y="${t.y + 4}" text-anchor="end" font-size="11" fill="#6b7280" font-weight="500">${t.val}%</text>`).join('')}
+        </svg>
     `;
-    
-    // Add interactivity
-    setTimeout(() => {
-        const svg = document.querySelector('#karpenter-trend-chart .trend-svg');
-        if (!svg) return;
-        
-        const points = svg.querySelectorAll('.trend-point');
-        points.forEach(point => {
-            const circle = point.querySelector('.point-circle');
-            const valueLabel = point.querySelector('.point-value');
-            
-            point.addEventListener('mouseenter', () => {
-                if (circle) {
-                    circle.setAttribute('r', '8');
-                    circle.setAttribute('fill', '#16a34a');
-                }
-                if (valueLabel) {
-                    valueLabel.setAttribute('font-size', '14');
-                    valueLabel.setAttribute('fill', '#16a34a');
-                    valueLabel.setAttribute('font-weight', '700');
-                }
-            });
-            
-            point.addEventListener('mouseleave', () => {
-                if (circle) {
-                    circle.setAttribute('r', '6');
-                    circle.setAttribute('fill', '#22c55e');
-                }
-                if (valueLabel) {
-                    valueLabel.setAttribute('font-size', '12');
-                    valueLabel.setAttribute('fill', '#1e293b');
-                    valueLabel.setAttribute('font-weight', '700');
-                }
-            });
-        });
-    }, 100);
 }
 
 /**
@@ -13365,6 +13616,8 @@ function renderKarpenterBarChart(data) {
     if (!data || data.length === 0) {
         return '<div class="no-data">No environment data available</div>';
     }
+    
+    const displayName = (name) => (name === 'Staging' ? 'Stage' : name);
     
     const maxValue = 100; // Percentage max
     // Salesforce blue color shades
@@ -13393,7 +13646,7 @@ function renderKarpenterBarChart(data) {
     const solidColors = salesforceBlues.map(b => b.dark);
     
     return `
-        <div class="bar-chart-container">
+        <div class="bar-chart-container karpenter-env-bars">
             <div class="bar-chart-y-axis">
                 <span>100%</span>
                 <span>80%</span>
@@ -13405,14 +13658,15 @@ function renderKarpenterBarChart(data) {
             <div class="bar-chart-main">
                 ${data.map((d, i) => {
                     const envColor = envColorMap[d.name] || { gradient: colors[i % colors.length], solid: solidColors[i % solidColors.length] };
+                    const barHeightPct = Math.min(100, Math.max(0, d.value)); // Cap bar height at 100%
                     return `
                         <div class="bar-item">
                             <div class="bar-wrapper">
-                                <div class="bar" style="height: ${d.value}%; background: ${envColor.gradient}; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.1);">
-                                    <span class="bar-value-label" style="color: ${envColor.solid};">${d.value.toFixed(1)}%</span>
+                                <div class="bar" style="height: ${barHeightPct}%; background: ${envColor.gradient};">
+                                    <span class="bar-value-label">${d.value.toFixed(1)}%</span>
                                 </div>
                             </div>
-                            <span class="bar-label">${d.name}</span>
+                            <span class="bar-label">${displayName(d.name)}</span>
                         </div>
                     `;
                 }).join('')}

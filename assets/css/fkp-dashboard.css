@@ -52,7 +52,8 @@ body {
     position: fixed;
     height: 100vh;
     overflow-y: auto;
-    z-index: 1000;
+    z-index: 10000;
+    pointer-events: auto;
 }
 
 .sidebar-header {
@@ -79,6 +80,7 @@ body {
 
 .nav-section {
     margin-bottom: 0.5rem;
+    pointer-events: auto;
 }
 
 .nav-item {
@@ -89,6 +91,7 @@ body {
     transition: all 0.2s ease;
     color: #e2e8f0;
     font-weight: 500;
+    pointer-events: auto;
 }
 
 .nav-item:hover {
@@ -131,6 +134,7 @@ body {
 
 .nav-subitems.active {
     display: block;
+    pointer-events: auto;
 }
 
 .nav-subitem {
@@ -141,6 +145,7 @@ body {
     font-size: 0.8125rem;
     font-weight: 400;
     border-left: 3px solid transparent;
+    pointer-events: auto;
 }
 
 .nav-subitem:hover {
@@ -7910,12 +7915,108 @@ body.developer-view .sidebar-subtitle::after {
     gap: 1.5rem;
 }
 
+/* Karpenter Trend Section - minimal layout like Availability (no card background) */
+.karpenter-trend-section {
+    margin-bottom: 0.5rem;
+}
+
+.karpenter-trend-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.karpenter-trend-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.karpenter-trend-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.karpenter-trend-legend .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: #22c55e;
+}
+
+.karpenter-trend-chart {
+    overflow: hidden;
+    width: 100%;
+    background: #ffffff;
+}
+
+.karpenter-trend-chart .karpenter-trend-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 220px;
+}
+
+.karpenter-trend-chart .karpenter-trend-point {
+    cursor: pointer;
+}
+
+.karpenter-trend-chart .karpenter-trend-point circle:first-of-type {
+    transition: r 0.2s ease, fill 0.2s ease;
+}
+
+.karpenter-trend-chart .karpenter-trend-point:hover circle:first-of-type {
+    fill: #16a34a;
+}
+
+/* Karpenter Environment Bar Section - minimal layout, no card (like trend) */
+.karpenter-env-bar-section {
+    margin-bottom: 0.5rem;
+}
+
+.karpenter-env-bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.karpenter-env-bar-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.karpenter-env-bar-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.karpenter-env-bar-legend .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: #22c55e;
+}
+
 .karpenter-chart-card {
     background: #ffffff;
     border-radius: 10px;
     padding: 1rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border: 1px solid #e2e8f0;
+    overflow: hidden;
 }
 
 .karpenter-chart-header {
@@ -7956,133 +8057,14 @@ body.developer-view .sidebar-subtitle::after {
     background: #22c55e;
 }
 
-/* Karpenter Trend Chart */
-.karpenter-trend-chart {
-    padding: 2rem;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-radius: 12px;
-    border: 2px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.karpenter-trend-chart .chart-container {
-    display: flex !important;
-    flex-direction: row;
-    gap: 0;
-    align-items: stretch;
-    position: relative;
-    width: 100%;
-}
-
-.karpenter-trend-chart .chart-y-axis {
-    position: relative !important;
-    left: auto !important;
-    display: flex !important;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: flex-end;
-    padding-right: 1.25rem;
-    font-size: 1.1rem;
-    color: #475569;
-    text-align: right;
-    min-width: 60px;
-    width: 60px;
-    font-weight: 700;
-    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-    border-right: 3px solid #94a3b8; /* Same as bar chart - Y-axis line */
-}
-
-.karpenter-trend-chart .chart-y-axis .y-label {
-    line-height: 1.2;
-    white-space: nowrap;
-    display: block;
-}
-
-/* X-axis labels are now in SVG */
-
-.karpenter-trend-chart .chart-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    border-left: none;
-    border-bottom: none;
-    position: relative;
-    background: #ffffff;
-    border-radius: 0;
-    overflow: visible;
-    padding-bottom: 0;
-}
-
-/* Y-axis is now drawn in SVG and stops at X-axis intersection */
-
-.karpenter-trend-chart .trend-svg {
-    flex: 1;
-    width: 100%;
-    height: auto;
-    max-height: 350px;
-    min-height: 320px;
-    border-radius: 0;
-    overflow: visible;
-    display: block;
-    background: #ffffff;
-    padding: 0;
-}
-
-.karpenter-trend-chart .trend-line-path {
-    transition: stroke-width 0.2s ease;
-}
-
-.karpenter-trend-chart:hover .trend-line-path {
-    stroke-width: 3.5;
-}
-
-.karpenter-trend-chart .trend-point {
-    cursor: pointer;
-}
-
-.karpenter-trend-chart .point-circle {
-    transition: r 0.2s ease, fill 0.2s ease;
-}
-
-.karpenter-trend-chart .point-value {
-    transition: opacity 0.2s ease;
-    font-family: 'Salesforce Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-}
-
-/* Interactive chart elements */
-.karpenter-trend-chart .data-point-group {
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.karpenter-trend-chart .data-point-group:hover {
-    transform: scale(1.3);
-}
-
-.karpenter-trend-chart .data-point-group:hover .data-point {
-    r: 11;
-    fill: #10b981;
-    stroke-width: 4;
-}
-
-.karpenter-trend-chart .data-point-group:hover ~ .value-label-group,
-.karpenter-trend-chart .data-point-group:hover + .value-label-group {
-    opacity: 1 !important;
-}
-
-.karpenter-trend-chart .trend-line {
-    transition: stroke-width 0.2s ease;
-}
-
-.karpenter-trend-chart:hover .trend-line {
-    stroke-width: 5;
-}
-
-.karpenter-trend-chart .point-hit-area:hover ~ .value-label-group {
-    opacity: 1;
-}
-
 /* Karpenter Bar Chart */
+.karpenter-env-bar-section .karpenter-bar-chart {
+    background: #ffffff;
+    overflow: visible;
+    padding: 1rem 1rem 2.5rem 1rem;
+    min-height: 380px;
+}
+
 .karpenter-bar-chart {
     height: 450px;
     min-height: 450px;
@@ -8091,11 +8073,13 @@ body.developer-view .sidebar-subtitle::after {
     border-radius: 0;
     border: none;
     box-shadow: none;
+    overflow: hidden;
 }
 
 .bar-chart-container {
     display: flex;
     height: 100%;
+    overflow: hidden;
 }
 
 .bar-chart-y-axis {
@@ -8127,6 +8111,43 @@ body.developer-view .sidebar-subtitle::after {
     margin-bottom: 0;
     min-height: 350px;
     padding-bottom: 0;
+    overflow: hidden;
+}
+
+/* Karpenter env bar chart: grid lines and visible labels */
+.karpenter-env-bars .bar-chart-container {
+    overflow: visible;
+}
+.karpenter-env-bars .bar-chart-main {
+    overflow: visible;
+}
+.karpenter-env-bars .bar-item {
+    overflow: visible;
+}
+.karpenter-env-bars .bar-label {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+}
+.karpenter-env-bars .bar-chart-y-axis {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 600;
+    border-right-color: #d1d5db;
+}
+.karpenter-env-bars .bar-chart-main {
+    border-bottom-color: #d1d5db;
+}
+.karpenter-env-bars .bar {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.karpenter-env-bars .bar:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .bar-item {
@@ -8147,6 +8168,7 @@ body.developer-view .sidebar-subtitle::after {
     align-items: flex-end;
     position: relative;
     padding-bottom: 0;
+    overflow: hidden;
 }
 
 .bar {

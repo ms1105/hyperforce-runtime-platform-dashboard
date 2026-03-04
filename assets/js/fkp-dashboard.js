@@ -12101,7 +12101,10 @@ const KARPENTER_MONTHLY_FILES = [
     { file: 'Feb%20cpu%20allocation%20rate%202026.csv', month: '2026-02', monthName: 'February' }
 ];
 
-const KARPENTER_MONTHLY_BASE = 'Cpu%20allocation%20rate%20monthly%20files/';
+// Source: Cpu allocation rate monthly files folder (project path)
+// Try relative path first so static server (python -m http.server from project root) loads all months.
+// Then try Node API (/api/karpenter-monthly/) which serves from the same folder.
+const KARPENTER_MONTHLY_BASES = ['Cpu%20allocation%20rate%20monthly%20files/', '/api/karpenter-monthly/'];
 
 /**
  * Build Karpenter data structures from April 2025 CPU allocation rate CSV.
@@ -12191,35 +12194,56 @@ async function loadKarpenterData() {
     
     console.log('📦 Loading Karpenter data...');
     
-    // Source of truth: Cpu allocation rate monthly files (Apr 2025 - Feb 2026). cluster_packing_percent = avg. CPU allocation rate %, 2 decimals.
+    // Source of truth: Cpu allocation rate monthly files folder (Apr 2025 - Feb 2026). cluster_packing_percent = avg. CPU allocation rate %, 2 decimals.
     try {
-        const results = await Promise.allSettled(
-            KARPENTER_MONTHLY_FILES.map(({ file, month, monthName }) =>
-                fetch(KARPENTER_MONTHLY_BASE + file).then(r => r.ok ? r.text() : Promise.reject(new Error(r.status)))
-                    .then(text => buildKarpenterRowsFromMonthlyCSV(text, month, monthName))
-            )
-        );
-        
-        const allRows = [];
-        const seenFi = new Set();
-        const seenFd = new Set();
-        const seenEnv = new Set();
-        const seenCluster = new Set();
-        const seenMonths = new Set();
-        
-        results.forEach((result, i) => {
-            if (result.status === 'fulfilled' && Array.isArray(result.value) && result.value.length > 0) {
-                allRows.push(...result.value);
-                result.value.forEach(r => {
-                    if (r.falcon_instance) seenFi.add(r.falcon_instance);
-                    if (r.functional_domain) seenFd.add(r.functional_domain);
-                    if (r.environment) seenEnv.add(r.environment);
-                    if (r.cluster) seenCluster.add(r.cluster);
-                    if (r.month) seenMonths.add(r.month);
-                });
+        let allRows = [];
+        let seenFi = new Set();
+        let seenFd = new Set();
+        let seenEnv = new Set();
+        let seenCluster = new Set();
+        let seenMonths = new Set();
+        let failedMonths = [];
+        for (const base of KARPENTER_MONTHLY_BASES) {
+            const results = await Promise.allSettled(
+                KARPENTER_MONTHLY_FILES.map(({ file, month, monthName }) =>
+                    fetch(base + file).then(r => r.ok ? r.text() : Promise.reject(new Error(r.status)))
+                        .then(text => buildKarpenterRowsFromMonthlyCSV(text, month, monthName))
+                )
+            );
+            allRows = [];
+            seenFi = new Set();
+            seenFd = new Set();
+            seenEnv = new Set();
+            seenCluster = new Set();
+            seenMonths = new Set();
+            failedMonths = [];
+            results.forEach((result, i) => {
+                const { monthName } = KARPENTER_MONTHLY_FILES[i];
+                if (result.status === 'fulfilled' && Array.isArray(result.value) && result.value.length > 0) {
+                    allRows.push(...result.value);
+                    result.value.forEach(r => {
+                        if (r.falcon_instance) seenFi.add(r.falcon_instance);
+                        if (r.functional_domain) seenFd.add(r.functional_domain);
+                        if (r.environment) seenEnv.add(r.environment);
+                        if (r.cluster) seenCluster.add(r.cluster);
+                        if (r.month) seenMonths.add(r.month);
+                    });
+                } else if (result.status === 'rejected') {
+                    failedMonths.push(monthName + ' ' + (result.reason?.message || result.reason));
+                }
+            });
+            // Use this base only if we got most months (at least 10); otherwise try next base so Nov/Dec/Jan/Feb aren't missing
+            const expectedMonthCount = KARPENTER_MONTHLY_FILES.length;
+            if (allRows.length > 0 && seenMonths.size >= Math.min(10, expectedMonthCount)) {
+                break;
             }
-        });
-        
+            if (allRows.length > 0 && seenMonths.size < expectedMonthCount && failedMonths.length > 0) {
+                console.log('📦 Karpenter: base returned only ' + seenMonths.size + ' months (missing: ' + failedMonths.join(', ') + '), trying next base');
+            }
+        }
+        if (failedMonths.length > 0) {
+            console.log('📦 Karpenter (Cpu allocation rate monthly files): failed months:', failedMonths);
+        }
         if (allRows.length > 0) {
             const monthsSorted = [...seenMonths].sort();
             karpenterData.mainSummary = allRows;
@@ -12572,10 +12596,35 @@ function renderKarpenterExecView(container) {
     
     // Helper to calculate weighted average grouped by a dimension
     // Aggregates data by the groupBy field, calculates avg for each group, then averages those
+    // Uses the passed-in data (duration-filtered) for the card avg so duration filter changes the displayed %
     const calcGroupedAvg = (data, groupBy) => {
         if (!data || data.length === 0) return { avg: '--', trend: 0 };
         
-        // For trend calculation, we ALWAYS need data for both April and target month
+        // Card average: compute from duration-filtered data so 7d/15d/30d change the displayed %
+        const byGroup = {};
+        data.forEach(r => {
+            let key = 'unknown';
+            if (groupBy === 'falcon_instance') {
+                key = r.falcon_instance || r.falconInstance || r.FI || r.fi || r.falcon_instance_name || 'unknown';
+            } else if (groupBy === 'functional_domain') {
+                key = r.functional_domain || r.functionalDomain || r.FD || r.fd || 'unknown';
+            } else if (groupBy === 'environment') {
+                key = (r.environment || r.Environment || r.env || r.Env || 'unknown').toLowerCase();
+            } else if (groupBy === 'cluster') {
+                key = r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || 'unknown';
+            } else {
+                key = r[groupBy] || 'unknown';
+            }
+            if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
+            byGroup[key].sum += parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+            byGroup[key].count += 1;
+        });
+        const groupAvgs = Object.values(byGroup).map(g => g.sum / g.count);
+        const cardAvg = groupAvgs.length > 0
+            ? (groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length).toFixed(2)
+            : '--';
+        
+        // For trend calculation, we need April (baseline) and target month from full filtered set (no duration)
         // This ensures we can compare April baseline vs selected/latest month
         const selectedMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : null;
         // Use latest month in data (e.g. 2026-02) when "All Months" is selected, so cards show Feb 2026 avg
@@ -12652,27 +12701,8 @@ function renderKarpenterExecView(container) {
         // Determine which month to use for average and trend calculation
         const latestAvailableMonth = months.length > 0 ? months[months.length - 1] : null;
         
-        // Overall average: if month selected, use that month; otherwise use latest available
-        let avg;
-        if (selectedMonth && monthlyAvgs[selectedMonth] !== undefined) {
-            avg = Number(monthlyAvgs[selectedMonth]).toFixed(2);
-        } else if (latestAvailableMonth && monthlyAvgs[latestAvailableMonth] !== undefined) {
-            avg = Number(monthlyAvgs[latestAvailableMonth]).toFixed(2);
-        } else if (monthlyAvgs['2025-10'] !== undefined) {
-            // Use October when "All Months" is selected
-            avg = Number(monthlyAvgs['2025-10']).toFixed(2);
-        } else {
-            // Fallback: use latest available month
-            const latestMonth = months[months.length - 1];
-            if (latestMonth && monthlyAvgs[latestMonth] !== undefined) {
-                avg = Number(monthlyAvgs[latestMonth]).toFixed(2);
-            } else {
-                const allAvgs = Object.values(monthlyAvgs);
-                avg = allAvgs.length > 0 
-                    ? (allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length).toFixed(2)
-                    : '--';
-            }
-        }
+        // Use card average from duration-filtered data (computed above). Trend stays April vs target.
+        let avg = cardAvg;
         
         // Trend: ALWAYS compare October (or selected month) vs April baseline
         let trend = 0;

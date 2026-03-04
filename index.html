@@ -1035,6 +1035,14 @@
                                         <option value="all">All Months</option>
                                     </select>
                                 </div>
+                                <div class="karpenter-filter-group">
+                                    <label class="karpenter-filter-label">Duration</label>
+                                    <select id="karpenter-duration-filter" onchange="applyKarpenterFilters()">
+                                        <option value="30">30 days</option>
+                                        <option value="15">15 days</option>
+                                        <option value="7">7 days</option>
+                                    </select>
+                                </div>
                                 <div class="karpenter-filter-actions">
                                     <button class="karpenter-reset-btn" onclick="resetKarpenterFilters()">
                                         🔄 Reset Filters
@@ -1249,6 +1257,16 @@
 
     <!-- Scripts -->
     <script src="assets/js/fkp-dashboard.js?v=20250128"></script>
+    <script>
+        // If tabs still don't work, the main script may have failed to load. Check console (F12) for errors.
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (typeof window.switchTab !== 'function') {
+                    console.error('FKP Dashboard: switchTab not found. assets/js/fkp-dashboard.js may have failed to load. Check Network and Console tabs.');
+                }
+            }, 500);
+        });
+    </script>
     
     <!-- React and ReactDOM from CDN (for GitHub Pages) -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -1367,8 +1385,87 @@
         
         // Global variable to track if data is loaded
         let hcpCtsDataLoaded = false;
+        let hcpCtsLoadInProgress = false;
         
-        // Initialize Cost to Serve when tab is clicked
+        // Expose so fkp-dashboard.js can trigger load when switching to Cost to Serve tab
+        // Data source on main repo (GitLab Pages): assets/data/hcp-cts-forecast-actuals.json (static file in repo)
+        window.loadCostToServeDataIfNeeded = async function() {
+            if (hcpCtsDataLoaded) {
+                const currentTab = (window.fkpDashboard && window.fkpDashboard.state && window.fkpDashboard.state.currentTab) || '';
+                const execView = document.getElementById('hcp-cts-exec-view');
+                const devView = document.getElementById('cost-to-serve-developers-view');
+                if (currentTab === 'cost-to-serve-overview') {
+                    if (execView) execView.style.display = 'block';
+                    if (devView) devView.style.display = 'none';
+                } else if (currentTab === 'cost-to-serve-details') {
+                    if (execView) execView.style.display = 'none';
+                    if (devView) devView.style.display = 'block';
+                }
+                return;
+            }
+            if (hcpCtsLoadInProgress) return; // avoid duplicate fetch and loading spinner
+            hcpCtsLoadInProgress = true;
+            const loadingDiv = document.getElementById('hcp-cts-loading');
+            if (loadingDiv) loadingDiv.style.display = 'block';
+            try {
+                console.log('Fetching HCP CTS data...');
+                let data = null;
+                const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
+                const apiUrl = window.BINPACKING_API_URL || '';
+                if (!isGitLabPages && apiUrl) {
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 3000);
+                        const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
+                            mode: 'cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+                        if (response.ok) {
+                            data = await response.json();
+                            console.log('✅ HCP CTS data loaded from API:', data);
+                        } else throw new Error(`API returned ${response.status}`);
+                    } catch (apiError) {
+                        console.log('⚠️ API not available, trying static file:', apiError.message);
+                    }
+                } else {
+                    console.log('📄 GitLab Pages or no API URL, loading from static file assets/data/hcp-cts-forecast-actuals.json');
+                }
+                if (!data) {
+                    // Resolve path relative to current page so GitLab Pages (e.g. /pages/msatapathy/repo-name/) works
+                    const base = (function() {
+                        const p = window.location.pathname || '';
+                        if (p.endsWith('.html')) return p.split('/').slice(0, -1).join('/') + '/';
+                        return p.endsWith('/') ? p : p + '/';
+                    })();
+                    const jsonUrl = base + 'assets/data/hcp-cts-forecast-actuals.json?v=20250128';
+                    const staticResponse = await fetch(jsonUrl);
+                    if (!staticResponse.ok) throw new Error(`Static file ${staticResponse.status} ${staticResponse.statusText}`);
+                    data = await staticResponse.json();
+                    console.log('✅ HCP CTS data loaded from static file:', data);
+                }
+                if (data) {
+                    hcpCtsDataLoaded = true;
+                    renderHCPCTSData(data);
+                } else throw new Error('No data received');
+            } catch (error) {
+                console.error('Error loading HCP CTS data:', error);
+                if (loadingDiv) {
+                    loadingDiv.innerHTML = `
+                        <div style="text-align: center; padding: 3rem;">
+                            <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
+                            <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
+                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Source: assets/data/hcp-cts-forecast-actuals.json (main repo: git.soma.salesforce.com/msatapathy/hyperforce-runtime-platform-360)</p>
+                        </div>
+                    `;
+                }
+            } finally {
+                hcpCtsLoadInProgress = false;
+            }
+        };
+        
+        // Initialize Cost to Serve when tab is clicked (backup for direct clicks)
         document.addEventListener('DOMContentLoaded', function() {
             // Wait for fkp-dashboard.js to initialize, then hook into tab switching
             setTimeout(function() {
@@ -1376,83 +1473,9 @@
                 const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-details"]');
                 costToServeTabs.forEach(tab => {
                     tab.addEventListener('click', async function() {
-                        // Load data if not already loaded
                         if (!hcpCtsDataLoaded) {
-                            const loadingDiv = document.getElementById('hcp-cts-loading');
-                            if (loadingDiv) {
-                                loadingDiv.style.display = 'block';
-                            }
-                            
-                            try {
-                                console.log('Fetching HCP CTS data...');
-                                let data = null;
-                                
-                                // Check if we're on GitLab Pages (static hosting) or local development
-                                const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || 
-                                                      window.location.hostname.includes('pages');
-                                const apiUrl = window.BINPACKING_API_URL || '';
-                                
-                                // On GitLab Pages, skip API and go straight to static file
-                                // On localhost, try API first, then fall back to static file
-                                if (!isGitLabPages && apiUrl) {
-                                    // Try to use the bin-packing server API first (for local development)
-                                    try {
-                                        const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
-                                            mode: 'cors',
-                                            headers: {
-                                                'Content-Type': 'application/json'
-                                            }
-                                        });
-                                        if (response.ok) {
-                                            data = await response.json();
-                                            console.log('✅ HCP CTS data loaded from API:', data);
-                                        } else {
-                                            throw new Error(`API returned ${response.status}`);
-                                        }
-                                    } catch (apiError) {
-                                        console.log('⚠️ API not available, trying static file:', apiError.message);
-                                    }
-                                } else {
-                                    console.log('📄 GitLab Pages detected, loading from static file directly');
-                                }
-                                
-                                // Load from static JSON file (works on both GitLab Pages and as fallback)
-                                if (!data) {
-                                    try {
-                                        const staticResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json?v=20250128');
-                                        if (staticResponse.ok) {
-                                            data = await staticResponse.json();
-                                            console.log('✅ HCP CTS data loaded from static file:', data);
-                                        } else {
-                                            throw new Error(`Static file returned ${staticResponse.status} ${staticResponse.statusText}`);
-                                        }
-                                    } catch (staticError) {
-                                        console.error('❌ Failed to load from static file:', staticError);
-                                        throw new Error(`Failed to load data: ${staticError.message}`);
-                                    }
-                                }
-                                
-                                if (data) {
-                                    hcpCtsDataLoaded = true;
-                                    renderHCPCTSData(data);
-                                } else {
-                                    throw new Error('No data received');
-                                }
-                            } catch (error) {
-                                console.error('Error loading HCP CTS data:', error);
-                                const loadingDiv = document.getElementById('hcp-cts-loading');
-                                if (loadingDiv) {
-                                    loadingDiv.innerHTML = `
-                                        <div style="text-align: center; padding: 3rem;">
-                                            <p style="color: #dc2626; font-weight: 600; margin-bottom: 0.5rem;">Failed to load HCP Cost Savings Forecast vs Actuals data</p>
-                                            <p style="color: #718096; font-size: 0.875rem;">Error: ${error.message}</p>
-                                            <p style="color: #718096; font-size: 0.875rem; margin-top: 1rem;">Please check that assets/data/hcp-cts-forecast-actuals.json exists and is accessible.</p>
-                                        </div>
-                                    `;
-                                }
-                            }
+                            await window.loadCostToServeDataIfNeeded();
                         } else {
-                            // Data already loaded, just ensure views are shown correctly
                             const currentTab = this.getAttribute('data-tab');
                             if (currentTab === 'cost-to-serve-overview') {
                                 const execView = document.getElementById('hcp-cts-exec-view');
@@ -1474,11 +1497,9 @@
                     const originalSwitchTab = window.switchTab;
                     window.switchTab = function(tabId) {
                         originalSwitchTab(tabId);
-                        // Check if Cost to Serve tab was switched to
                         if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-details') {
-                            const tabElement = document.querySelector(`[data-tab="${tabId}"]`);
-                            if (tabElement) {
-                                tabElement.click();
+                            if (typeof window.loadCostToServeDataIfNeeded === 'function') {
+                                window.loadCostToServeDataIfNeeded();
                             }
                         }
                     };

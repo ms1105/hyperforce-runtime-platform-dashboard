@@ -12046,11 +12046,13 @@ let karpenterFilterState = {
 /**
  * Round to 2 decimals for avg. CPU allocation rate % (cluster_packing_percent).
  * e.g. 14.828398815660400 → 14.82
+ * Caps at 0-100 so bad CSV values (e.g. 2680) don't break cards.
  */
 function roundAvgCpuPercent(value) {
     const n = parseFloat(value);
     if (isNaN(n)) return 0;
-    return Math.round(n * 100) / 100;
+    const rounded = Math.round(n * 100) / 100;
+    return Math.min(100, Math.max(0, rounded));
 }
 
 /**
@@ -12295,6 +12297,12 @@ async function loadKarpenterData() {
         ]);
         
         karpenterData.mainSummary = parseCSV(main);  // Comprehensive data with all filter columns
+        // Normalize avg_cpu to 0-100 so production never shows >100% (fallback CSV may have bad values)
+        karpenterData.mainSummary = karpenterData.mainSummary.map(r => {
+            const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0) || 0;
+            const capped = Math.min(100, Math.max(0, raw));
+            return { ...r, avg_cpu: capped, avgCpu: capped };
+        });
         karpenterData.monthlySummary = parseCSV(monthly);
         karpenterData.environmentSummary = parseCSV(env);
         karpenterData.clusterSummary = parseCSV(cluster);
@@ -12616,13 +12624,16 @@ function renderKarpenterExecView(container) {
                 key = r[groupBy] || 'unknown';
             }
             if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
-            byGroup[key].sum += parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+            const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+            const capped = Math.min(100, Math.max(0, raw)); // CPU % must be 0-100; cap bad data
+            byGroup[key].sum += capped;
             byGroup[key].count += 1;
         });
         const groupAvgs = Object.values(byGroup).map(g => g.sum / g.count);
-        const cardAvg = groupAvgs.length > 0
-            ? (groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length).toFixed(2)
-            : '--';
+        const rawCardAvg = groupAvgs.length > 0
+            ? groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length
+            : null;
+        const cardAvg = rawCardAvg !== null ? Math.min(100, Math.max(0, rawCardAvg)).toFixed(2) : '--';
         
         // For trend calculation, we need April (baseline) and target month from full filtered set (no duration)
         // This ensures we can compare April baseline vs selected/latest month
@@ -12857,7 +12868,7 @@ function renderKarpenterExecView(container) {
                         <span class="karpenter-metric-label">Avg. CPU Allocation rate - FI</span>
                         <span class="karpenter-metric-icon">📊</span>
                     </div>
-                    <div class="karpenter-metric-value">${avgFI}%</div>
+                    <div class="karpenter-metric-value">${typeof avgFI === 'string' && avgFI !== '--' ? Math.min(100, parseFloat(avgFI) || 0).toFixed(2) : avgFI}%</div>
                     <div class="karpenter-metric-trend ${trendFI >= 0 ? 'trend-up' : 'trend-down'}">
                         ${trendFI >= 0 ? '+' : ''}${trendFI.toFixed(1)}% from April baseline
                     </div>
@@ -12868,7 +12879,7 @@ function renderKarpenterExecView(container) {
                         <span class="karpenter-metric-label">Avg. CPU Allocation rate - FD</span>
                         <span class="karpenter-metric-icon">⚙️</span>
                     </div>
-                    <div class="karpenter-metric-value">${avgFD}%</div>
+                    <div class="karpenter-metric-value">${typeof avgFD === 'string' && avgFD !== '--' ? Math.min(100, parseFloat(avgFD) || 0).toFixed(2) : avgFD}%</div>
                     <div class="karpenter-metric-trend ${trendFD >= 0 ? 'trend-up' : 'trend-down'}">
                         ${trendFD >= 0 ? '+' : ''}${trendFD.toFixed(1)}% from April baseline
                     </div>
@@ -12879,7 +12890,7 @@ function renderKarpenterExecView(container) {
                         <span class="karpenter-metric-label">Avg. CPU Allocation rate - Cluster</span>
                         <span class="karpenter-metric-icon">🖥️</span>
                     </div>
-                    <div class="karpenter-metric-value">${avgCluster}%</div>
+                    <div class="karpenter-metric-value">${typeof avgCluster === 'string' && avgCluster !== '--' ? Math.min(100, parseFloat(avgCluster) || 0).toFixed(2) : avgCluster}%</div>
                     <div class="karpenter-metric-trend ${trendCluster >= 0 ? 'trend-up' : 'trend-down'}">
                         ${trendCluster >= 0 ? '+' : ''}${trendCluster.toFixed(1)}% from April baseline
                     </div>
@@ -12890,7 +12901,7 @@ function renderKarpenterExecView(container) {
                         <span class="karpenter-metric-label">Avg. CPU Allocation rate - Environment</span>
                         <span class="karpenter-metric-icon">🌐</span>
                     </div>
-                    <div class="karpenter-metric-value">${avgEnv}%</div>
+                    <div class="karpenter-metric-value">${typeof avgEnv === 'string' && avgEnv !== '--' ? Math.min(100, parseFloat(avgEnv) || 0).toFixed(2) : avgEnv}%</div>
                     <div class="karpenter-metric-trend ${trendEnv >= 0 ? 'trend-up' : 'trend-down'}">
                         ${trendEnv >= 0 ? '+' : ''}${trendEnv.toFixed(1)}% from April baseline
                     </div>

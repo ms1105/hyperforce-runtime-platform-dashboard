@@ -58,16 +58,15 @@ function renderExecView(data) {
             <div class="exec-chart-container" style="margin-top: 2rem; position: relative;">
                 <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">FY27 HRP CTS Initiatives</h3>
                 <p style="font-size: 0.875rem; color: #718096; margin-bottom: 1.5rem;">Monthly Cumulative All Initiatives Savings</p>
-                <div style="position: absolute; top: 0.25rem; right: 0;">
-                    <label for="fy27-initiative-filter" style="font-size: 0.75rem; color: #64748b; margin-right: 0.5rem;">Show:</label>
-                    <select id="fy27-initiative-filter" style="min-width: 220px; padding: 0.35rem 0.5rem; font-size: 0.8rem; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; color: #374151;">
+                <div style="position: absolute; top: 0.25rem; right: 0; z-index: 2;">
+                    <label for="fy27-initiative-filter" style="font-size: 0.8rem; font-weight: 600; color: #1e293b; margin-right: 0.5rem;">Show initiative:</label>
+                    <select id="fy27-initiative-filter" style="min-width: 240px; padding: 0.4rem 0.6rem; font-size: 0.85rem; border: 2px solid #1e293b; border-radius: 6px; background: #f8fafc; color: #1e293b; font-weight: 500;">
                         <option value="all">All initiatives</option>
                     </select>
                 </div>
                 <div style="margin-bottom: 2rem; margin-top: 2rem;">
                     <canvas id="fy27-initiatives-chart" style="max-height: 450px;"></canvas>
                 </div>
-                <div id="fy27-cumulative-by-month" style="margin-bottom: 1rem; font-size: 0.85rem; color: #475569;"></div>
                 <div id="fy27-initiatives-legend" class="fy27-custom-legend" style="display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; justify-content: center; margin-top: 0.75rem; padding: 0.5rem 0;"></div>
             </div>
             <div class="exec-chart-container" style="margin-top: 2rem;">
@@ -460,25 +459,48 @@ function renderFY27InitiativeTrendCharts() {
 }
 
 function updateFY27CumulativeDisplay(chart) {
-    const el = document.getElementById('fy27-cumulative-by-month');
-    if (!el || !chart || !chart.data || !chart.data.labels) return;
-    const monthLabels = chart.data.labels;
-    const visibleIndices = [];
-    chart.data.datasets.forEach(function(_, j) {
-        if (!chart.getDatasetMeta(j).hidden) visibleIndices.push(j);
-    });
-    const valuesByMonth = monthLabels.map(function(_, monthIdx) {
-        let sum = 0;
-        visibleIndices.forEach(function(j) {
-            const v = chart.data.datasets[j].data[monthIdx];
-            if (typeof v === 'number' && !isNaN(v)) sum += v;
-        });
-        return sum;
-    });
-    const parts = monthLabels.map(function(label, i) {
-        return label + ': $' + valuesByMonth[i].toFixed(2) + 'M';
-    });
-    el.textContent = 'Cumulative by month: ' + parts.join('  |  ');
+    // No longer used — values are drawn on top of bars by plugin
+}
+
+function fy27BarLabelsPlugin() {
+    return {
+        id: 'fy27BarLabels',
+        afterDatasetsDraw: function(chart) {
+            if (!chart.ctx || chart.canvas.id !== 'fy27-initiatives-chart') return;
+            const visibleIndices = [];
+            chart.data.datasets.forEach(function(_, j) {
+                if (!chart.getDatasetMeta(j).hidden) visibleIndices.push(j);
+            });
+            if (visibleIndices.length === 0) return;
+            const monthCount = chart.data.labels.length;
+            const totals = [];
+            for (let m = 0; m < monthCount; m++) {
+                let sum = 0;
+                visibleIndices.forEach(function(j) {
+                    const v = chart.data.datasets[j].data[m];
+                    if (typeof v === 'number' && !isNaN(v)) sum += v;
+                });
+                totals.push(sum);
+            }
+            const meta0 = chart.getDatasetMeta(0);
+            if (!meta0 || !meta0.data || !chart.scales.y) return;
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.font = '600 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillStyle = '#1e293b';
+            meta0.data.forEach(function(bar, i) {
+                if (i >= totals.length) return;
+                const x = bar.x;
+                const yVal = totals[i];
+                const y = chart.scales.y.getPixelForValue(yVal) - 6;
+                if (y > chart.scales.y.bottom) return;
+                ctx.fillText('$' + yVal.toFixed(2) + 'M', x, y);
+            });
+            ctx.restore();
+        }
+    };
 }
 
 function renderFY27InitiativesChart() {
@@ -505,6 +527,7 @@ function renderFY27InitiativesChart() {
     window.fy27InitiativesChart = new Chart(ctx, {
         type: 'bar',
         data: { labels: monthLabels, datasets: datasets },
+        plugins: [fy27BarLabelsPlugin()],
         options: {
             responsive: true,
             maintainAspectRatio: true,
@@ -582,9 +605,7 @@ function renderFY27InitiativesChart() {
                 }
             }
             chart.update();
-            updateFY27CumulativeDisplay(chart);
         });
-        updateFY27CumulativeDisplay(chart);
     }
 
     // Keep legend as visual reference only (no click behavior; dropdown controls filter)

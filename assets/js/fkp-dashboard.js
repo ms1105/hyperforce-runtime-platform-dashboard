@@ -101,6 +101,9 @@ const debouncedRefresh = debounce(() => {
 function switchViewMode(mode) {
     console.log('🔄 Switching view mode to:', mode);
     
+    // Preserve scroll position so page doesn't jump to top (e.g. when on Cost to Serve in Exec Summary)
+    const scrollY = window.scrollY || window.pageYOffset;
+    
     fkpDashboard.state.currentViewMode = mode;
     
     // Update body class for CSS-based hiding
@@ -115,18 +118,20 @@ function switchViewMode(mode) {
         }
     });
     
-    // Show/hide tabs based on view mode
+    // Show/hide tabs based on view mode (Cost to Serve: always hide developer tab - no Developer View)
     document.querySelectorAll('.nav-subitem').forEach(tab => {
+        if (tab.dataset.tab === 'cost-to-serve-details') {
+            tab.style.display = 'none';
+            return;
+        }
         const tabView = tab.dataset.view;
         if (mode === 'exec') {
-            // In Exec view, hide developer-only tabs, show exec and both
             if (tabView === 'developer') {
                 tab.style.display = 'none';
             } else {
                 tab.style.display = '';
             }
         } else {
-            // In Developer view, hide exec-only tabs, show developer and both
             if (tabView === 'exec') {
                 tab.style.display = 'none';
             } else {
@@ -218,6 +223,11 @@ function switchViewMode(mode) {
     } else if (fkpDashboard.state.currentTab === 'runtime-karpenter') {
         renderKarpenter();
     }
+    
+    // Restore scroll position so screen stays at Cost to Serve / current section
+    requestAnimationFrame(function() {
+        window.scrollTo(0, scrollY);
+    });
     
     console.log('✅ View mode switched to:', mode);
 }
@@ -1829,7 +1839,10 @@ function updateViewButtonStates(tabId) {
         'migration-dependencies': { exec: false, developer: true },
         'cross-customer-analysis': { exec: false, developer: true },
         'integrations': { exec: false, developer: true },
-        'service-information': { exec: true, developer: true }
+        'service-information': { exec: true, developer: true },
+        // Cost to Serve: Exec only (Developer View disabled)
+        'cost-to-serve-overview': { exec: true, developer: false },
+        'cost-to-serve-details': { exec: false, developer: false }
     };
     
     const availability = viewAvailability[tabId] || { exec: true, developer: true };

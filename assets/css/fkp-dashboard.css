@@ -8127,7 +8127,7 @@ body.developer-view .sidebar-subtitle::after {
     display: block;
     width: 100%;
     height: auto;
-    min-height: 220px;
+    min-height: 176px;
 }
 
 .karpenter-trend-chart .karpenter-trend-point {

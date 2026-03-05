@@ -13596,12 +13596,12 @@ function renderKarpenterTrendChart(data) {
         return (shortMonth[name] || name) + ' ' + y;
     };
     
-    const chartWidth = 800;
-    const chartHeight = 260;
-    const paddingTop = 28;
-    const paddingBottom = 36;
-    const paddingLeft = 56;
-    const paddingRight = 28;
+    const chartWidth = 640;
+    const chartHeight = 208;
+    const paddingTop = 22;
+    const paddingBottom = 29;
+    const paddingLeft = 45;
+    const paddingRight = 22;
     const plotWidth = chartWidth - paddingLeft - paddingRight;
     const plotHeight = chartHeight - paddingTop - paddingBottom;
     const baselineY = paddingTop + plotHeight;
@@ -13660,7 +13660,7 @@ function renderKarpenterTrendChart(data) {
     ).join('');
     
     return `
-        <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%; min-height: 240px;" class="karpenter-trend-svg" id="karpenter-trend-svg">
+        <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%; min-height: 192px;" class="karpenter-trend-svg" id="karpenter-trend-svg">
             <defs>
                 <linearGradient id="karpenterTrendGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3" />

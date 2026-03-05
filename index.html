@@ -22,10 +22,9 @@
     <!-- Chart.js for Cost to Serve charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Set API URL to use port 8080 for API calls
-        // Always use http://localhost:8080 for both localhost and GitLab Pages
-        // This ensures API calls go to the local API server running on port 8080
-        window.BINPACKING_API_URL = 'http://localhost:8080';
+        // Cost to Serve and other data load from static files (same origin). Do not connect to a local API.
+        // To use a separate API server, set: window.BINPACKING_API_URL = 'http://localhost:8080';
+        window.BINPACKING_API_URL = '';
     </script>
 </head>
 <body>
@@ -160,6 +159,8 @@
                             🔧 Developer View
                         </button>
                     </div>
+                    <!-- Last Refreshed (top right; hidden in Developer View) -->
+                    <div class="last-refreshed-badge" id="last-refreshed-badge" title="Data last refreshed">Last Refreshed: <span id="last-refreshed-date">--/--/----</span></div>
                 </div>
         </header>
 
@@ -1207,9 +1208,15 @@
                     
                     <!-- Cost to Serve Overview Tab (Exec View) -->
                     <div class="tab-pane" id="cost-to-serve-overview">
-                        <div class="tab-header">
-                            <h2>💰 Cost to Serve</h2>
-                            <p>Comprehensive cost analysis and optimization insights for the Hyperforce Runtime Platform.</p>
+                        <div class="tab-header with-actions">
+                            <div class="tab-header-text">
+                                <h2>💰 Cost to Serve</h2>
+                                <p>Comprehensive cost analysis and optimization insights for the Hyperforce Runtime Platform.</p>
+                            </div>
+                            <div class="cts-fy-toggle" role="group" aria-label="Fiscal year">
+                                <button type="button" class="cts-fy-btn active" data-fy="FY27" onclick="setCostToServeFY('FY27', this)">FY27</button>
+                                <button type="button" class="cts-fy-btn" data-fy="FY26" onclick="setCostToServeFY('FY26', this)">FY26</button>
+                            </div>
                         </div>
                         <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                             <div id="hcp-cts-loading" style="text-align: center; padding: 3rem;">
@@ -1227,9 +1234,15 @@
                     
                     <!-- Cost to Serve Details Tab (Developer View) -->
                     <div class="tab-pane" id="cost-to-serve-details">
-                        <div class="tab-header">
-                            <h2>💰 Cost to Serve - Initiative Details</h2>
-                            <p>Detailed monthly breakdown and performance metrics for each initiative.</p>
+                        <div class="tab-header with-actions">
+                            <div class="tab-header-text">
+                                <h2>💰 Cost to Serve - Initiative Details</h2>
+                                <p>Detailed monthly breakdown and performance metrics for each initiative.</p>
+                            </div>
+                            <div class="cts-fy-toggle" role="group" aria-label="Fiscal year">
+                                <button type="button" class="cts-fy-btn active" data-fy="FY27" onclick="setCostToServeFY('FY27', this)">FY27</button>
+                                <button type="button" class="cts-fy-btn" data-fy="FY26" onclick="setCostToServeFY('FY26', this)">FY26</button>
+                            </div>
                         </div>
                         <div id="cost-to-serve-developers-view" style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                             <!-- Developers View content will be populated by JavaScript -->
@@ -1285,6 +1298,24 @@
         // ============================================
         // Cost to Serve Section - JavaScript Functions
         // ============================================
+        
+        // FY26/FY27 toggle state (used by cost-to-serve.js and Executive Summary). FY27 default.
+        window.costToServeFY = 'FY27';
+        
+        window.setCostToServeFY = function(fy, clickedBtn) {
+            window.costToServeFY = fy;
+            document.querySelectorAll('.cts-fy-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-fy') === fy);
+            });
+            // If Cost to Serve tab is rendered, re-render with new FY (charts can use window.costToServeFY)
+            if (window.renderHCPCTSData && window._lastHcpCtsPayload) {
+                try { window.renderHCPCTSData(window._lastHcpCtsPayload); } catch (e) {}
+            }
+            // If Executive Summary is visible, re-render so Cost to Serve cards update
+            if (window.fkpDashboard && window.fkpDashboard.state && window.fkpDashboard.state.currentTab === 'exec-summary' && typeof window.renderExecutiveSummary === 'function') {
+                window.renderExecutiveSummary();
+            }
+        };
         
         // Add CSS for Cost to Serve section
         const costToServeStyle = document.createElement('style');
@@ -1382,6 +1413,7 @@
             renderExecView(data);
             renderCostToServeDevelopersView(data);
         }
+        window.renderHCPCTSData = renderHCPCTSData;
         
         // Global variable to track if data is loaded
         let hcpCtsDataLoaded = false;
@@ -1410,43 +1442,22 @@
             try {
                 console.log('Fetching HCP CTS data...');
                 let data = null;
-                const isGitLabPages = window.location.hostname.includes('git.soma.salesforce.com') || window.location.hostname.includes('pages');
-                const apiUrl = window.BINPACKING_API_URL || '';
-                if (!isGitLabPages && apiUrl) {
-                    try {
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 3000);
-                        const response = await fetch(`${apiUrl}/api/hcp-cts-forecast-actuals`, {
-                            mode: 'cors',
-                            headers: { 'Content-Type': 'application/json' },
-                            signal: controller.signal
-                        });
-                        clearTimeout(timeoutId);
-                        if (response.ok) {
-                            data = await response.json();
-                            console.log('✅ HCP CTS data loaded from API:', data);
-                        } else throw new Error(`API returned ${response.status}`);
-                    } catch (apiError) {
-                        console.log('⚠️ API not available, trying static file:', apiError.message);
-                    }
-                } else {
-                    console.log('📄 GitLab Pages or no API URL, loading from static file assets/data/hcp-cts-forecast-actuals.json');
-                }
-                if (!data) {
-                    // Resolve path relative to current page so GitLab Pages (e.g. /pages/msatapathy/repo-name/) works
-                    const base = (function() {
-                        const p = window.location.pathname || '';
-                        if (p.endsWith('.html')) return p.split('/').slice(0, -1).join('/') + '/';
-                        return p.endsWith('/') ? p : p + '/';
-                    })();
-                    const jsonUrl = base + 'assets/data/hcp-cts-forecast-actuals.json?v=20250128';
-                    const staticResponse = await fetch(jsonUrl);
-                    if (!staticResponse.ok) throw new Error(`Static file ${staticResponse.status} ${staticResponse.statusText}`);
-                    data = await staticResponse.json();
-                    console.log('✅ HCP CTS data loaded from static file:', data);
-                }
+                // Always load from static file (same origin). No connection to local API (e.g. localhost:8080).
+                console.log('📄 Loading from static file assets/data/hcp-cts-forecast-actuals.json');
+                // Resolve path relative to current page so GitLab Pages (e.g. /pages/msatapathy/repo-name/) works
+                const base = (function() {
+                    const p = window.location.pathname || '';
+                    if (p.endsWith('.html')) return p.split('/').slice(0, -1).join('/') + '/';
+                    return p.endsWith('/') ? p : p + '/';
+                })();
+                const jsonUrl = base + 'assets/data/hcp-cts-forecast-actuals.json?v=20250128';
+                const staticResponse = await fetch(jsonUrl);
+                if (!staticResponse.ok) throw new Error(`Static file ${staticResponse.status} ${staticResponse.statusText}`);
+                data = await staticResponse.json();
+                console.log('✅ HCP CTS data loaded from static file:', data);
                 if (data) {
                     hcpCtsDataLoaded = true;
+                    window._lastHcpCtsPayload = data;
                     renderHCPCTSData(data);
                 } else throw new Error('No data received');
             } catch (error) {
@@ -1509,6 +1520,6 @@
     </script>
     
     <!-- Cost to Serve JavaScript Functions -->
-    <script src="assets/js/cost-to-serve.js?v=20250128-2"></script>
+    <script src="assets/js/cost-to-serve.js?v=20250304-1"></script>
 </body>
 </html>

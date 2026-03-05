@@ -2291,18 +2291,24 @@ async function renderExecutiveSummary() {
         const avgFd = calcGroupedAvg(filteredKarpenter, 'functional_domain');
         const avgCluster = calcGroupedAvg(filteredKarpenter, 'cluster');
 
-        // Cost to Serve metrics
+        // Cost to Serve metrics (FY27: $7.78M predicted, $0 actuals; FY26: from JSON)
+        const costToServeFY = (typeof window.costToServeFY !== 'undefined' ? window.costToServeFY : 'FY27');
         let totalPredictedSavings = null;
         let totalActualSavings = null;
-        try {
-            const ctsResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json?v=20250128');
-            if (ctsResponse.ok) {
-                const ctsData = await ctsResponse.json();
-                totalPredictedSavings = ctsData?.summary?.totalRevisedSavings ?? null;
-                totalActualSavings = ctsData?.summary?.totalActualSavings ?? null;
+        if (costToServeFY === 'FY27') {
+            totalPredictedSavings = 7780000;  // $7.78M
+            totalActualSavings = 0;
+        } else {
+            try {
+                const ctsResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json?v=20250128');
+                if (ctsResponse.ok) {
+                    const ctsData = await ctsResponse.json();
+                    totalPredictedSavings = ctsData?.summary?.totalRevisedSavings ?? null;
+                    totalActualSavings = ctsData?.summary?.totalActualSavings ?? null;
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to load CTS summary data:', error);
             }
-        } catch (error) {
-            console.warn('⚠️ Failed to load CTS summary data:', error);
         }
 
         // Onboarding metrics
@@ -2714,20 +2720,26 @@ async function renderExecutiveSummary() {
             ${sectionDivider}
 
             <section class="exec-summary-section">
-                <div class="exec-summary-section-header"><span class="exec-summary-section-icon">💰</span>Cost to Serve and Budget</div>
+                <div class="exec-summary-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <span><span class="exec-summary-section-icon">💰</span>Cost to Serve and Budget</span>
+                    <div class="cts-fy-toggle" role="group" aria-label="Fiscal year">
+                        <button type="button" class="cts-fy-btn ${costToServeFY === 'FY27' ? 'active' : ''}" data-fy="FY27" onclick="setCostToServeFY('FY27', this); if (typeof renderExecutiveSummary === 'function') renderExecutiveSummary();">FY27</button>
+                        <button type="button" class="cts-fy-btn ${costToServeFY === 'FY26' ? 'active' : ''}" data-fy="FY26" onclick="setCostToServeFY('FY26', this); if (typeof renderExecutiveSummary === 'function') renderExecutiveSummary();">FY26</button>
+                    </div>
+                </div>
                 <div class="exec-summary-section-card">
                     <div class="exec-summary-kpi-grid columns-4">
                         ${kpiCard({
                             title: 'Total Projected Savings',
                             value: formatCurrencySafe(totalPredictedSavings),
-                            sub: 'FY26 Forecast',
+                            sub: costToServeFY + ' Forecast',
                             valueClass: 'text-blue',
                             onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
                         })}
                         ${kpiCard({
                             title: 'Total Actual Savings Achieved',
                             value: formatCurrencySafe(totalActualSavings),
-                            sub: 'Realized Savings',
+                            sub: costToServeFY === 'FY27' ? 'Realized Savings' : 'Realized Savings',
                             valueClass: 'text-green',
                             onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
                         })}
@@ -10337,8 +10349,25 @@ function exportIntegrationsToCSV() {
 }
 
 // Tab switching event listeners and initialization
+function setLastRefreshedDate() {
+    const lastRefreshedEl = document.getElementById('last-refreshed-date');
+    if (lastRefreshedEl) {
+        lastRefreshedEl.textContent = new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    }
+}
+
+// Set immediately if DOM already ready (e.g. script loaded late or cached)
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setLastRefreshedDate();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📋 DOM Content Loaded - Setting up event listeners...');
+    
+    // Set Last Refreshed date (top right in Exec View)
+    setLastRefreshedDate();
+    // Run again after a short delay in case the header was not in DOM yet (e.g. dynamic layout)
+    setTimeout(setLastRefreshedDate, 100);
     
     // Capture-phase delegation so sidebar clicks always work (even if per-element listeners fail)
     const sidebar = document.querySelector('.sidebar');
@@ -12533,8 +12562,8 @@ function renderKarpenterExecView(container) {
     // Use main_summary which has ALL filter columns for proper cross-filtering
     const filteredData = filterKarpenterData(karpenterData.mainSummary, true, true);
     
-    // For trend chart only: use data without duration filter so all months (including Sep, Oct) show
-    const dataForTrendMonths = filterKarpenterData(karpenterData.mainSummary, true, false);
+    // For trend chart: use duration-filtered data so 7d/15d/30d changes which months appear
+    const dataForTrendMonths = filterKarpenterData(karpenterData.mainSummary, true, true);
     
     // Check which months are in the filtered data
     const monthsInData = [...new Set(filteredData.map(r => r.month))].sort();

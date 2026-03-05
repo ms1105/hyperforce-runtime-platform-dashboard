@@ -55,12 +55,19 @@ function renderExecView(data) {
                     </div>
                 </div>
             </div>
-            <div class="exec-chart-container" style="margin-top: 2rem;">
+            <div class="exec-chart-container" style="margin-top: 2rem; position: relative;">
                 <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">FY27 HRP CTS Initiatives</h3>
                 <p style="font-size: 0.875rem; color: #718096; margin-bottom: 1.5rem;">Monthly Cumulative All Initiatives Savings</p>
-                <div style="margin-bottom: 2rem;">
+                <div style="position: absolute; top: 0.25rem; right: 0;">
+                    <label for="fy27-initiative-filter" style="font-size: 0.75rem; color: #64748b; margin-right: 0.5rem;">Show:</label>
+                    <select id="fy27-initiative-filter" style="min-width: 220px; padding: 0.35rem 0.5rem; font-size: 0.8rem; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; color: #374151;">
+                        <option value="all">All initiatives</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 2rem; margin-top: 2rem;">
                     <canvas id="fy27-initiatives-chart" style="max-height: 450px;"></canvas>
                 </div>
+                <div id="fy27-initiatives-legend" class="fy27-custom-legend" style="display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; justify-content: center; margin-top: 0.75rem; padding: 0.5rem 0;"></div>
             </div>
             <div class="exec-chart-container" style="margin-top: 2rem;">
                 <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 1.5rem;">Original Estimate vs Actuals by Initiative</h3>
@@ -476,15 +483,7 @@ function renderFY27InitiativesChart() {
             interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        font: { family: "'Salesforce Sans', sans-serif", size: 11, weight: '500' },
-                        padding: 12,
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        boxWidth: 12
-                    }
+                    display: false
                 },
                 tooltip: {
                     mode: 'index',
@@ -528,6 +527,48 @@ function renderFY27InitiativesChart() {
             }
         }
     });
+
+    // Populate dropdown and wire change: show only selected initiative or all
+    const filterSelect = document.getElementById('fy27-initiative-filter');
+    if (filterSelect && window.fy27InitiativesChart) {
+        const chart = window.fy27InitiativesChart;
+        filterSelect.innerHTML = '<option value="all">All initiatives</option>';
+        FY27_INITIATIVES_DATA.forEach(function(init, idx) {
+            const opt = document.createElement('option');
+            opt.value = String(idx);
+            opt.textContent = init.name;
+            filterSelect.appendChild(opt);
+        });
+        filterSelect.addEventListener('change', function() {
+            const val = this.value;
+            if (val === 'all') {
+                chart.data.datasets.forEach(function(_, j) {
+                    chart.getDatasetMeta(j).hidden = false;
+                });
+            } else {
+                const i = Number(val);
+                if (!isNaN(i) && i >= 0 && i < chart.data.datasets.length) {
+                    chart.data.datasets.forEach(function(_, j) {
+                        chart.getDatasetMeta(j).hidden = (j !== i);
+                    });
+                }
+            }
+            chart.update();
+        });
+    }
+
+    // Keep legend as visual reference only (no click behavior; dropdown controls filter)
+    const legendEl = document.getElementById('fy27-initiatives-legend');
+    if (legendEl && window.fy27InitiativesChart) {
+        const chart = window.fy27InitiativesChart;
+        legendEl.innerHTML = '';
+        FY27_INITIATIVES_DATA.forEach(function(init) {
+            const item = document.createElement('span');
+            item.style.cssText = 'display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.4rem; font-size: 0.75rem; color: #64748b;';
+            item.innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + init.color + ';"></span><span>' + (init.name.length > 35 ? init.name.substring(0, 35) + '...' : init.name) + '</span>';
+            legendEl.appendChild(item);
+        });
+    }
 }
 
 // Render Cumulative Forecast vs Actuals Chart

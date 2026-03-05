@@ -36,7 +36,11 @@ MONTH_MAP = {
     'july': '2025-07',
     'august': '2025-08',
     'sep': '2025-09',
-    'oct': '2025-10'
+    'oct': '2025-10',
+    'nov': '2025-11',
+    'dec': '2025-12',
+    'jan': '2026-01',
+    'feb': '2026-02',
 }
 
 def extract_month_from_filename(filename):
@@ -335,7 +339,7 @@ def main():
     
     # Check for missing months
     available_months = sorted(df['month'].unique())
-    expected_months = ['2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10']
+    expected_months = ['2025-04', '2025-05', '2025-06', '2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02']
     missing = set(expected_months) - set(available_months)
     
     if missing:

@@ -1,6 +1,7 @@
 import express from 'express';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 
@@ -9,6 +10,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// Karpenter monthly data: serve from this folder (absolute path; override with KARPENTER_MONTHLY_DIR env)
+const KARPENTER_MONTHLY_DIR = process.env.KARPENTER_MONTHLY_DIR || path.join(__dirname, 'Cpu allocation rate monthly files');
 
 // Enable CORS
 app.use(cors());
@@ -62,12 +66,29 @@ const apiProxy = createProxyMiddleware({
   }
 });
 
-// Apply proxy to /api routes, but skip /api/health
+// Serve Karpenter monthly CSV files from KARPENTER_MONTHLY_DIR (before generic /api proxy)
+app.get('/api/karpenter-monthly/:filename', (req, res) => {
+  const filename = decodeURIComponent(req.params.filename);
+  if (!filename || filename.includes('..')) {
+    return res.status(400).send('Invalid filename');
+  }
+  const filepath = path.join(KARPENTER_MONTHLY_DIR, filename);
+  if (!fs.existsSync(filepath) || !fs.statSync(filepath).isFile()) {
+    return res.status(404).send('File not found');
+  }
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.sendFile(filepath);
+});
+
+// Apply proxy to /api routes, but skip /api/health and /api/karpenter-monthly
 app.use('/api', (req, res, next) => {
   console.log(`[Route Handler] ${req.method} ${req.url}, path: ${req.path}`);
   if (req.path === '/health') {
     console.log(`[Route Handler] Skipping proxy for /health`);
     return next(); // Let the /api/health route handler above handle it
+  }
+  if (req.path.startsWith('/karpenter-monthly/')) {
+    return next(); // Already handled above
   }
   console.log(`[Route Handler] Proxying ${req.url}`);
   apiProxy(req, res, next);
@@ -101,25 +122,24 @@ const costToServeProxy = createProxyMiddleware({
 // we need to proxy to port 3001, but also ensure API calls work correctly
 // The Cost to Serve Dashboard on port 3001 needs API access to bin-packing server
 
-// Proxy root and index.html to Cost to Serve Dashboard (port 3001)
-app.get(['/', '/index.html'], (req, res, next) => {
-  console.log(`[Cost to Serve] Proxying ${req.url} to Cost to Serve Dashboard at ${costToServeServerUrl}`);
-  costToServeProxy(req, res, next);
-});
-
-// Proxy all other non-API routes to Cost to Serve Dashboard (for React Router and static assets)
-app.use((req, res, next) => {
-  // Skip API routes (they should have been handled above)
-  if (req.path.startsWith('/api/')) {
-    return next(); // Let API proxy handle it
-  }
-  // Proxy to Cost to Serve Dashboard for all other routes (including assets, etc.)
-  console.log(`[Cost to Serve] Proxying ${req.url} to Cost to Serve Dashboard at ${costToServeServerUrl}`);
-  costToServeProxy(req, res, next);
-});
-
-// Serve static files from current directory as fallback
+// Serve static files from current directory FIRST (for Hyperforce Runtime Platform dashboard)
+// This includes index.html, assets/, etc.
 app.use(express.static(__dirname));
+
+// Proxy Cost to Serve Dashboard requests ONLY for specific paths
+// Only proxy if the request is specifically for Cost to Serve Dashboard routes
+// For now, we'll serve the local Hyperforce Runtime Platform dashboard at root
+// If you need Cost to Serve Dashboard, access it directly at http://localhost:3001
+
+// Note: The Cost to Serve Dashboard proxy is commented out because we want to serve
+// the local Hyperforce Runtime Platform dashboard instead
+// Uncomment below if you need to proxy Cost to Serve Dashboard:
+/*
+app.get(['/cost-to-serve', '/cost-to-serve/*'], (req, res, next) => {
+  console.log(`[Cost to Serve] Proxying ${req.url} to Cost to Serve Dashboard at ${costToServeServerUrl}`);
+  costToServeProxy(req, res, next);
+});
+*/
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -135,10 +155,12 @@ app.listen(PORT, () => {
   console.log('🚀 Hyperforce Runtime Platform Server running on port', PORT);
   console.log('📊 Dashboard available at: http://localhost:' + PORT);
   console.log('🔧 API proxy configured to: ' + binPackingServerUrl);
+  console.log('📁 Karpenter monthly data: ' + KARPENTER_MONTHLY_DIR);
   console.log('💻 Environment:', process.env.NODE_ENV || 'development');
   console.log('');
   console.log('📋 Available endpoints:');
   console.log('   GET  / - Main dashboard');
+  console.log('   GET  /api/karpenter-monthly/:filename - Karpenter monthly CSVs from ' + KARPENTER_MONTHLY_DIR);
   console.log('   GET  /api/* - Proxied to bin-packing server');
   console.log('   GET  /api/health - Server health check');
 });

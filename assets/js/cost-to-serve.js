@@ -67,6 +67,7 @@ function renderExecView(data) {
                 <div style="margin-bottom: 2rem; margin-top: 2rem;">
                     <canvas id="fy27-initiatives-chart" style="max-height: 450px;"></canvas>
                 </div>
+                <div id="fy27-cumulative-by-month" style="margin-bottom: 1rem; font-size: 0.85rem; color: #475569;"></div>
                 <div id="fy27-initiatives-legend" class="fy27-custom-legend" style="display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; justify-content: center; margin-top: 0.75rem; padding: 0.5rem 0;"></div>
             </div>
             <div class="exec-chart-container" style="margin-top: 2rem;">
@@ -458,6 +459,28 @@ function renderFY27InitiativeTrendCharts() {
     });
 }
 
+function updateFY27CumulativeDisplay(chart) {
+    const el = document.getElementById('fy27-cumulative-by-month');
+    if (!el || !chart || !chart.data || !chart.data.labels) return;
+    const monthLabels = chart.data.labels;
+    const visibleIndices = [];
+    chart.data.datasets.forEach(function(_, j) {
+        if (!chart.getDatasetMeta(j).hidden) visibleIndices.push(j);
+    });
+    const valuesByMonth = monthLabels.map(function(_, monthIdx) {
+        let sum = 0;
+        visibleIndices.forEach(function(j) {
+            const v = chart.data.datasets[j].data[monthIdx];
+            if (typeof v === 'number' && !isNaN(v)) sum += v;
+        });
+        return sum;
+    });
+    const parts = monthLabels.map(function(label, i) {
+        return label + ': $' + valuesByMonth[i].toFixed(2) + 'M';
+    });
+    el.textContent = 'Cumulative by month: ' + parts.join('  |  ');
+}
+
 function renderFY27InitiativesChart() {
     const ctx = document.getElementById('fy27-initiatives-chart');
     if (!ctx) return;
@@ -467,13 +490,18 @@ function renderFY27InitiativesChart() {
     }
     const months = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec', 'Jan'];
     const monthLabels = months;
-    const datasets = FY27_INITIATIVES_DATA.map((init) => ({
-        label: init.name.length > 45 ? init.name.substring(0, 45) + '...' : init.name,
-        data: init.data,
-        backgroundColor: init.color,
-        borderColor: init.color,
-        borderWidth: 1
-    }));
+    const datasets = FY27_INITIATIVES_DATA.map((init) => {
+        const c = init.color || '#3182ce';
+        return {
+            label: init.name.length > 45 ? init.name.substring(0, 45) + '...' : init.name,
+            data: init.data,
+            backgroundColor: init.data.map(() => c),
+            borderColor: init.data.map(() => c),
+            borderWidth: 1,
+            hoverBackgroundColor: init.data.map(() => c),
+            hoverBorderColor: init.data.map(() => c)
+        };
+    });
     window.fy27InitiativesChart = new Chart(ctx, {
         type: 'bar',
         data: { labels: monthLabels, datasets: datasets },
@@ -554,7 +582,9 @@ function renderFY27InitiativesChart() {
                 }
             }
             chart.update();
+            updateFY27CumulativeDisplay(chart);
         });
+        updateFY27CumulativeDisplay(chart);
     }
 
     // Keep legend as visual reference only (no click behavior; dropdown controls filter)

@@ -22,8 +22,7 @@
     <!-- Chart.js for Cost to Serve charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Cost to Serve and other data load from static files (same origin). Do not connect to a local API.
-        // To use a separate API server, set: window.BINPACKING_API_URL = 'http://localhost:8080';
+        // All data loads from same origin (relative URLs). No localhost dependency — works when deployed at sfdc.co/hrp360 or any host.
         window.BINPACKING_API_URL = '';
         // Cost to Serve FY toggle default (must be set before fkp-dashboard.js so Executive Summary shows correct FY)
         window.costToServeFY = 'FY27';

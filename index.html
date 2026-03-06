@@ -98,7 +98,10 @@
                     
                     <div class="nav-subitems" id="cost-to-serve-subitems">
                         <div class="nav-subitem" data-tab="cost-to-serve-overview" data-view="exec">
-                            <span class="nav-text">Overview</span>
+                            <span class="nav-text">Cost to Serve - HRP</span>
+                        </div>
+                        <div class="nav-subitem" data-tab="cost-to-serve-hps" data-view="exec">
+                            <span class="nav-text">Cost to Serve - HPS</span>
                         </div>
                         <div class="nav-subitem" data-tab="cost-to-serve-details" data-view="developer">
                             <span class="nav-text">Initiative Details</span>
@@ -1207,11 +1210,11 @@
                         </div>
                     </div>
                     
-                    <!-- Cost to Serve Overview Tab (Exec View) -->
+                    <!-- Cost to Serve Overview Tab (Cost to Serve - HRP) -->
                     <div class="tab-pane" id="cost-to-serve-overview">
                         <div class="tab-header with-actions">
                             <div class="tab-header-text">
-                                <h2>💰 Cost to Serve</h2>
+                                <h2>💰 Cost to Serve - HRP</h2>
                                 <p>Comprehensive cost analysis and optimization insights for the Hyperforce Runtime Platform.</p>
                             </div>
                             <div class="cts-fy-toggle" role="group" aria-label="Fiscal year">
@@ -1230,6 +1233,19 @@
                             <div id="hcp-cts-error" style="display: none; text-align: center; padding: 3rem; color: #dc2626;">
                                 <!-- Error messages will be shown here -->
                             </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cost to Serve - HPS Tab -->
+                    <div class="tab-pane" id="cost-to-serve-hps">
+                        <div class="tab-header with-actions">
+                            <div class="tab-header-text">
+                                <h2>💰 Cost to Serve - HPS</h2>
+                                <p>Cost analysis and optimization insights for HPS.</p>
+                            </div>
+                        </div>
+                        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <p style="color: #64748b; font-size: 1rem;">Content coming soon.</p>
                         </div>
                     </div>
                     
@@ -1434,6 +1450,7 @@
                     if (execView) execView.style.display = 'none';
                     if (devView) devView.style.display = 'block';
                 }
+                // cost-to-serve-hps has its own pane content; no exec/dev view toggling
                 return;
             }
             if (hcpCtsLoadInProgress) return; // avoid duplicate fetch and loading spinner
@@ -1482,7 +1499,7 @@
             // Wait for fkp-dashboard.js to initialize, then hook into tab switching
             setTimeout(function() {
                 // Hook into the existing tab switching mechanism
-                const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-details"]');
+                const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-hps"], [data-tab="cost-to-serve-details"]');
                 costToServeTabs.forEach(tab => {
                     tab.addEventListener('click', async function() {
                         if (!hcpCtsDataLoaded) {
@@ -1509,7 +1526,7 @@
                     const originalSwitchTab = window.switchTab;
                     window.switchTab = function(tabId) {
                         originalSwitchTab(tabId);
-                        if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-details') {
+                        if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-hps' || tabId === 'cost-to-serve-details') {
                             if (typeof window.loadCostToServeDataIfNeeded === 'function') {
                                 window.loadCostToServeDataIfNeeded();
                             }

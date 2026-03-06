@@ -285,6 +285,30 @@ body.developer-view .feedback-link {
     display: inline-flex !important;
 }
 
+/* Slack link - top right in header */
+.slack-link {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.75rem;
+    background-color: #1e3a5f;
+    color: #e2e8f0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background-color 0.2s, color 0.2s;
+}
+.slack-link:hover {
+    background-color: #2d4a7c;
+    color: #fff;
+}
+.slack-link .slack-logo {
+    flex-shrink: 0;
+}
+
 /* View Toggle (Exec/Developer) */
 .view-toggle-container {
     display: flex !important;

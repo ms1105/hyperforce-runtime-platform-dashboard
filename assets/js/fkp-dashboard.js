@@ -1843,6 +1843,7 @@ function updateViewButtonStates(tabId) {
         // Cost to Serve: Exec only (Developer View disabled)
         'cost-to-serve-overview': { exec: true, developer: false },
         'cost-to-serve-hps': { exec: true, developer: false },
+        'cost-to-serve-budget-forecast': { exec: true, developer: false },
         'cost-to-serve-details': { exec: false, developer: false }
     };
     
@@ -2158,6 +2159,10 @@ function updatePageHeader(tabId) {
         'cost-to-serve-hps': {
             title: 'Cost to Serve',
             subtitle: 'Cost to Serve - HPS'
+        },
+        'cost-to-serve-budget-forecast': {
+            title: 'Cost to Serve',
+            subtitle: 'Budget and Forecast'
         },
         'cost-to-serve-details': {
             title: 'Cost to Serve',
@@ -2900,6 +2905,7 @@ function refreshCurrentTab() {
             break;
         case 'cost-to-serve-overview':
         case 'cost-to-serve-hps':
+        case 'cost-to-serve-budget-forecast':
         case 'cost-to-serve-details':
             if (typeof window.loadCostToServeDataIfNeeded === 'function') {
                 window.loadCostToServeDataIfNeeded();

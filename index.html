@@ -103,6 +103,9 @@
                         <div class="nav-subitem" data-tab="cost-to-serve-hps" data-view="exec">
                             <span class="nav-text">Cost to Serve - HPS</span>
                         </div>
+                        <div class="nav-subitem" data-tab="cost-to-serve-budget-forecast" data-view="exec">
+                            <span class="nav-text">Budget and Forecast</span>
+                        </div>
                         <div class="nav-subitem" data-tab="cost-to-serve-details" data-view="developer">
                             <span class="nav-text">Initiative Details</span>
                         </div>
@@ -1249,6 +1252,19 @@
                         </div>
                     </div>
                     
+                    <!-- Budget and Forecast Tab -->
+                    <div class="tab-pane" id="cost-to-serve-budget-forecast">
+                        <div class="tab-header with-actions">
+                            <div class="tab-header-text">
+                                <h2>💰 Budget and Forecast</h2>
+                                <p>Budget and forecast views for Cost to Serve.</p>
+                            </div>
+                        </div>
+                        <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <p style="color: #64748b; font-size: 1rem;">Content coming soon.</p>
+                        </div>
+                    </div>
+                    
                     <!-- Cost to Serve Details Tab (Developer View) -->
                     <div class="tab-pane" id="cost-to-serve-details">
                         <div class="tab-header with-actions">
@@ -1499,7 +1515,7 @@
             // Wait for fkp-dashboard.js to initialize, then hook into tab switching
             setTimeout(function() {
                 // Hook into the existing tab switching mechanism
-                const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-hps"], [data-tab="cost-to-serve-details"]');
+                const costToServeTabs = document.querySelectorAll('[data-tab="cost-to-serve-overview"], [data-tab="cost-to-serve-hps"], [data-tab="cost-to-serve-budget-forecast"], [data-tab="cost-to-serve-details"]');
                 costToServeTabs.forEach(tab => {
                     tab.addEventListener('click', async function() {
                         if (!hcpCtsDataLoaded) {
@@ -1526,7 +1542,7 @@
                     const originalSwitchTab = window.switchTab;
                     window.switchTab = function(tabId) {
                         originalSwitchTab(tabId);
-                        if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-hps' || tabId === 'cost-to-serve-details') {
+                        if (tabId === 'cost-to-serve-overview' || tabId === 'cost-to-serve-hps' || tabId === 'cost-to-serve-budget-forecast' || tabId === 'cost-to-serve-details') {
                             if (typeof window.loadCostToServeDataIfNeeded === 'function') {
                                 window.loadCostToServeDataIfNeeded();
                             }

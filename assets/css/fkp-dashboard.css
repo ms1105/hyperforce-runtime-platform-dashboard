@@ -8166,13 +8166,15 @@ body.developer-view .sidebar-subtitle::after {
     overflow: hidden;
     width: 100%;
     background: #ffffff;
+    border-radius: 8px;
+    padding: 0.25rem 0;
 }
 
 .karpenter-trend-chart .karpenter-trend-svg {
     display: block;
     width: 100%;
     height: auto;
-    min-height: 176px;
+    min-height: 200px;
 }
 
 .karpenter-trend-chart .karpenter-trend-point {

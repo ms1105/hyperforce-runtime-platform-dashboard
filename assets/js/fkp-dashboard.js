@@ -13595,7 +13595,7 @@ function calculateKarpenterTrend(data, field) {
 }
 
 /**
- * Render Karpenter trend line chart - Reference layout: smooth curve, full grid, Month YYYY labels, clean white
+ * Render Karpenter trend line chart - Clean layout: straight lines, full grid, no label overlap
  */
 function renderKarpenterTrendChart(data) {
     if (!data || data.length === 0) {
@@ -13609,17 +13609,19 @@ function renderKarpenterTrendChart(data) {
     };
     
     const chartWidth = 640;
-    const chartHeight = 208;
-    const paddingTop = 22;
-    const paddingBottom = 29;
-    const paddingLeft = 45;
-    const paddingRight = 22;
+    const chartHeight = 220;
+    const paddingTop = 32;
+    const paddingBottom = 32;
+    const paddingLeft = 56;
+    const paddingRight = 24;
     const plotWidth = chartWidth - paddingLeft - paddingRight;
     const plotHeight = chartHeight - paddingTop - paddingBottom;
     const baselineY = paddingTop + plotHeight;
     
-    // Fixed Y-axis: 0% at bottom, 100% at top (ascending), 20% steps like environment chart
-    const yTicks = []; // 0, 20, 40, 60, 80, 100
+    // Y-axis labels well left of plot so they never overlap first data label
+    const yLabelX = paddingLeft - 20;
+    
+    const yTicks = [];
     for (let i = 0; i <= 5; i++) {
         const val = i * 20;
         const y = paddingTop + plotHeight - (val / 100) * plotHeight;
@@ -13634,72 +13636,48 @@ function renderKarpenterTrendChart(data) {
         return { x, y, value: d.value, month: d.month, label: monthYear(d.month) };
     });
     
-    // Smooth curve: Catmull-Rom style cubic Bezier through points
-    function smoothPath(points, toAreaBaseline) {
-        if (points.length === 0) return '';
-        if (points.length === 1) return toAreaBaseline ? `M ${points[0].x},${baselineY} L ${points[0].x},${points[0].y} Z` : `M ${points[0].x},${points[0].y}`;
-        const tension = 0.35;
-        const p = (i) => {
-            if (i < 0) return { x: 2 * points[0].x - points[1].x, y: 2 * points[0].y - points[1].y };
-            if (i >= points.length) return { x: 2 * points[points.length - 1].x - points[points.length - 2].x, y: 2 * points[points.length - 1].y - points[points.length - 2].y };
-            return points[i];
-        };
-        let path = `M ${points[0].x},${points[0].y}`;
-        for (let i = 0; i < points.length - 1; i++) {
-            const p0 = p(i - 1), p1 = points[i], p2 = points[i + 1], p3 = p(i + 2);
-            const cp1x = p1.x + (p2.x - p0.x) * tension;
-            const cp1y = p1.y + (p2.y - p0.y) * tension;
-            const cp2x = p2.x - (p3.x - p1.x) * tension;
-            const cp2y = p2.y - (p3.y - p1.y) * tension;
-            path += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
-        }
-        if (toAreaBaseline) {
-            path += ` L ${points[points.length - 1].x},${baselineY} L ${points[0].x},${baselineY} Z`;
-        }
-        return path;
-    }
+    // Straight line and area (no curve) for cleaner look
+    const linePath = points.length === 0 ? '' : points.length === 1
+        ? `M ${points[0].x},${points[0].y}`
+        : 'M ' + points.map(p => `${p.x},${p.y}`).join(' L ');
+    const areaPath = points.length === 0 ? '' : points.length === 1
+        ? `M ${points[0].x},${baselineY} L ${points[0].x},${points[0].y} Z`
+        : 'M ' + points[0].x + ',' + baselineY + ' L ' + points.map(p => `${p.x},${p.y}`).join(' L ') + ' L ' + points[points.length - 1].x + ',' + baselineY + ' Z';
     
-    const linePath = smoothPath(points, false);
-    const areaPath = smoothPath(points, true);
-    
-    // Horizontal grid lines at 20%, 40%, 60%, 80% (not 0 and 100)
     const hGridLines = yTicks.slice(1, -1).map(t =>
         `<line x1="${paddingLeft}" y1="${t.y}" x2="${paddingLeft + plotWidth}" y2="${t.y}" stroke="#e5e7eb" stroke-width="1" />`
     ).join('');
-    // Vertical grid lines at each data point
     const vGridLines = points.map(p =>
         `<line x1="${p.x}" y1="${paddingTop}" x2="${p.x}" y2="${baselineY}" stroke="#e5e7eb" stroke-width="1" />`
     ).join('');
     
     return `
-        <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%; min-height: 192px;" class="karpenter-trend-svg" id="karpenter-trend-svg">
+        <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%; min-height: 200px;" class="karpenter-trend-svg" id="karpenter-trend-svg">
             <defs>
                 <linearGradient id="karpenterTrendGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.3" />
-                    <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.05" />
+                    <stop offset="0%" style="stop-color:#22c55e;stop-opacity:0.25" />
+                    <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.04" />
                 </linearGradient>
+                <clipPath id="karpenterTrendClip">
+                    <rect x="${paddingLeft}" y="${paddingTop}" width="${plotWidth}" height="${plotHeight}" />
+                </clipPath>
             </defs>
-            <!-- Grid: horizontal then vertical -->
-            ${hGridLines}
-            ${vGridLines}
-            <!-- Area fill under smooth curve -->
-            <path d="${areaPath}" fill="url(#karpenterTrendGradient)" />
-            <!-- Smooth trend line -->
-            <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
-            <!-- Data point markers -->
+            <g clip-path="url(#karpenterTrendClip)">
+                ${hGridLines}
+                ${vGridLines}
+                <path d="${areaPath}" fill="url(#karpenterTrendGradient)" />
+                <path d="${linePath}" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </g>
             ${points.map((p, i) => `
                 <g class="karpenter-trend-point" data-index="${i}">
-                    <circle cx="${p.x}" cy="${p.y}" r="5" fill="#22c55e" stroke="white" stroke-width="2" />
-                    <circle cx="${p.x}" cy="${p.y}" r="14" fill="transparent" style="cursor: pointer;" />
-                    <text x="${p.x}" y="${p.y - 14}" text-anchor="middle" font-size="11" fill="#1e293b" font-weight="600">${p.value.toFixed(1)}%</text>
+                    <circle cx="${p.x}" cy="${p.y}" r="4" fill="#22c55e" stroke="white" stroke-width="1.5" />
+                    <circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" style="cursor: pointer;" />
+                    <text x="${p.x}" y="${p.y - 18}" text-anchor="middle" font-size="10" fill="#475569" font-weight="500">${p.value.toFixed(1)}%</text>
                 </g>
             `).join('')}
-            <!-- X-axis line -->
             <line x1="${paddingLeft}" y1="${baselineY}" x2="${paddingLeft + plotWidth}" y2="${baselineY}" stroke="#d1d5db" stroke-width="1" />
-            <!-- X-axis labels: Month YYYY below plot -->
-            ${points.map(p => `<text x="${p.x}" y="${chartHeight - 10}" text-anchor="middle" font-size="11" fill="#6b7280" font-weight="500">${p.label}</text>`).join('')}
-            <!-- Y-axis labels: 0%, 20%, 40%, 60%, 80%, 100% ascending (like environment chart) -->
-            ${yTicks.map(t => `<text x="${paddingLeft - 12}" y="${t.y + 4}" text-anchor="end" font-size="11" fill="#6b7280" font-weight="500">${t.val}%</text>`).join('')}
+            ${points.map(p => `<text x="${p.x}" y="${chartHeight - 12}" text-anchor="middle" font-size="10" fill="#64748b">${p.label}</text>`).join('')}
+            ${yTicks.map(t => `<text x="${yLabelX}" y="${t.y + 3}" text-anchor="end" font-size="10" fill="#64748b">${t.val}%</text>`).join('')}
         </svg>
     `;
 }

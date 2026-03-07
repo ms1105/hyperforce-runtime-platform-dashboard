@@ -8062,6 +8062,54 @@ body.developer-view .sidebar-subtitle::after {
     padding: 0;
 }
 
+/* Karpenter Enabled/Disabled toggle (Exec view) */
+.karpenter-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.karpenter-toggle-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.karpenter-toggle-group {
+    display: inline-flex;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    background: #f8fafc;
+}
+
+.karpenter-toggle-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.karpenter-toggle-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.karpenter-toggle-btn.active {
+    background: #0176D3;
+    color: #fff;
+}
+
+.karpenter-toggle-btn + .karpenter-toggle-btn {
+    border-left: 1px solid #e2e8f0;
+}
+
 /* Karpenter Metric Cards Grid */
 .karpenter-metrics-grid {
     display: grid;

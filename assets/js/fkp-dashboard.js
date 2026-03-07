@@ -12094,7 +12094,8 @@ let karpenterFilterState = {
     environment: 'all',
     cluster: 'all',
     month: 'all',
-    duration: '30'
+    duration: '30',
+    karpenterToggle: 'all'   // 'all' | 'enabled' | 'disabled'
 };
 
 /**
@@ -12374,6 +12375,22 @@ async function loadKarpenterData() {
         });
         console.log('📦 Months in filterOptions:', karpenterData.filterOptions.months);
         
+        // Load Karpenter enabled clusters list for Exec view toggle (optional)
+        try {
+            const enabledResp = await fetch(`${baseUrl}/karpenter_enabled_clusters.csv`);
+            if (enabledResp.ok) {
+                const enabledText = await enabledResp.text();
+                const enabledRows = parseCSV(enabledText);
+                const clusterCol = enabledRows[0] && (enabledRows[0].k8s_cluster != null) ? 'k8s_cluster' : 'cluster';
+                karpenterData.enabledClusterSet = new Set(enabledRows.map(r => (r[clusterCol] || r.k8s_cluster || '').trim()).filter(Boolean));
+                console.log('📦 Karpenter enabled clusters loaded:', karpenterData.enabledClusterSet.size);
+            } else {
+                karpenterData.enabledClusterSet = new Set();
+            }
+        } catch (e) {
+            karpenterData.enabledClusterSet = new Set();
+        }
+        
         // Populate filter dropdowns
         populateKarpenterFilters();
         
@@ -12448,6 +12465,14 @@ function populateKarpenterFilters() {
 }
 
 /**
+ * Set Karpenter Enabled/Disabled toggle and refresh (Exec view)
+ */
+function setKarpenterToggle(value) {
+    karpenterFilterState.karpenterToggle = value === 'enabled' || value === 'disabled' ? value : 'all';
+    applyKarpenterFilters();
+}
+
+/**
  * Apply Karpenter filters
  */
 function applyKarpenterFilters() {
@@ -12467,7 +12492,7 @@ function applyKarpenterFilters() {
  * Reset Karpenter filters
  */
 function resetKarpenterFilters() {
-    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all', duration: '30' };
+    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all', duration: '30', karpenterToggle: 'all' };
     
     document.getElementById('karpenter-fi-filter').value = 'all';
     document.getElementById('karpenter-fd-filter').value = 'all';
@@ -12509,6 +12534,16 @@ function filterKarpenterData(data, includeMonth = true, applyDuration = true) {
         if (karpenterFilterState.cluster !== 'all') {
             const rowCluster = row.cluster || row.Cluster || row.k8s_cluster || row.k8sCluster || row.cluster_name;
             if (rowCluster && rowCluster !== karpenterFilterState.cluster) return false;
+        }
+        
+        // Karpenter Enabled / Disabled toggle (Exec view)
+        const toggle = karpenterFilterState.karpenterToggle || 'all';
+        if (toggle !== 'all') {
+            const enabledSet = karpenterData.enabledClusterSet || new Set();
+            const rowCluster = (row.cluster || row.Cluster || row.k8s_cluster || row.k8sCluster || row.cluster_name || '').trim();
+            const isEnabled = rowCluster && enabledSet.has(rowCluster);
+            if (toggle === 'enabled' && !isEnabled) return false;
+            if (toggle === 'disabled' && isEnabled) return false;
         }
         
         // Month filter
@@ -12581,6 +12616,11 @@ function renderKarpenterExecView(container) {
     karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
     karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
     karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
+    // Sync Karpenter Enabled/Disabled toggle from DOM if present
+    const toggleActive = document.querySelector('.karpenter-toggle-btn.active');
+    if (toggleActive && toggleActive.dataset.value) {
+        karpenterFilterState.karpenterToggle = toggleActive.dataset.value;
+    }
     
     console.log('📦 Current filter state:', karpenterFilterState);
     
@@ -12915,6 +12955,15 @@ function renderKarpenterExecView(container) {
     
     container.innerHTML = `
         <div class="karpenter-exec-content">
+            <!-- Karpenter Enabled / Disabled toggle (Exec view only) -->
+            <div class="karpenter-toggle-row">
+                <span class="karpenter-toggle-label">View:</span>
+                <div class="karpenter-toggle-group">
+                    <button type="button" class="karpenter-toggle-btn ${karpenterFilterState.karpenterToggle === 'all' ? 'active' : ''}" data-value="all" onclick="setKarpenterToggle('all')">All</button>
+                    <button type="button" class="karpenter-toggle-btn ${karpenterFilterState.karpenterToggle === 'enabled' ? 'active' : ''}" data-value="enabled" onclick="setKarpenterToggle('enabled')">Karpenter Enabled</button>
+                    <button type="button" class="karpenter-toggle-btn ${karpenterFilterState.karpenterToggle === 'disabled' ? 'active' : ''}" data-value="disabled" onclick="setKarpenterToggle('disabled')">Karpenter Disabled</button>
+                </div>
+            </div>
             <!-- Metric Cards -->
             <div class="karpenter-metrics-grid">
                 <div class="karpenter-metric-card">

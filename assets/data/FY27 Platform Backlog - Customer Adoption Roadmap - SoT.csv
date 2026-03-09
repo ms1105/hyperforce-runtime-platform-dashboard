@@ -1,158 +1,162 @@
 Org Leader,Parent Cloud,Cloud,Team Name,Service Name,"non-FKP Instance Count 
- Commercial",Commercial ETA,non-FKP Instance Count Gia2h,Gia2h ETA,non-FKP Instance Count Blackjack,BlackJack ETA,Decommission ETA,Feature Dependencies,Comments
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),integration-test-service,250,FY27Q2,19,FY27Q2,11,FY27Q2,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Fabric,cdp-data-processing-controller,232,Not Started,11,Not Started,0,N/A,N/A,"Platform on Platform for Workloads
+  Commercial",Commercial ETA,non-FKP Instance Count Gia2h,Gia2h ETA,non-FKP Instance Count Blackjack,BlackJack ETA,Decommission ETA,Feature Dependencies,Comments
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Fabric,cdp-data-processing-controller,238,FY27Q4,12,Not Started,0,N/A,N/A,"Platform on Platform for Workloads
   Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-controller-service,220,FY27Q1,18,FY27Q1,11,FY27Q1,N/A,,11/13: In progress. Tracking to q1.
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-test-twister,218,FY27Q1,18,FY27Q1,11,FY27Q1,N/A,,11/13: In progress. Tracking to q1.
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - Core,ajnakafka,198,FY27Q2,25,FY27Q2,5,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - INI (Integrations and Infra),ajnakmf,198,FY27Q2,25,FY27Q2,5,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - INI (Integrations and Infra),ajnaloadmgr,198,FY27Q2,25,FY27Q2,5,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - Wrangler,ajnawrangler,198,FY27Q2,25,FY27Q2,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - INI (Integrations and Infra),ajnazac,193,FY27Q2,0,N/A,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - Core,ajnalionsgate,192,FY27Q2,11,FY27Q2,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Data Cloud Real Time Consumption and Infra,cdp-realtime-mgmt-service,167,FY27Q2,10,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Inference Engine,cdp-inference-engine,163,FY27Q2,11,Need More Info,0,N/A,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaaskeywatcher,160,To Be Decommissioned,0,N/A,0,N/A,FY27Q2,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Data Cloud Usage Telemetry Collection and Reporting,cdp-billing-service,153,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),CipherForce,safe-monitor,139,To Be Decommissioned,143,To Be Decommissioned,0,N/A,FY27Q2,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_DataPrep,cdp-data-prep,137,Not Started,7,Not Started,0,N/A,N/A,"Platform on Platform for Workloads
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),integration-test-service,226,FY27Q2,19,FY27Q2,11,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-controller-service,216,FY27Q2,18,FY27Q2,11,Need More Info,N/A,,11/13: In progress. Tracking to q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-test-twister,214,FY27Q2,18,FY27Q2,11,Need More Info,N/A,,11/13: In progress. Tracking to q1.
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - Core,ajnakafka,193,FY27Q3,25,FY27Q3,5,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - INI (Integrations and Infra),ajnakmf,193,FY27Q3,25,FY27Q3,5,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - INI (Integrations and Infra),ajnaloadmgr,193,FY27Q3,25,FY27Q3,5,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - Wrangler,ajnatopicdeployer,193,FY27Q3,25,FY27Q3,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - Wrangler,ajnawrangler,193,FY27Q3,25,FY27Q3,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - Core,ajnalionsgate,190,FY27Q3,11,FY27Q3,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - INI (Integrations and Infra),ajnazac,188,FY27Q3,0,N/A,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Data Cloud Real Time Consumption and Infra,cdp-realtime-mgmt-service,171,FY27Q4,10,Need More Info,0,N/A,N/A,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaaskeywatcher,170,To Be Decommissioned,0,N/A,0,N/A,FY27Q3,,2/18: This is dependent on HBase. Scott Kleven is pushing back to see if HBase can bring back in their timeline.
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - Wrangler,ajna-self-service,167,FY27Q3,11,FY27Q3,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Inference Engine,cdp-inference-engine,162,FY27Q4,11,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Data Cloud Usage Telemetry Collection and Reporting,cdp-billing-service,153,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),CipherForce,safe-monitor,140,To Be Decommissioned,140,To Be Decommissioned,0,N/A,FY27Q2,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_DataPrep,cdp-data-prep,137,FY27Q4,8,Not Started,0,N/A,N/A,"Platform on Platform for Workloads
   Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
 Muralidhar Krishnaprasad,D360,D360 Personalization,p13n CDT Hyper,p13n-attribution-engine,135,FY27Q2,6,Need More Info,0,N/A,N/A,,
 Muralidhar Krishnaprasad,D360,D360 Personalization,P13N - Rex,psp-index-manager,135,FY27Q2,5,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Activation,cdp-activation-service,134,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Metadata_Service,cdp-metadata-service,132,FY27Q2,7,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Data_Services,cdp-data-service,131,FY27Q2,7,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Metadata_Service,cdp-metadata-service,134,FY27Q4,7,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Activation,cdp-activation-service,132,FY27Q4,5,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Data_Services,cdp-data-service,132,FY27Q4,8,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
   Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
-Muralidhar Krishnaprasad,Platform Services,GTM Automation,Digital Wallet Tracking and Calculations,sfdw-entitlement-usage-service,128,FY27Q2,6,Need More Info,0,N/A,N/A,Dependency on CDP,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_InsightsEngine,cdp-insights-engine,125,FY27Q2,7,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Fredericton Express,cdp-data-extractor-events,124,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_MC_Streaming,cdp-data-transformation-service,115,FY27Q2,6,Need More Info,0,N/A,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaaswebhook,105,To Be Decommissioned,0,N/A,0,N/A,FY27Q2,,
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - Wrangler,ajna-self-service,100,FY27Q2,4,FY27Q2,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Profile_Engine,cdp-profile-engine,95,FY27Q2,6,Need More Info,0,N/A,N/A,,
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - Wrangler,ajnatopicapi,93,FY27Q2,12,FY27Q2,1,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Connectors Framework (off-core),cdp-data-connectors-jobs,91,FY27Q2,3,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Fredericton Express,cdp-data-extractor-events,127,FY27Q4,5,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_InsightsEngine,cdp-insights-engine,126,FY27Q4,8,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,Platform Services,GTM Automation,Digital Wallet Tracking and Calculations,sfdw-entitlement-usage-service,122,FY27Q2,8,Need More Info,0,N/A,N/A,Dependency on CDP,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-envoy-metrics-scraper,120,To Be Decommissioned,6,To Be Decommissioned,0,N/A,FY27Q4,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-internal-ingress-gateway,119,To Be Decommissioned,8,To Be Decommissioned,0,N/A,FY27Q4,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-istio,119,To Be Decommissioned,8,To Be Decommissioned,0,N/A,FY27Q4,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaaswebhook,115,To Be Decommissioned,0,N/A,0,N/A,FY27Q3,,2/18: This is dependent on HBase. Scott Kleven is pushing back to see if HBase can bring back in their timeline.
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_MC_Streaming,cdp-data-transformation-service,113,FY27Q4,6,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Profile_Engine,cdp-profile-engine,92,FY27Q4,5,Need More Info,0,N/A,N/A,,
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - Wrangler,ajnatopicapi,90,FY27Q3,12,FY27Q3,1,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Connectors Framework (off-core),cdp-data-connectors-jobs,90,FY27Q4,3,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
   Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-istio,85,To Be Decommissioned,8,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-envoy-metrics-scraper,84,To Be Decommissioned,6,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-internal-ingress-gateway,83,To Be Decommissioned,8,To Be Decommissioned,0,N/A,FY27Q4,,
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - XP,ajnaendpoint,81,FY27Q2,9,FY27Q2,1,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Fredericton Express,cdp-data-ingestion-service,79,FY27Q2,8,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Enterprise Knowledge Harmonization,ek-harmonization-service,79,FY27Q2,1,N/A,0,N/A,N/A,,
-Darryn Dieken,Infrastructure Lifecycle Mgmt (ILM),Site Reliability Engineering,CP Site Reliability Engineering,oob-telemetry-collector,76,FY27Q2,0,N/A,0,N/A,N/A,,2/9: Ownership and knowledge transfer to MonCloud (POC: Anupam Jain) occurring in 262. Projects for oob will be planned for 264.
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - XP,ajnaendpoint,79,FY27Q3,9,FY27Q3,1,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Enterprise Knowledge Harmonization,ek-harmonization-service,79,FY27Q2,1,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Fredericton Express,cdp-data-ingestion-service,78,FY27Q4,8,Need More Info,0,N/A,N/A,,
+Darryn Dieken,Infrastructure Lifecycle Mgmt (ILM),Site Reliability Engineering,CP Site Reliability Engineering,oob-telemetry-collector,75,FY27Q2,0,N/A,0,N/A,N/A,,2/9: Ownership and knowledge transfer to MonCloud (POC: Anupam Jain) occurring in 262. Projects for oob will be planned for 264.
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Admin_Services,cdp-gdpr-service,74,FY27Q4,4,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
+  Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
 Darryn Dieken,Big Data & Observability,HBase & Phoenix,HBase - Public Cloud,hbase,72,FY27Q2,0,N/A,0,N/A,N/A,Multi-Account,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Admin_Services,cdp-gdpr-service,69,FY27Q2,4,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
-  Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
-Darryn Dieken,Unified Intelligence Platform,Flowsnake,Flowsnake,flowsnake-spark-operator,57,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces (long pole - 264), Kompute Group, Disruption Control","1/12: Moved from FY26Q4 to FY27Q1.
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Segmentation,cdp-segmentation-service,62,FY27Q4,6,Need More Info,0,N/A,N/A,,
+Darryn Dieken,Unified Intelligence Platform,Flowsnake,Flowsnake,flowsnake-spark-operator,56,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces (long pole - 264), Kompute Group, Disruption Control","1/12: Moved from FY26Q4 to FY27Q1.
   11/13: Aravinth to communicate Dynamic Namespace timeline to Flowsnake to determine next steps.
   
   Note: Flowsnake also dependent on customer migrating their jobs (Delphi, Edge, Hawking, CRMA)."
-Darryn Dieken,Unified Intelligence Platform,Flowsnake,Flowsnake,flowsnake-impersonation-proxy,56,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces (long pole - 264), Kompute Group, Disruption Control","1/12: Moved from FY26Q4 to FY27Q1.
+Darryn Dieken,Unified Intelligence Platform,Flowsnake,Flowsnake,flowsnake-impersonation-proxy,55,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces (long pole - 264), Kompute Group, Disruption Control","1/12: Moved from FY26Q4 to FY27Q1.
   11/13: Aravinth to communicate Dynamic Namespace timeline to Flowsnake to determine next steps.
   
   Note: Flowsnake also dependent on customer migrating their jobs (Delphi, Edge, Hawking, CRMA)."
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Segmentation,cdp-segmentation-service,56,FY27Q2,5,Need More Info,0,N/A,N/A,,
 Darryn Dieken,Unified Intelligence Platform,Flowsnake,Flowsnake,fs-flowsnake,54,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces (long pole - 264), Kompute Group, Disruption Control","1/12: Moved from FY26Q4 to FY27Q1.
   11/13: Aravinth to communicate Dynamic Namespace timeline to Flowsnake to determine next steps.
   
   Note: Flowsnake also dependent on customer migrating their jobs (Delphi, Edge, Hawking, CRMA)."
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaasslavekdc,54,To Be Decommissioned,0,N/A,0,N/A,FY27Q2,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP BYOC Function,cdp-byoc-krc,46,Not Started,0,N/A,0,N/A,N/A,"Platform on Platform for Workloads
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaasslavekdc,54,To Be Decommissioned,0,N/A,0,N/A,FY27Q3,,2/18: This is dependent on HBase. Scott Kleven is pushing back to see if HBase can bring back in their timeline.
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP BYOC Function,cdp-byoc-krc,47,FY27Q4,0,N/A,0,N/A,N/A,"Platform on Platform for Workloads
   Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - RA,pkiinfra,46,To Be Decommissioned,2,To Be Decommissioned,1,To Be Decommissioned,FY27Q4,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-validator,43,FY27Q1,3,FY27Q1,0,N/A,N/A,,11/13: In progress. Tracking to q1.
-Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,CDP EDC Model Building,edc-model-builder,43,FY27Q2,4,Need More Info,0,N/A,N/A,Dependency on CDP,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Admin_Services,cdp-admin-service,41,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Service Protection,cdp-authentication-service,41,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,MCI Service Delivery - DC Squad,cdp-control-box,41,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Connectors Framework (off-core),cdp-data-connectors,41,FY27Q2,4,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
-  Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP CRM 2,cdp-data-extractor-crm-service,41,FY27Q2,4,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
-  Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP CRM 2,cdp-data-extractor-dispatcher,41,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-eks,41,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Lakehouse,cdp-iceberg-explorer,41,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-infra,41,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-istio-ingress-gateway,41,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-keda,41,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-pra-istio-ingress-gateway,41,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
+Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,CDP EDC Model Building,edc-model-builder,41,FY27Q2,4,Need More Info,0,N/A,N/A,Dependency on CDP,
 Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Metadata Management,ai-metadata-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,Dependency on CDP,
 Muralidhar Krishnaprasad,D360,D360 Service Delivery,MCI Service Delivery - DC Squad,beacons-control-box,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Actions Engine (Core + Off Core),cdp-actions-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Admin Services - India,cdp-airflow-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Actions Engine (Core + Off Core),cdp-actions-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Admin_Services,cdp-admin-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Admin Services - India,cdp-airflow-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Service Protection,cdp-authentication-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
 Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-beacon-ingress-gateway,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
 Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-beacon-istio,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
 Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-beacon-metrics-scraper,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,MCI Service Delivery - DC Squad,cdp-control-box,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
 Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Fredericton Express,cdp-data-capture-eks,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP - Data Clean Room,cdp-data-collaboration,40,FY27Q2,0,N/A,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Lakehouse,cdp-data-sync-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP - Data Clean Room,cdp-data-collaboration,40,FY27Q4,0,N/A,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Connectors Framework (off-core),cdp-data-connectors,40,FY27Q4,4,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
+  Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP CRM 2,cdp-data-extractor-crm-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,"Platform on Platform for Workloads
+  Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP CRM 2,cdp-data-extractor-dispatcher,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Lakehouse,cdp-data-sync-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-eks,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
 Muralidhar Krishnaprasad,D360,D360 Query,Hyper Database - Engine,cdp-hyperdb,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Multi Org Data Cloud,cdp-multiorg-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Strategic Partners,cdp-partner-activation-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Service Protection,cdp-policy-engine,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Query,CDP Query Service,cdp-query-federator,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Query,CDP Query Service,cdp-query-service,40,FY27Q2,5,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Data Cloud Real Time Consumption and Infra,cdp-realtime-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Admin_Services,cdp-scheduler-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Lakehouse,cdp-iceberg-explorer,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-infra,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-istio-ingress-gateway,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-keda,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Multi Org Data Cloud,cdp-multiorg-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Strategic Partners,cdp-partner-activation-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Service Protection,cdp-policy-engine,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Istio,cdp-pra-istio-ingress-gateway,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
+Muralidhar Krishnaprasad,D360,D360 Query,CDP Query Service,cdp-query-federator,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Query,CDP Query Service,cdp-query-service,40,FY27Q4,5,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Data Cloud Real Time Consumption and Infra,cdp-realtime-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Admin_Services,cdp-scheduler-service,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
 Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-settingspath-injector,40,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q4,,
 Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Service Protection,credential-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Fabric,data-cloud-cdp-fabric-access,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Fabric,data-cloud-cdp-fabric-access,40,FY27Q4,4,Need More Info,0,N/A,N/A,,
 Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,CDP EDC Inference,edc-director,40,FY27Q2,4,Need More Info,0,N/A,N/A,Dependency on CDP,
 Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,CDP EDC Inference,edc-inference,40,FY27Q2,4,Need More Info,0,N/A,N/A,Dependency on CDP,
 Muralidhar Krishnaprasad,D360,D360 Personalization,MCIS - Gears Framework,p13n-decisioning-pipeline,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
 Muralidhar Krishnaprasad,D360,D360 Personalization,p13n CDT Hyper,p13n-process-object-service,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
 Muralidhar Krishnaprasad,D360,D360 Personalization,P13N - Rex,p13n-recommendation-engine,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Unstructured Data,unstructured-realtime,40,FY27Q2,4,N/A,0,N/A,N/A,,
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - INI (Integrations and Infra),ajnaoperator,38,FY27Q2,0,N/A,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),DC - Catalogue,cdp-catalog,36,FY27Q2,0,N/A,0,N/A,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),IAM Platform Integrity and C4SSH,c4ssh,35,Completed with Clean-Up Required,0,N/A,1,FY27Q2,FY27Q1,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Unstructured Data,unstructured-realtime,40,FY27Q2,4,Need More Info,0,N/A,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-validator,39,FY27Q2,3,FY27Q2,0,Need More Info,N/A,,11/13: In progress. Tracking to q1.
+Paul Constantinides,HPS,SDB,Hyperforce Governance Configuration and Orchestration,patching-bootloader-presigner,39,Need More Info,0,N/A,0,N/A,N/A,,"3/5: This service's deprecation is dependent on Alluxio service migration. The Alluxio services and rest of the services running on KRC EKS clusters have not been discussed or prioritized for migration. The EMR on EKS clusters (more significant part of the 'data plane' of CDP) has received a hard 'No' from the EVP for migration, due to the LOE and lack of support in EMR use case. Shirel recommended we should look into the feasibility of migrating the few KRC workloads to FKP, at least to begin in 264. Shirel's team can provide the expertise and guidance to plan it, but would likely not have capacity this year due to significant LOE involved in the control plane migration. (Thread)
+
+3/2: Patching bootloader presigner is a daemonset for in place patching that is used by Data Cloud. The migration story isn't really with us here, once the Alluxio services are migrated to FKP, presigner can be deployed in the FKP clusters as well and the non FKP deployment depreciated"
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - INI (Integrations and Infra),ajnaoperator,36,FY27Q3,0,N/A,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),DC - Catalogue,cdp-catalog,36,FY27Q4,0,N/A,0,N/A,N/A,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),IAM Platform Integrity and C4SSH,c4ssh,34,Completed with Clean-Up Required,0,N/A,1,FY27Q2,FY27Q1,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Secrets Management,vault-canary,33,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Secrets Management,vault-path-scanner,33,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Secrets Management,vault-policy-manager,33,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-mgmt-jit-ui,32,To Be Decommissioned,3,To Be Decommissioned,0,N/A,FY27Q4,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Fabric,cdp-dpc-eks,31,Not Started,4,Not Started,0,N/A,N/A,"Platform on Platform for Workloads
-  Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-mgmt-jit-ui,31,To Be Decommissioned,3,To Be Decommissioned,0,N/A,FY27Q4,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Edge Application Delivery,edge,31,FY27Q3,0,N/A,0,N/A,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),NetSec - Falcon Platform Services (FPS),network-access-controller,31,N/A,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Unified Notifications,ump-controller,30,FY27Q2,2,FY27Q2,0,N/A,N/A,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),NetSec - Falcon Platform Services (FPS),network-access-controller,31,N/A,0,N/A,0,N/A,N/A,,Can Not / Shoudl Not Containerize. This is an EKS integration. 
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Fabric,cdp-dpc-eks,30,FY27Q4,4,Not Started,0,N/A,N/A,"Platform on Platform for Workloads
+  Disruption Control, Self-service Nodepools, Dynamic Namespaces, Multi-Account",
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Secrets Management,vault-config,30,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Secrets Management,vault-path-manager,30,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),NetSec - L7 Firewall,waas-rate-limiter,30,FY27Q3,0,N/A,0,N/A,N/A,,
-Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Infra US,hawking-compute-eks,29,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
-Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Compute,hawking-compute-proxy,29,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
-Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Infra US,hawking-istio-igw,29,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
-Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Infra US,hawking-istio-operator,29,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
-Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Infra US,hawking-istiod,29,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
-Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Kleiner - Service AI,hawking-oauth2,29,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Unified Notifications,ump-controller,29,FY27Q2,2,FY27Q2,0,N/A,N/A,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),NetSec - L7 Firewall,waas-redis,29,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-results-publisher,28,FY27Q1,2,FY27Q1,1,FY27Q1,N/A,,11/13: In progress. Tracking to q1.
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - Mirus,ajnamirus,27,FY27Q2,2,FY27Q2,2,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
-Darryn Dieken,Big Data & Observability,Monitoring Cloud,Monitoring Agent,cloudwatchexporter,27,FY27Q2,2,FY27Q2,1,FY27Q3,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-org-service,27,FY27Q1,0,N/A,0,N/A,N/A,,11/13: In progress. Tracking to q1.
-Darryn Dieken,Big Data & Observability,Monitoring Cloud,Funnel,funnel,27,FY27Q2,4,FY27Q1,1,FY27Q3,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),FEDX Infra Deploys and Configuration (FIDC),Terraform Infrastructure Developer Experience (TIDE),registry,27,FY27Q2,2,FY27Q2,1,FY27Q2,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),FEDX Infra Deploys and Configuration (FIDC),Terraform Infrastructure Developer Experience (TIDE),terraform,27,FY27Q1,2,Need More Info,1,Need More Info,N/A,Dynamic Namespaces,"1/12: Moved from FY26Q4 to FY27 Q1.
-  11/13: Aravinth to follow-up on path forward given Dynamic Namespace delay to 264."
+Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Infra US,hawking-compute-eks,28,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
+Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Compute,hawking-compute-proxy,28,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
+Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Infra US,hawking-istio-igw,28,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
+Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Infra US,hawking-istio-operator,28,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
+Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Infra US,hawking-istiod,28,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
+Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Kleiner - Service AI,hawking-oauth2,28,To Be Decommissioned,4,To Be Decommissioned,0,N/A,FY27Q1,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-results-publisher,27,FY27Q2,2,FY27Q2,1,Need More Info,N/A,,11/13: In progress. Tracking to q1.
+Darryn Dieken,Big Data & Observability,Ajna,Ajna - Mirus,ajnamirus,26,FY27Q3,2,FY27Q3,2,FY27Q3,N/A,"Disruption Control, Self-Service Nodepools",
+Darryn Dieken,Big Data & Observability,Monitoring Cloud,Monitoring Agent,cloudwatchexporter,26,FY27Q2,2,FY27Q2,1,FY27Q3,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-org-service,26,FY27Q2,0,FY27Q2,0,Need More Info,N/A,,11/13: In progress. Tracking to q1.
+Darryn Dieken,Big Data & Observability,Monitoring Cloud,Funnel,funnel,26,FY27Q2,4,FY27Q1,1,FY27Q3,N/A,,
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Funnel,funnelevents,26,FY27Q2,4,FY27Q1,0,N/A,N/A,,
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Funnel,funnellogs,26,FY27Q2,4,FY27Q1,1,FY27Q3,N/A,,
-Muralidhar Krishnaprasad,Analytics Cloud,CRMA Core,CRM Analytics Security Improvements,eanalytics,26,FY27Q1,0,N/A,0,N/A,N/A,Multi-Account,"1/12: Team is planning to have FKP canary rollout in March 2026 once the 262 release is out on the SB0/Prod0 cells. Once confident on the CRMA behavior on canary, team will start a phased rollout to the Prod customer cells.
-  11/13: POC in progress, with additional steps to be completed by Nov 21. The next steps will be work on the commercial EKS to FKP rollout; timeline is TBD."
-Muralidhar Krishnaprasad,Analytics Cloud,CRMA Core,CRMA-Cluster Management Service,eanalytics-buzzard,26,FY27Q1,0,N/A,0,N/A,N/A,Multi-Account,"1/12: Team is planning to have FKP canary rollout in March 2026 once the 262 release is out on the SB0/Prod0 cells. Once confident on the CRMA behavior on canary, team will start a phased rollout to the Prod customer cells.
-  11/13: POC in progress, with additional steps to be completed by Nov 21. The next steps will be work on the commercial EKS to FKP rollout; timeline is TBD."
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,waii-service,26,Need More Info,0,N/A,0,N/A,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaaskeymaker,26,To Be Decommissioned,0,N/A,0,N/A,FY27Q2,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaasmasterkdc,26,To Be Decommissioned,0,N/A,0,N/A,FY27Q2,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaaskeymaker,26,To Be Decommissioned,0,N/A,0,N/A,FY27Q3,,2/18: This is dependent on HBase who recently said they would delay from q2 to q3. Scott Kleven is pushing back to see if HBase can bring back in their timeline.
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Authentication,kaasmasterkdc,26,To Be Decommissioned,0,N/A,0,N/A,FY27Q3,,2/18: This is dependent on HBase. Scott Kleven is pushing back to see if HBase can bring back in their timeline.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),FEDX Infra Deploys and Configuration (FIDC),Terraform Infrastructure Developer Experience (TIDE),registry,26,FY27Q2,2,FY27Q2,1,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),FEDX Infra Deploys and Configuration (FIDC),Terraform Infrastructure Developer Experience (TIDE),terraform,26,FY27Q1,2,Need More Info,1,Need More Info,N/A,Dynamic Namespaces,2/18: GovCloud timelines are TBD.
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Secrets Management,vault-accelerator,26,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
-Darryn Dieken,Unified Intelligence Platform,Flowsnake,Flowsnake,fs-moana,25,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces (long pole - 264), Kompute Group, Disruption Control","1/12: Moved from FY26Q4 to FY27Q1.
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,waii-service,26,Need More Info,0,N/A,0,N/A,N/A,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - RA,certificateservices,25,To Be Decommissioned,2,To Be Decommissioned,1,To Be Decommissioned,FY27Q1,,
+Muralidhar Krishnaprasad,Analytics Cloud,CRMA Core,CRM Analytics Security Improvements,eanalytics,25,FY27Q1,0,N/A,0,N/A,N/A,Multi-Account,"1/12: Team is planning to have FKP canary rollout in March 2026 once the 262 release is out on the SB0/Prod0 cells. Once confident on the CRMA behavior on canary, team will start a phased rollout to the Prod customer cells.
+  11/13: POC in progress, with additional steps to be completed by Nov 21. The next steps will be work on the commercial EKS to FKP rollout; timeline is TBD."
+Muralidhar Krishnaprasad,Analytics Cloud,CRMA Core,CRMA-Cluster Management Service,eanalytics-buzzard,25,FY27Q1,0,N/A,0,N/A,N/A,Multi-Account,"1/12: Team is planning to have FKP canary rollout in March 2026 once the 262 release is out on the SB0/Prod0 cells. Once confident on the CRMA behavior on canary, team will start a phased rollout to the Prod customer cells.
+  11/13: POC in progress, with additional steps to be completed by Nov 21. The next steps will be work on the commercial EKS to FKP rollout; timeline is TBD."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),FEDX Infra Deploys and Configuration (FIDC),Terraform Infrastructure Developer Experience (TIDE),tiim,25,FY27Q1,0,N/A,0,N/A,N/A,Dynamic Namespaces,11/13: Aravinth to follow-up on path forward given Dynamic Namespace delay to 264.
+Darryn Dieken,Unified Intelligence Platform,Flowsnake,Flowsnake,fs-moana,24,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces (long pole - 264), Kompute Group, Disruption Control","1/12: Moved from FY26Q4 to FY27Q1.
   11/13: Aravinth to communicate Dynamic Namespace timeline to Flowsnake to determine next steps.
   
   Note: Flowsnake also dependent on customer migrating their jobs (Delphi, Edge, Hawking, CRMA)."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),FEDX Infra Deploys and Configuration (FIDC),Terraform Infrastructure Developer Experience (TIDE),tiim,25,FY27Q1,0,N/A,0,N/A,N/A,Dynamic Namespaces,11/13: Aravinth to follow-up on path forward given Dynamic Namespace delay to 264.
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - RA,certificateservices,25,To Be Decommissioned,2,To Be Decommissioned,1,To Be Decommissioned,FY27Q1,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Admin_Services,cdp-geo-provisioning-service,24,FY27Q2,4,Need More Info,0,N/A,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - RA,ura,24,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Salesforce Private Connect,privateconnect-outbound-dp,23,FY27Q2,2,FY27Q3,0,N/A,N/A,,
+Darryn Dieken,Big Data & Observability,HBase & Phoenix,Gridforce - Hadoop,gridforce,24,FY27Q2,0,N/A,0,N/A,N/A,Multi-Account,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - RA,ura,24,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,2/18: Clean-up to occur in 3b.
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Admin_Services,cdp-geo-provisioning-service,23,FY27Q4,4,Need More Info,0,N/A,N/A,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Salesforce Private Connect,privateconnect-outbound-dp,23,FY27Q3,2,FY27Q4,0,N/A,N/A,,2/18: These timelines are estimates.
 Meir Amiel,Marketing,MC Einstein,MC Einstein & Measurement Platform,mce-control-pod,20,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein & Measurement Platform,mce-eks,20,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein & Measurement Platform,mce-envoy-metrics-scraper,20,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
@@ -162,13 +166,9 @@ Meir Amiel,Marketing,MC Einstein,MC Einstein & Measurement Platform,mce-istio,20
 Meir Amiel,Marketing,MC Einstein,MC Einstein & Measurement Platform,mce-istio-ingress-gateway,20,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-sto-service,19,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-sto-worker,19,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Paul Constantinides,HPS,SDB,Hyperforce Governance Configuration and Orchestration,patching-bootloader-presigner,19,Need More Info,0,N/A,0,N/A,N/A,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Gambit,mce-goodbye,17,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-provisioner,17,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Gambit,mce-api-gateway,16,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Darryn Dieken,Big Data & Observability,Ajna,Ajna - Wrangler,ajnatopicdeployer,15,FY27Q2,0,N/A,0,N/A,N/A,"Disruption Control, Self-Service Nodepools",
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-job-uploader,15,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Big Data & Observability,HBase & Phoenix,Gridforce - Hadoop,gridforce,14,FY27Q2,0,N/A,0,N/A,N/A,Multi-Account,
 Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-acdc,14,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-castle-black,14,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-deviner,14,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
@@ -176,99 +176,110 @@ Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-orchard,14,To Be Decom
 Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-sprinkler,14,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-cdp-config,13,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-lalaland,13,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - DevOps and Infra,thb-eks-afv,12,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - DevOps and Infra,thb-rbbn-sbc-afv,12,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,afv-kamailio-ops,12,FY27Q3,0,N/A,0,N/A,N/A,,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,afv-siprelay,12,FY27Q3,0,N/A,0,N/A,N/A,,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,afv-siprelay-lb,12,FY27Q3,0,N/A,0,N/A,N/A,,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,afv-wss-echo,12,FY27Q3,0,N/A,0,N/A,N/A,,
+Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Interactive Data Science,notebook,12,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces, Dynamic Routing and AuthN/Z, Disruption Control",11/13: On track for q4.
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - DevOps and Infra,thb-eks-afv,12,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - DevOps and Infra,thb-rbbn-sbc-afv,12,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
 Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-acdc-prodx,11,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-castle-black-prodx,11,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-hogs,10,FY27Q1,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-sto-mobile,10,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-hogs,10,FY27Q1,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Currently in dev testing. POC in progress."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rosssal,10,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Service,spinnaker,10,Need More Info,0,N/A,1,Need More Info,N/A,,2/6: Timeline is tbd. No work will occur in 262.
-Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-sto-mobile,10,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Service,sfcd-cs-funnel-metrics,9,FY27Q4,0,N/A,1,FY27Q4,N/A,,
-Muralidhar Krishnaprasad,AI Cloud,Agentforce Foundations,Einstein Interactive Data Science,notebook,9,FY27Q1,0,N/A,0,N/A,N/A,"Dynamic Namespaces, Dynamic Routing and AuthN/Z, Disruption Control",11/13: On track for q4.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Service,sfcd-cs-funnel-metrics,10,FY27Q4,0,N/A,1,FY27Q4,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Service,spinnaker,10,Need More Info,0,N/A,1,Need More Info,N/A,,2/18: Timeline is TBD. Team to review timeline and prioritization during 264 planning.
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-job-uploader,8,FY27Q4,1,Need More Info,0,N/A,N/A,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Data Plane Access,praui,8,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Pipeline Execution,sfcd-echovmf,8,FY27Q4,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Log Analytics Scrum Team,splunkmadeira,8,FY27Q2,2,FY27Q1,1,FY27Q2,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Infra IAM - Data Plane Access,praui,8,Completed with Clean-Up Required,0,N/A,0,N/A,FY27Q1,,11/13: On track for q4.
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Funnel,funnel-rl,6,FY27Q2,0,N/A,0,N/A,N/A,,
-Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-compute,6,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs,5,FY27Q1,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP_Fabric,helm-provisioning-job,5,Need More Info,0,N/A,0,N/A,N/A,,
+Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-compute,5,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs,5,FY27Q1,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Currently in dev testing. POC in progress."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-arc,5,FY27Q1,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-arc,5,FY27Q1,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Currently in dev testing. POC in progress."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-autohydrator,5,FY27Q1,0,N/A,0,N/A,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
   11/13: Currently in dev testing. POC in progress."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-gumberoo,5,FY27Q1,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-gumberoo,5,FY27Q1,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Currently in dev testing. POC in progress."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-majordomo,5,FY27Q1,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-majordomo,5,FY27Q1,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Currently in dev testing. POC in progress."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-majordomo-operator,5,FY27Q1,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-majordomo-operator,5,FY27Q1,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Currently in dev testing. POC in progress."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-misr,5,FY27Q1,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-misr,5,FY27Q1,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Currently in dev testing. POC in progress."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-tool,5,FY27Q1,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Provisioning,Public Cloud Start (PCS) - AWS,pcs-tool,5,FY27Q1,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Currently in dev testing. POC in progress."
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Funnel,public-funnel,5,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Funnel,public-funnelevents,5,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Funnel,public-funnellogs,5,FY27Q2,0,N/A,0,N/A,N/A,,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,afv-kamailio-ops,5,FY27Q2,0,N/A,0,N/A,N/A,,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,afv-siprelay,5,FY27Q2,0,N/A,0,N/A,N/A,,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,afv-siprelay-lb,5,FY27Q2,0,N/A,0,N/A,N/A,,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,afv-wss-echo,5,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Application Services And Tooling - FAST,baas,4,Need More Info,2,Need More Info,0,N/A,N/A,,"2/6: POC will kick-off in 262. Based on the POC, team will determine FKP feasibility."
+Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-slt-service,4,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Custom Workflows,sfcd-workflow-api,4,FY27Q4,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI TRUST,sfci-gec,4,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-gecistio,4,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI TRUST,sfci-release-master,4,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI TRUST,sfci-team-master,4,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
-Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-slt-service,4,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - DevOps and Infra,thb-eks,4,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - DevOps and Infra,thb-rbbn-sbc,4,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - DevOps and Infra,thb-eks,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-freeswitch-core,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-janus-gateway-server,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-kamailio-ops,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-kamailio-sip-router,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-media-converter,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-media-lb,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Godavari (Native Call Recording),thb-media-relay,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Godavari (Native Call Recording),thb-native-recording-api,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - DevOps and Infra,thb-rbbn-sbc,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-stunner-gw,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-transcription-lb,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-transcription-relay,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-voice-command-router,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-voice-switch-allocator-api,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Godavari (Native Call Recording),thb-voice-switch-discovery-api,4,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Argus,argus,3,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Managed Workflows,sfcdpgaas,3,Need More Info,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI,sfci-p2p,3,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-unmanagedistio,3,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Muralidhar Krishnaprasad,MuleSoft,MuleSoft Product Org,Einstein GPT for Flow,mce-citadel,3,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,1/23: Moved from FY26Q4 to FY27 Q1 (ETA: Apr 1)
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-ees-service,3,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-overview,3,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-preview-service,3,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Muralidhar Krishnaprasad,MuleSoft,MuleSoft Product Org,Einstein GPT for Flow,mce-citadel,3,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,1/23: Moved from FY26Q4 to FY27 Q1 (ETA: Apr 1)
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Managed Workflows,sfcdpgaas,3,FY27Q2,0,N/A,0,N/A,N/A,,2/18: Timeline is tentative. Work will be done after DR (early-264). Team needs to talk through circular dependencies.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI,sfci-p2p,3,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-releaseistio,3,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-unmanagedistio,3,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-ad-audiences-fe,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-campaign-service,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-control-box,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-eks,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-goodbye-service,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-istio,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-istio-ingress-gateway,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-journey-builder-ads,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-lead-ingestion,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
+Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-settingspath-injector,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,AirFilter,airfilter,2,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Airlock,airlock-transfer-low-eks,2,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Authenticity,airtrust,2,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-api,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-data,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-governance,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-infra,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-ingress-gateway,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-istio,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-s2a-api,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-topo-api,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-topo-tools,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-ui,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-versionvector-api,2,FY27Q1,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-workflow-api,2,FY27Q1,0,N/A,0,N/A,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-api,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-data,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-governance,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-infra,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-ingress-gateway,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-istio,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-s2a-api,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-topo-api,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-topo-tools,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-ui,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-versionvector-api,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Artifact Metadata and Governance,amg-workflow-api,2,FY27Q1,0,N/A,0,FY27Q2,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,fedx-cp,armada2-api,2,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,fedx-cp,armada2-servicecrd,2,FY27Q2,0,N/A,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Fredericton Express,cdp-data-ingestion-service-cdp-cluster,2,FY27Q4,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,fre,2,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Infrastructure Lifecycle Mgmt (ILM),Site Reliability Engineering,CP Site Reliability Engineering,fsre-eks-svc,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,"1/29: Dev cluster is gone. Now pending for Falcon decomm team to complete the nitro requests for stage and prod. Once done, the team will clean-up the falcon repositories. Thread. Considering current backlog, it make take more than 1 month to complete this request."
-Darryn Dieken,Infrastructure Lifecycle Mgmt (ILM),Site Reliability Engineering,CP Site Reliability Engineering,oob-collector,2,FY27Q2,0,N/A,0,N/A,N/A,,"2/9: Ownership and knowledge transfer to MonCloud (POC: Anupam Jain) occurring in 262. Projects for oob will be planned for 264.
-
-2/6: This service is an outlier in that it is merely a provisioning pipeline and not a standard SF service. It essentially provisions AWS resources prometheus, grafana etc for moncloud services in their own FIs."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),resultng,2,Need More Info,0,N/A,1,Need More Info,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rossapi,2,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rossapi-istio,2,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rossexec,2,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rosstest,2,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI,sfci-ai,2,Need More Info,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI,sfci-build-insights-service,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-docker-proxy,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-istio,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI-Strata Public Cloud Migration,sfci-pypi,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-releaseistio,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-teamistio,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,fedx-cp,tfregistry,2,Need More Info,0,N/A,0,N/A,N/A,,2/6: This service no longer owns to fedx-cp. Steve followed-up with Xiaoxiao to get clarification.
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Unified Notifications,ump-istio,2,FY27Q2,0,N/A,0,N/A,N/A,,
-Jim Wiese,GIA,Secure Stack Engineering,TIP Security Data Fabric - VDP,tvm-db-automation,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
+Paul Constantinides,HPS,HyperForce Runtime Platform,FKP Control Plane,kube-pod-recycler,2,FY27Q1,1,Need More Info,0,N/A,N/A,,"2/9: Team will be rolling out to Commercial Prod in KPR dry run mode in 2b sprint. See W-21213696 and Tracker. After x96 is rolled out, team can enable KPR in restart mode."
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-avant,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Gambit,mce-eci,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Gambit,mce-eci-ui,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
@@ -294,20 +305,32 @@ Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-reporting-service,2,To
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-sto-activity,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-sto-config,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
 Meir Amiel,Marketing,MC Einstein,MC Einstein Insights,mce-sto-setup,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-ad-audiences-fe,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-campaign-service,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-control-box,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-eks,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-goodbye-service,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-istio,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-istio-ingress-gateway,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-journey-builder-ads,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Team Rogue Squadron,adstudio-lead-ingestion,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Muralidhar Krishnaprasad,D360,"D360 Data, Audiences & Identity",MC - Advertising Studio - Night Watch,adstudio-settingspath-injector,2,FY27Q3,0,N/A,0,N/A,N/A,,1/29: Team is moving timeline from FY26 Q4 to FY27 Q3 (Sept 1). This is due to work to continue supporting existing infra and customer contracts in Ad Studio.
-Paul Constantinides,HPS,HyperForce Runtime Platform,FKP Control Plane,kube-pod-recycler,2,FY27Q1,1,N/A,0,N/A,N/A,,"2/9: Team will be rolling out to Commercial Prod in KPR dry run mode in 2b sprint. See W-21213696 and Tracker. After x96 is rolled out, team can enable KPR in restart mode."
+Darryn Dieken,Infrastructure Lifecycle Mgmt (ILM),Site Reliability Engineering,CP Site Reliability Engineering,oob-collector,2,FY27Q2,0,N/A,0,N/A,N/A,,"2/9: Ownership and knowledge transfer to MonCloud (POC: Anupam Jain) occurring in 262. Projects for oob will be planned for 264.
+ 
+
+ 2/6: This service is an outlier in that it is merely a provisioning pipeline and not a standard SF service. It essentially provisions AWS resources prometheus, grafana etc for moncloud services in their own FIs."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Metrics and Insights (FMI),productivity-insights-tracer,2,FY27Q2,0,N/A,0,N/A,N/A,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Quantum,quantumkgia2h,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),resultng,2,FY27Q2,0,N/A,1,Need More Info,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rossapi,2,FY27Q2,0,N/A,0,N/A,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rossapi-istio,2,FY27Q2,0,N/A,0,N/A,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rossexec,2,FY27Q2,0,N/A,0,N/A,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,rosstest,2,FY27Q2,0,N/A,0,N/A,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI,sfci-ai,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI,sfci-build-insights-service,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-docker-proxy,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-istio,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI-Strata Public Cloud Migration,sfci-pypi,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-teamistio,2,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,fedx-cp,tfregistry,2,FY27Q2,0,N/A,0,N/A,N/A,,
+Jim Wiese,GIA,Secure Stack Engineering,TIP Security Data Fabric - VDP,tvm-db-automation,2,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Unified Notifications,ump-istio,2,FY27Q2,0,N/A,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP BYOC Function,cdp-byoc-proxy,1,FY27Q4,0,N/A,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Service Protection,cdp-cors-service,1,FY27Q4,0,N/A,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-math,1,FY27Q4,0,N/A,0,N/A,N/A,,
+Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-math-api,1,FY27Q4,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),MAGIC,Falcon Portal,fdxui,1,Need More Info,0,N/A,0,N/A,N/A,,2/6: Steve asked Aishwarya Kumar and Shailesh Govande via Slack on timeline for migration/deprecation.
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),FEDX Infra Deploys and Configuration (FIDC),Terraform Infrastructure Developer Experience (TIDE),file-injector-mutating-webhook,1,,0,,0,,,,Newly added
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),FEDX Infra Deploys and Configuration (FIDC),Terraform Infrastructure Developer Experience (TIDE),file-injector-mutating-webhook,1,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Firefly,firefly,1,FY27Q3,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Firefly,firefly-changemgmt,1,FY27Q3,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Firefly,firefly-intake,1,FY27Q3,0,N/A,0,N/A,N/A,,
@@ -316,77 +339,63 @@ Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployme
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Firefly,firefly-package,1,FY27Q3,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Firefly,firefly-promotion,1,FY27Q3,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Firefly,firefly-pullrequest,1,FY27Q3,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-api,1,FY27Q1,0,N/A,0,N/A,N/A,,11/13: In progress. Tracking to q1.
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-operations,1,FY27Q1,0,N/A,0,N/A,N/A,,11/13: In progress. Tracking to q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-api,1,FY27Q2,0,FY27Q2,0,Need More Info,N/A,,11/13: In progress. Tracking to q1.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),fit-operations,1,FY27Q2,0,FY27Q2,0,Need More Info,N/A,,11/13: In progress. Tracking to q1.
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),ftg-test-recommender,1,FY27Q2,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Big Data & Observability,Monitoring Cloud,Kaiju,kaiju,1,FY27Q1,0,N/A,1,N/A,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
   11/13: Kicking-off now."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD ROSS,macha-api,1,FY27Q2,0,N/A,0,N/A,N/A,,
-Darryn Dieken,Big Data & Observability,Monitoring Cloud,Argus,monexapi,1,Need More Info,0,N/A,0,N/A,N/A,,2/6: Steve followed-up on the #fkp-moncloud-collaboration channel to get a timeline.
+Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-nimbus,1,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
+Darryn Dieken,Big Data & Observability,Monitoring Cloud,Argus,monexapi,1,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,2/19: The plan is to deprecate the non-FKP instance. We need to switch over a few more  users from monexapi to the new end point.  Will work with the users to identify the timeline for this switchover and get back. (Thread)
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - Foundations,raphty,1,To Be Decommissioned,2,FY27Q1,1,FY27Q2,FY27Q1,,3/5: Commercial clean-up tracked in W-21462561.
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Deployment Strategies,sfcd-argo-workflows,1,FY27Q4,0,N/A,0,N/A,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-builds,1,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCI Environments,sfci-teambuilds,1,To Be Decommissioned,0,N/A,0,N/A,Need More Info,,"2/5: These services are on CloudBees CI. They are exempted from onboarding due to a vendor limitation. In addition, SFCI plans to phase out CloudBees and replace it with SFCI Nextgen Unified services in the next 2 years."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Falcon Integration Testing (FIT),sonarqube,1,FY27Q2,0,N/A,0,N/A,N/A,,
-Meir Amiel,Marketing,MC Einstein,MC Einstein - Kernel,mce-nimbus,1,To Be Decommissioned,0,N/A,0,N/A,FY27Q1,,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-clickhouse-operator,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-freeswitch-core,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-janus-gateway-server,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-kamailio-ops,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-kamailio-sip-router,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-media-converter,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-media-lb,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Godavari (Native Call Recording),thb-media-relay,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Godavari (Native Call Recording),thb-native-recording-api,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-stunner-gw,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-transcription-lb,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-transcription-relay,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-3,thb-voice-command-router,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-voice-switch-allocator-api,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Godavari (Native Call Recording),thb-voice-switch-discovery-api,1,FY27Q2,0,N/A,0,N/A,N/A,Thunderbird Requirements,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),CDP Service Protection,cdp-cors-service,1,FY27Q2,0,N/A,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Customer Data Platform (CDP),Fredericton Express,cdp-data-ingestion-service-cdp-cluster,1,FY27Q2,0,N/A,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-math,1,FY27Q2,0,N/A,0,N/A,N/A,,
-Muralidhar Krishnaprasad,D360,D360 Service Delivery,Data Cloud Platform Engineering,cdp-math-api,1,FY27Q2,0,N/A,0,N/A,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - Foundations,raphty,1,N/A,2,FY27Q1,1,FY27Q2,N/A,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),NetSec - Falcon Platform Services (FPS),soterfalcon,1,Completed with Clean-Up Required,0,N/A,1,FY27Q2,FY27Q3,,2/6: The remaining Commercial instance is needed for rollout changes in Blackjack. It will be cleaned-up after the BJ migration is complete.
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-clickhouse-operator,1,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-hep-agent,1,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-picserver,1,FY27Q3,0,N/A,0,N/A,N/A,Thunderbird Requirements,
+Meir Amiel,Service,Service Cloud Thunderbird,ThunderBird - Native Voice - Team-1,thb-qxip-license-server,1,FY27Q4,0,N/A,0,N/A,N/A,Thunderbird Requirements,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,Airlock,airlock-high-eks,0,N/A,0,N/A,1,FY27Q3,N/A,,
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,ami-perms,0,N/A,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
   11/13: Aravinth to kick-start thread on POC status."
 Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,ami-replicator,0,N/A,0,N/A,1,FY27Q2,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
   11/13: Aravinth to kick-start thread on POC status."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,ecr-perms,0,N/A,0,N/A,1,N/A,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
-  11/13: Aravinth to kick-start thread on POC status."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,fcp-unzip,0,N/A,0,N/A,1,N/A,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
-  11/13: Aravinth to kick-start thread on POC status."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,helm-extractor,0,N/A,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
-  11/13: Aravinth to kick-start thread on POC status."
-Darryn Dieken,Infrastructure Strategy Data Center Operations (ISDO),DNS Engineering and Operations,DDI,r53proxy,0,N/A,56,To Be Decommissioned,0,N/A,FY27Q1,,"2/6: Likely 2b/3a timeframe for decomm, per Alejandro Bolivar."
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,sfcd-awsbake,0,N/A,0,N/A,1,FY27Q4,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Structured Config,sfcdconfigservice,0,N/A,0,N/A,1,FY27Q2,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Service,sfcdekstest1,0,N/A,0,N/A,1,Need More Info,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Pipeline Execution,sfcdplatform,0,N/A,0,N/A,1,Need More Info,N/A,,
-Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,stargate,0,N/A,0,N/A,1,Need More Info,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
-  11/13: Aravinth to kick-start thread on POC status."
-Jim Wiese,GIA,Secure Stack Engineering,TIP Detection Platform - Foundation ML,dnr-airflow,0,N/A,0,N/A,1,To Be Decommissioned,FY27Q4,,
+Jim Wiese,GIA,Secure Stack Engineering,TIP Detection Platform - Foundation ML,dnr-airflow,0,N/A,0,N/A,1,To Be Decommissioned,FY27Q4,,"2/23: For all DNR services: There is no way to pull in the timeline. Team is building a new service that was rushed for an urgent event. This new service was deployed to ESVC1 last month in an urgent buildout and will be replacing multiple of our services over the next release. We will be building that new service and working on getting approval for it to go to Blackjack A. If we pull in the timeline, we would have to build a service, get customer approval, remove the service, build a new one, and get customer approval again since it's not Gov Cloud."
 Jim Wiese,GIA,Secure Stack Engineering,TIP Log Platform - Collect,dnr-connector,0,N/A,1,To Be Decommissioned,1,To Be Decommissioned,FY27Q4,,
 Jim Wiese,GIA,Secure Stack Engineering,TIP Search Experience,dnr-k2s,0,N/A,0,N/A,1,To Be Decommissioned,FY27Q4,,
 Jim Wiese,GIA,Secure Stack Engineering,TIP Search Experience,dnr-molokai,0,N/A,0,N/A,1,To Be Decommissioned,FY27Q4,,
 Jim Wiese,GIA,Secure Stack Engineering,TIP Detection Platform - Detection Engines,dnr-orion,0,N/A,0,N/A,1,To Be Decommissioned,FY27Q4,,
 Jim Wiese,GIA,Secure Stack Engineering,TIP Log Platform - Collect,dnr-prism,0,N/A,1,To Be Decommissioned,1,To Be Decommissioned,FY27Q4,,
 Jim Wiese,GIA,Secure Stack Engineering,TIP Detection Platform - Detection Engines,dnr-streamingsearch,0,N/A,0,N/A,1,To Be Decommissioned,FY27Q4,,
-Jim Wiese,GIA,Secure Stack Engineering,SCP - Endpoint Protection,osquery-agent,0,N/A,1,To Be Decommissioned,0,N/A,FY27Q1,,2/6: Steve asked Jay Moparty for clarity on eta. Awaiting response.
-Jim Wiese,GIA,Secure Stack Engineering,Salesforce Asset Inventory,sai-gateway,0,N/A,2,To Be Decommissioned,1,FY27Q2,N/A,,
-Jim Wiese,GIA,Secure Stack Engineering,Cloud Security Posture Management (CSPM),tentacle,0,N/A,1,To Be Decommissioned,1,FY27Q2,FY27Q1,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,ecr-perms,0,N/A,0,N/A,1,N/A,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
+  11/13: Aravinth to kick-start thread on POC status."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,fcp-unzip,0,N/A,0,N/A,1,N/A,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
+  11/13: Aravinth to kick-start thread on POC status."
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,helm-extractor,0,N/A,0,N/A,1,FY27Q4,N/A,,"1/12: Moved from FY26Q4 to FY27Q1.
+  11/13: Aravinth to kick-start thread on POC status."
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),IAM - JIT Data Plane,jit,0,N/A,2,FY27Q1,1,FY27Q2,N/A,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),KMS Platform,kmsinfra,0,N/A,0,N/A,1,FY27Q2,N/A,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - Foundations,magister,0,N/A,0,N/A,2,To Be Decommissioned,FY27Q1,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - RA,pkicontroller,0,N/A,2,N/A,1,FY27Q3,N/A,,
-Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Quantum,quantumk,0,N/A,4,To Be Decommissioned,2,FY27Q2,N/A,,
+Jim Wiese,GIA,Secure Stack Engineering,SCP - Endpoint Protection,osquery-agent,0,N/A,1,To Be Decommissioned,0,N/A,FY27Q1,,"3/2: Jay to cut teams a TD asking them to re-roll their fleet. He'll ask his team to do this week.  (Thread)
+2/6: Steve asked Jay Moparty for clarity on eta. Awaiting response."
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),PKI - RA,pkicontroller,0,N/A,2,To Be Decommissioned,1,FY27Q3,FY27Q2,,
+Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),Quantum,quantumk,0,N/A,2,To Be Decommissioned,2,FY27Q2,FY27Q1,,
+Darryn Dieken,Infrastructure Strategy Data Center Operations (ISDO),DNS Engineering and Operations,DDI,r53proxy,0,N/A,56,To Be Decommissioned,0,N/A,FY27Q1,,"2/6: Likely 2b/3a timeframe for decomm, per Alejandro Bolivar."
+Jim Wiese,GIA,Secure Stack Engineering,Salesforce Asset Inventory,sai-gateway,0,N/A,2,To Be Decommissioned,1,FY27Q2,FY27Q1,,
 Paul Constantinides,HPS,SDB,SDB DB Management,sdb,0,N/A,0,N/A,1,FY27Q1,N/A,,
 Paul Constantinides,HPS,SDB,SDB Archival,sdbarchivalworker,0,N/A,0,N/A,2,FY27Q1,N/A,,
 Paul Constantinides,HPS,SDB,SDB Store / Zk Management,sdbstore,0,N/A,0,N/A,2,FY27Q1,N/A,,
 Paul Constantinides,HPS,SDB,SDB Store / Zk Management,sdbzk,0,N/A,0,N/A,2,FY27Q1,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,sfcd-awsbake,0,N/A,0,N/A,1,FY27Q4,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Structured Config,sfcdconfigservice,0,N/A,0,N/A,1,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Service,sfcdekstest1,0,N/A,0,N/A,1,Need More Info,N/A,,2/18: Timeline is TBD. Team to review timeline and prioritization during 264 planning.
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Continuous Deployment,SFCD Pipeline Execution,sfcdplatform,0,N/A,0,N/A,1,To Be Decommissioned,FY27Q4,,"2/19: To get this decomm'd, they need to get MR running in BJ, which is planned for FY27 Q4."
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),KMS Platform,smsapi,0,N/A,0,N/A,1,FY27Q2,N/A,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),KMS Platform,smscanary,0,N/A,0,N/A,1,FY27Q2,N/A,,
 Paul Constantinides,HPS,Hyperforce Trust Platform (HTP),KMS Platform,smszk,0,N/A,0,N/A,1,FY27Q2,N/A,,
+Darryn Dieken,Reliable AI-Driven Developer eXperience (RADX),Developer Productivity Experience,SFCD Stargate,stargate,0,N/A,0,N/A,1,FY27Q4,N/A,,"1/12: Moved from FY26Q4 to FY27 Q1.
+  11/13: Aravinth to kick-start thread on POC status."
 Paul Constantinides,HPS,HyperForce Runtime Platform,STRIDE,strauz,0,N/A,0,N/A,1,FY27Q2,N/A,,
+Jim Wiese,GIA,Secure Stack Engineering,Cloud Security Posture Management (CSPM),tentacle,0,N/A,0,N/A,1,FY27Q2,N/A,,

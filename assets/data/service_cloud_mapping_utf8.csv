@@ -78,6 +78,7 @@ alert-notification-state-infra,Moncloud Alerting,Monitoring Cloud,Big Data & Obs
 alert-webservice,Moncloud Alerting,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 alm-orchestrator-service,AppDev - DevOps Center,Developer Platform,Platform Services,Muralidhar Krishnaprasad
 alm-vcs-hub,AppDev - DevOps Center,Developer Platform,Platform Services,Muralidhar Krishnaprasad
+am-experience-api,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 amc-agent-reg-facade,MS Universal Management Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 amc-atlas,MS Universal Management Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 amc-automation,MS Universal Management Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -542,6 +543,7 @@ arm-application-mgr-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Mur
 arm-auth-proxy-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-jafar-service,MS Universal Management Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-mcm2-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+arm-monitoring-ingest,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-ms-atlas-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-ms-mcm-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-platform-alerts,MS Universal Management Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -629,6 +631,8 @@ beehive,TVM Infrastructure scanning,,,Jim Wiese
 bghostaccess,Syssec Infra,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 bharosa,PKI - Foundations,Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 bifrost,HLE,App Data Services,HPS,Paul Constantinides
+bigdata-datamanagement,HBase - Public Cloud - India,HBase & Phoenix,Big Data & Observability,Darryn Dieken
+bigdata-sor,HBase - Public Cloud - India,HBase & Phoenix,Big Data & Observability,Darryn Dieken
 blackhawk,NetSec - Falcon Platform Services (FPS),Hyperforce Trust Platform (HTP),HPS,Paul Constantinides
 blog-audio,Developer Web Ops,Marketing Technology,CMO,Joe Inzerillo
 bot-svc-agg,Einstein Copilot Analytics,Agentforce Lifecycle and Applied AI,AI Cloud,Muralidhar Krishnaprasad
@@ -1465,6 +1469,7 @@ idp-e-2-e-job,MS IDP,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 idp-management-service,MS IDP,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 idp-runtime-service,MS IDP,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 idp-ui,MS IDP,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+ids-compute,Einstein Infra US,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 ids-worker,Einstein Infra US,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 iem-bot,TIP Autonomous Response Platform,Detection & Response,Security & Compliance,Jim Wiese
 ignite-api-experience-securityhub,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
@@ -1478,6 +1483,7 @@ ignite-api-system-idm,IAM - Enterprise IGA,Enterprise Security,Security & Compli
 ignite-api-system-iiq,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-notifications,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-okta,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
+ignite-api-system-sf-peopleforce,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-sf-org62,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-sf-orgcs,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
 ignite-api-system-sf-orgesc,IAM - Enterprise IGA,Enterprise Security,Security & Compliance,Jim Wiese
@@ -1509,6 +1515,7 @@ ingestion-transform-uo-dc-logs,MS MDAS Ingestion and Logging,MuleSoft Product Or
 ingestion-transform-uo-dc-metrics,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 ingestion-transform-uo-dc-traces,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 ingestion-validation-sharding-job,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+ingestion-validation-sharding-persistence-job,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 ingressassistant,Ingress Gateway,HyperForce Runtime Platform,HPS,Paul Constantinides
 ingressconfig,Ingress Gateway,HyperForce Runtime Platform,HPS,Paul Constantinides
 ingressgateway,Ingress Gateway,HyperForce Runtime Platform,HPS,Paul Constantinides
@@ -2051,6 +2058,7 @@ modelstore-db,Einstein Metadata Management,Agentforce Foundations,AI Cloud,Mural
 moncfg,Moncfg,,,Darryn Dieken
 moncloud-api,MonCloud API Platforms,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 moncloud-api-infra,MonCloud API Platforms,Monitoring Cloud,Big Data & Observability,Darryn Dieken
+moncloud-bot,Argus,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 moncloud-events,MonCloud Events,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 moncloud-gateway,MonCloud API Platforms,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 moncloud-grafana,Monitoring Experience,Monitoring Cloud,Big Data & Observability,Darryn Dieken
@@ -2447,6 +2455,7 @@ scp-event-relay,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wie
 scp-sot,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
 scp-vuln-processor,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
 scpvulninsightservice,TVM Infrastructure Scanning,Secure Stack Engineering,GIA,Jim Wiese
+screen-reviewer,Globalization,Globalization,Platform Services,Muralidhar Krishnaprasad
 scrt1-central,SCRT1 DevOps,Digital Engagement,Service,Meir Amiel
 scrt1-ingress,SCRT1 DevOps,Digital Engagement,Service,Meir Amiel
 scrt1lapp,SCRT1 DevOps,Digital Engagement,Service,Meir Amiel
@@ -2552,6 +2561,7 @@ service-mesh-xapi-service,MS API Runtime Control Plane,MuleSoft Product Org,Mule
 service-ownership-console,MonCloud Notifications,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 servicemesh,Mesh Control Plane,HyperForce Runtime Platform,HPS,Paul Constantinides
 sf-iceberg-rest-catalog,Interactive Analytics,Salesforce Presto,Unified Intelligence Platform,Darryn Dieken
+sf-spark-portal,Flowsnake,Flowsnake,Unified Intelligence Platform,Darryn Dieken
 sf-spark-scheduler,Flowsnake,Flowsnake,Unified Intelligence Platform,Darryn Dieken
 sfb-arbiter,Salesforce Backup (Backup and Restore),Trusted Services,Platform Services,Muralidhar Krishnaprasad
 sfb-org-authenticator,Salesforce Backup (Backup and Restore),Trusted Services,Platform Services,Muralidhar Krishnaprasad
@@ -2878,6 +2888,7 @@ tabhf-vizdata-service,CP CE-Containerization-Core Containerization,Tableau Cloud
 tabhf-vizdata-service-haproxy,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
 tabhf-vizqlserver,AX VAST VizQL Server Ops,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
 tabhf-workbook-persistence-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
+table-management,Data Services - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 table-maintenance,CDP_Lakehouse,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 tableau-database-pipeline-snapshot,CP CE-CloudInfra-TOC,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
 tableau-exchange-backend,AX Integrations Essentials,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad

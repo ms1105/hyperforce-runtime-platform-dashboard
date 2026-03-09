@@ -114,9 +114,9 @@ const isFKP = clusterName.toLowerCase().includes('sam');
 
 ### Production Detection
 
-An instance is **Production** if its cluster name does NOT contain common non-prod patterns:
+An instance is **Production** if its cluster name contains `stage`, `prod`, or `esvc` (case-insensitive):
 ```javascript
-const isProduction = !clusterName.match(/dev|stg|test|perf|preprod|sandbox|pilot/i);
+const isProduction = /stage|prod|esvc/i.test(clusterName);
 ```
 
 ### Migration Stages (6 Stages)

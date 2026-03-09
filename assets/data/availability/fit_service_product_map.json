@@ -29,7 +29,7 @@
   "mesh-operator": "Managed Mesh",
   "metadata-concealer": "Managed Mesh",
   "policy-distribution": "Workload Identity",
-  "qpid": "Vegacache",
+  "qpid": "Message Queue",
   "rediscluster-manager": "Vegacache",
   "sam": "Falcon Kubernetes Service",
   "servicemesh": "Managed Mesh",

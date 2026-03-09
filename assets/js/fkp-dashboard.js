@@ -4319,15 +4319,21 @@ function renderPreventionFitSummary() {
         return cleaned || 'Unknown';
     };
 
-    const groupBy = availabilityData.preventionFitGroupBy || 'product';
+    const groupBy = 'product';
+    availabilityData.preventionFitGroupBy = 'product';
     groupButtons.forEach(btn => {
+        if (btn.dataset.value === 'runType') {
+            btn.style.display = 'none';
+        } else {
+            btn.style.display = '';
+        }
         btn.classList.toggle('active', btn.dataset.value === groupBy);
     });
 
     const summaryByKey = new Map();
     filteredRows.forEach(row => {
         const service = row.Service || 'Unknown';
-        const product = getFitProductForService(service);
+        const product = normalizeProductName(getFitProductForService(service));
         const runType = normalizeRunType(row['Run Type']);
         const key = groupBy === 'product' ? product : runType;
         if (!summaryByKey.has(key)) {
@@ -4360,11 +4366,12 @@ function renderPreventionFitSummary() {
     }
 
     const detailMap = new Map();
+    const normalizedSelection = normalizeProductName(selection).toLowerCase().trim();
     filteredRows.forEach(row => {
         const service = row.Service || 'Unknown';
-        const product = getFitProductForService(service);
+        const product = normalizeProductName(getFitProductForService(service));
         const runType = normalizeRunType(row['Run Type']);
-        if (groupBy === 'product' && selection && product !== selection) return;
+        if (groupBy === 'product' && selection && product.toLowerCase().trim() !== normalizedSelection) return;
         if (groupBy === 'runType' && selection && runType !== selection) return;
         const key = groupBy === 'product' ? runType : product;
         if (!detailMap.has(key)) {
@@ -4381,13 +4388,16 @@ function renderPreventionFitSummary() {
     const detailRows = Array.from(detailMap.values()).sort((a, b) => a.key.localeCompare(b.key));
 
     const rowsToRender = selection ? detailRows : summaryRows;
+    const isClickable = !selection;
     tableBody.innerHTML = rowsToRender.map(row => {
         const testsSum = row.tests.reduce((a, b) => a + b, 0);
         const avgFailure = row.failures.length ? (row.failures.reduce((a, b) => a + b, 0) / row.failures.length) : null;
         const avgSuccess = avgFailure !== null ? Math.max(0, 100 - avgFailure) : null;
+        const cellClass = isClickable ? 'prevention-fit-clickable' : '';
+        const dataKey = isClickable ? ` data-key="${row.key}"` : '';
         return `
             <tr>
-                <td class="prevention-fit-clickable" data-key="${row.key}">${row.key}</td>
+                <td class="${cellClass}"${dataKey}>${row.key}</td>
                 <td class="align-center">${testsSum}</td>
                 <td class="align-center">
                     <div style="font-weight:700;">${avgSuccess !== null ? `${avgSuccess.toFixed(1)}%` : '—'}</div>
@@ -5312,7 +5322,7 @@ function renderInventoryDetail(type) {
 
                 const testsValues = useRows.map(r => parseInt(r.Tests || 0, 10)).filter(v => !Number.isNaN(v));
                 const successValues = useRows.map(r => parseSuccessRate(r['Success Rate'], r['Failure Rate'])).filter(v => v !== null);
-                const avgTests = testsValues.length ? Math.round(testsValues.reduce((a, b) => a + b, 0) / testsValues.length) : '-';
+                const testsSum = testsValues.length ? testsValues.reduce((a, b) => a + b, 0) : '-';
                 const avgSuccess = successValues.length
                     ? `${(successValues.reduce((a, b) => a + b, 0) / successValues.length).toFixed(1)}%`
                     : '-';
@@ -5321,7 +5331,7 @@ function renderInventoryDetail(type) {
                     Product: product,
                     Service: service,
                     'Run Type': runType,
-                    Tests: avgTests,
+                    Tests: testsSum,
                     'Avg Success Rate': avgSuccess,
                     'Last Runtime (Max)': lastRuntimeLabel,
                     _rowClass: rowClass
@@ -13920,7 +13930,7 @@ const excludedFitServices = new Set([
 function getFilteredFitRows() {
     const rows = availabilityData.fitData?.rows || [];
     return rows.filter(row => {
-        const service = (row.Service || '').trim().toLowerCase();
+        const service = (row.Service || row['\ufeffService'] || '').trim().toLowerCase();
         return service && !excludedFitServices.has(service);
     });
 }
@@ -13956,7 +13966,7 @@ function parseCSVLineRespectQuotes(line) {
 function parseCSVWithHeadersRobust(csvText) {
     const lines = csvText.trim().split('\n');
     if (lines.length < 2) return { headers: [], rows: [] };
-    const headers = parseCSVLineRespectQuotes(lines[0]).map(header => header.trim());
+    const headers = parseCSVLineRespectQuotes(lines[0]).map(header => header.replace(/^\uFEFF/, '').trim());
     const rows = lines.slice(1).filter(line => line.trim()).map(line => {
         const values = parseCSVLineRespectQuotes(line);
         const row = {};
@@ -13971,7 +13981,7 @@ function parseCSVWithHeadersRobust(csvText) {
 function parseCSVWithHeadersMultiline(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim());
     if (lines.length < 2) return { headers: [], rows: [] };
-    const headers = parseCSVLineRespectQuotes(lines[0]).map(header => header.trim());
+    const headers = parseCSVLineRespectQuotes(lines[0]).map(header => header.replace(/^\uFEFF/, '').trim());
     const rows = [];
     let buffer = '';
     for (let i = 1; i < lines.length; i += 1) {
@@ -14082,9 +14092,9 @@ async function loadAllAvailabilityData() {
             'ingressassistant': 'Ingress Gateway',
             'ingressconfig': 'Ingress Gateway',
             'ingressgateway': 'Ingress Gateway',
-            'workload-identity': 'WIS',
-            'strauz': 'WIS',
-            'policy-distribution': 'WIS'
+            'workload-identity': 'Workload Identity',
+            'strauz': 'Workload Identity',
+            'policy-distribution': 'Workload Identity'
         };
         const normalizedMap = {};
         try {
@@ -14110,7 +14120,8 @@ async function loadAllAvailabilityData() {
             if (!service) return;
             if (product === 'FKP') finalizedMap[service] = 'Falcon Kubernetes Service';
             else if (product === 'Mesh') finalizedMap[service] = 'Managed Mesh';
-            else if (product === 'STRIDE') finalizedMap[service] = 'WIS';
+            else if (product === 'STRIDE') finalizedMap[service] = 'Workload Identity';
+            else if (product === 'WIS') finalizedMap[service] = 'Workload Identity';
             else finalizedMap[service] = product;
         });
         availabilityData.fitServiceProductMap = finalizedMap;

@@ -26,6 +26,9 @@ This is **Hyperforce Runtime Platform 360 (HRP360)** - a dashboard for Salesforc
 
 **⚠️ IMPORTANT: This is a GitHub Pages project - NO React bundling. Use vanilla JavaScript only.**
 
+### Feedback channel
+- The **Slack logo** in the header links to **#hrp-360-support** — the public channel where anyone can submit feedback for HRP 360.
+
 ### Current Dashboard Sections
 | Section | Description |
 |---------|-------------|

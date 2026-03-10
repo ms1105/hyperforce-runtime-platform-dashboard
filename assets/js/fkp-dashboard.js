@@ -2060,6 +2060,44 @@ function updateSidebarSection(tabId) {
     if (subitems) subitems.classList.add('active');
 }
 
+// Expose critical nav APIs immediately so inline scripts and sidebar work even if script fails later
+window.switchTab = switchTab;
+window.updateSidebarSection = updateSidebarSection;
+
+/**
+ * Inline sidebar handlers so tabs work even if something blocks propagation.
+ * Call from onclick="handleNavTabClick('runtime-karpenter')" etc.
+ */
+function handleNavTabClick(tabId) {
+    if (!tabId) return;
+    const subitem = document.querySelector(`.nav-subitem[data-tab="${tabId}"]`);
+    if (subitem && subitem.getAttribute('data-disabled') === 'true') return;
+    try {
+        switchTab(tabId);
+        document.querySelectorAll('.nav-subitem').forEach(i => i.classList.remove('active'));
+        if (subitem) subitem.classList.add('active');
+        updateSidebarSection(tabId);
+    } catch (err) {
+        console.error('❌ handleNavTabClick:', err);
+    }
+}
+
+/**
+ * Expand/collapse a sidebar section. Call from onclick="handleNavSectionExpand('runtime-scale')".
+ */
+function handleNavSectionExpand(sectionId) {
+    const subitems = document.getElementById(sectionId + '-subitems');
+    const mainItem = document.querySelector(`.nav-item.main-item[data-section="${sectionId}"]`);
+    if (!subitems || !mainItem) return;
+    const wasActive = subitems.classList.contains('active');
+    document.querySelectorAll('.nav-subitems').forEach(list => list.classList.remove('active'));
+    document.querySelectorAll('.nav-item.main-item').forEach(m => m.classList.remove('active'));
+    if (!wasActive) {
+        subitems.classList.add('active');
+        mainItem.classList.add('active');
+    }
+}
+
 /**
  * Update page header based on selected tab
  */
@@ -2922,6 +2960,7 @@ function setExecSummaryView() {
     fkpDashboard.state.currentViewMode = 'exec';
     switchTab('exec-summary');
 }
+window.setExecSummaryView = setExecSummaryView;
 
 function scrollToTabContent(tabId) {
     const containerId = `${tabId}-content`;
@@ -11213,6 +11252,8 @@ window.showServiceDetails = showServiceDetails;
 window.closeServiceModal = closeServiceModal;
 window.setViewMode = setViewMode;
 window.switchTab = switchTab;
+window.handleNavTabClick = handleNavTabClick;
+window.handleNavSectionExpand = handleNavSectionExpand;
 window.setSortBy = setSortBy;
 window.toggleSortOrder = toggleSortOrder;
 window.toggleServiceEnv = toggleServiceEnv;
@@ -12105,7 +12146,7 @@ let karpenterFilterState = {
     cluster: 'all',
     month: 'all',
     duration: '30',
-    karpenterToggle: 'all'   // 'all' | 'enabled' | 'disabled'
+    karpenterToggle: 'enabled'   // default: 'enabled' | 'all' | 'disabled'
 };
 
 /**
@@ -12121,8 +12162,8 @@ function roundAvgCpuPercent(value) {
 }
 
 /**
- * Build Karpenter rows from one monthly CSV. CSV columns: report_date, environment_type, falcon_instance, functional_domain, k8s_cluster, karpenter_status, cluster_packing_percent
- * Uses cluster_packing_percent as avg. CPU allocation rate %, rounded to 2 decimals.
+ * Build Karpenter rows from one monthly CSV. CSV columns: report_date, environment_type, falcon_instance, functional_domain, k8s_cluster, karpenter_status, cluster_packing_percent (or cpu_packing_percent in Full files)
+ * Uses cluster_packing_percent or cpu_packing_percent as avg. CPU allocation rate %, rounded to 2 decimals.
  */
 function buildKarpenterRowsFromMonthlyCSV(csvText, monthCode, monthName) {
     const raw = parseCSV(csvText);
@@ -12135,9 +12176,11 @@ function buildKarpenterRowsFromMonthlyCSV(csvText, monthCode, monthName) {
     };
 
     return raw.map(row => {
-        const avgCpu = roundAvgCpuPercent(row.cluster_packing_percent);
+        const percent = row.cluster_packing_percent != null ? row.cluster_packing_percent : row.cpu_packing_percent;
+        const avgCpu = roundAvgCpuPercent(percent);
         const environment = envMap(row.environment_type);
         const efficiencyIndicator = getEfficiencyIndicator(avgCpu, environment);
+        const karpenterStatus = (row.karpenter_status || '').trim();
         return {
             month: monthCode,
             month_name: monthName,
@@ -12148,12 +12191,13 @@ function buildKarpenterRowsFromMonthlyCSV(csvText, monthCode, monthName) {
             avg_cpu: avgCpu,
             node_count: 1,
             avg_pod_count: 0,
-            efficiency_indicator: efficiencyIndicator
+            efficiency_indicator: efficiencyIndicator,
+            karpenter_status: karpenterStatus
         };
     });
 }
 
-/** Monthly files from Cpu allocation rate monthly files: Apr 2025 through Feb 2026 (source of truth for Karpenter) */
+/** Monthly files from Cpu allocation rate monthly files: Apr 2025 through Feb 2026 (source of truth for Karpenter). Jan/Feb use Full file when present (has both Karpenter_Enabled and Karpenter_Disabled). */
 const KARPENTER_MONTHLY_FILES = [
     { file: 'April%20cpu%20allocation%20rate%202025.csv', month: '2025-04', monthName: 'April' },
     { file: 'May%20cpu%20allocation%20rate%202025.csv', month: '2025-05', monthName: 'May' },
@@ -12164,14 +12208,12 @@ const KARPENTER_MONTHLY_FILES = [
     { file: 'Oct%20cpu%20allocation%20rate%202025.csv', month: '2025-10', monthName: 'October' },
     { file: 'Nov%20cpu%20allocation%20rate%202025.csv', month: '2025-11', monthName: 'November' },
     { file: 'Dec%20cpu%20allocation%20rate%202025.csv', month: '2025-12', monthName: 'December' },
-    { file: 'Jan%20cpu%20allocation%20rate%202026.csv', month: '2026-01', monthName: 'January' },
-    { file: 'Feb%20cpu%20allocation%20rate%202026.csv', month: '2026-02', monthName: 'February' }
+    { file: 'Jan%20cpu%20allocation%20rate%202026.csv', month: '2026-01', monthName: 'January', fullFile: 'Jan%20Full%20Karpenter%20file.csv' },
+    { file: 'Feb%20cpu%20allocation%20rate%202026.csv', month: '2026-02', monthName: 'February', fullFile: 'Feb%20Full%20Karpenter%20file.csv' }
 ];
 
-// Source: Cpu allocation rate monthly files folder (project path)
-// Try relative path first so static server (python -m http.server from project root) loads all months.
-// Then try Node API (/api/karpenter-monthly/) which serves from the same folder.
-const KARPENTER_MONTHLY_BASES = ['Cpu%20allocation%20rate%20monthly%20files/', '/api/karpenter-monthly/'];
+// Source: Cpu allocation rate monthly files. Try root folder first (has Jan/Feb Full Karpenter files with both statuses), then assets/data.
+const KARPENTER_MONTHLY_BASES = ['Cpu%20allocation%20rate%20monthly%20files/', 'assets/data/Cpu%20allocation%20rate%20monthly%20files/', '/api/karpenter-monthly/'];
 
 /**
  * Build Karpenter data structures from April 2025 CPU allocation rate CSV.
@@ -12272,10 +12314,22 @@ async function loadKarpenterData() {
         let failedMonths = [];
         for (const base of KARPENTER_MONTHLY_BASES) {
             const results = await Promise.allSettled(
-                KARPENTER_MONTHLY_FILES.map(({ file, month, monthName }) =>
-                    fetch(base + file).then(r => r.ok ? r.text() : Promise.reject(new Error(r.status)))
-                        .then(text => buildKarpenterRowsFromMonthlyCSV(text, month, monthName))
-                )
+                KARPENTER_MONTHLY_FILES.map(async ({ file, month, monthName, fullFile }) => {
+                    if (fullFile) {
+                        try {
+                            const r = await fetch(base + fullFile);
+                            if (r.ok) {
+                                const text = await r.text();
+                                const rows = buildKarpenterRowsFromMonthlyCSV(text, month, monthName);
+                                if (rows.length > 0) return rows;
+                            }
+                        } catch (_) { /* fall through to regular file */ }
+                    }
+                    const r = await fetch(base + file);
+                    if (!r.ok) throw new Error(r.status);
+                    const text = await r.text();
+                    return buildKarpenterRowsFromMonthlyCSV(text, month, monthName);
+                })
             );
             allRows = [];
             seenFi = new Set();
@@ -12299,9 +12353,9 @@ async function loadKarpenterData() {
                     failedMonths.push(monthName + ' ' + (result.reason?.message || result.reason));
                 }
             });
-            // Use this base only if we got most months (at least 10); otherwise try next base so Nov/Dec/Jan/Feb aren't missing
+            // Use this base if we got any data (at least one month); otherwise try next base
             const expectedMonthCount = KARPENTER_MONTHLY_FILES.length;
-            if (allRows.length > 0 && seenMonths.size >= Math.min(10, expectedMonthCount)) {
+            if (allRows.length > 0 && seenMonths.size >= 1) {
                 break;
             }
             if (allRows.length > 0 && seenMonths.size < expectedMonthCount && failedMonths.length > 0) {
@@ -12340,6 +12394,21 @@ async function loadKarpenterData() {
                 filterOptions: Object.keys(karpenterData.filterOptions)
             });
             console.log('📦 Months in filterOptions:', karpenterData.filterOptions.months);
+            // Load enabled clusters list so "Karpenter Disabled" = clusters not in list (shows data)
+            try {
+                const enabledResp = await fetch('assets/data/karpenter/karpenter_enabled_clusters.csv');
+                if (enabledResp.ok) {
+                    const enabledText = await enabledResp.text();
+                    const enabledRows = parseCSV(enabledText);
+                    const clusterCol = enabledRows[0] && (enabledRows[0].k8s_cluster != null) ? 'k8s_cluster' : 'cluster';
+                    karpenterData.enabledClusterSet = new Set(enabledRows.map(r => (r[clusterCol] || r.k8s_cluster || '').trim()).filter(Boolean));
+                    console.log('📦 Karpenter enabled clusters loaded (monthly path):', karpenterData.enabledClusterSet.size);
+                } else {
+                    karpenterData.enabledClusterSet = new Set();
+                }
+            } catch (e) {
+                karpenterData.enabledClusterSet = new Set();
+            }
             populateKarpenterFilters();
             return;
         }
@@ -12502,7 +12571,7 @@ function applyKarpenterFilters() {
  * Reset Karpenter filters
  */
 function resetKarpenterFilters() {
-    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all', duration: '30', karpenterToggle: 'all' };
+    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all', duration: '30', karpenterToggle: 'enabled' };
     
     document.getElementById('karpenter-fi-filter').value = 'all';
     document.getElementById('karpenter-fd-filter').value = 'all';
@@ -12549,9 +12618,18 @@ function filterKarpenterData(data, includeMonth = true, applyDuration = true) {
         // Karpenter Enabled / Disabled toggle (Exec view)
         const toggle = karpenterFilterState.karpenterToggle || 'all';
         if (toggle !== 'all') {
-            const enabledSet = karpenterData.enabledClusterSet || new Set();
             const rowCluster = (row.cluster || row.Cluster || row.k8s_cluster || row.k8sCluster || row.cluster_name || '').trim();
-            const isEnabled = rowCluster && enabledSet.has(rowCluster);
+            const statusRaw = (row.karpenter_status || '').trim();
+            const status = statusRaw.toLowerCase();
+            let isEnabled;
+            // Prefer row-level karpenter_status when present (e.g. from Full Karpenter files) so Disabled = rows actually marked Disabled in data
+            if (status !== '') {
+                isEnabled = status === 'karpenter_enabled';
+            } else if (karpenterData.enabledClusterSet && karpenterData.enabledClusterSet.size > 0) {
+                isEnabled = rowCluster && karpenterData.enabledClusterSet.has(rowCluster);
+            } else {
+                isEnabled = false;
+            }
             if (toggle === 'enabled' && !isEnabled) return false;
             if (toggle === 'disabled' && isEnabled) return false;
         }
@@ -12626,11 +12704,8 @@ function renderKarpenterExecView(container) {
     karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
     karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
     karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
-    // Sync Karpenter Enabled/Disabled toggle from DOM if present
-    const toggleActive = document.querySelector('.karpenter-toggle-btn.active');
-    if (toggleActive && toggleActive.dataset.value) {
-        karpenterFilterState.karpenterToggle = toggleActive.dataset.value;
-    }
+    // Do NOT sync karpenterToggle from DOM here: on re-render the DOM still has the previous
+    // active button, which would overwrite the value just set by setKarpenterToggle('disabled').
     
     console.log('📦 Current filter state:', karpenterFilterState);
     
@@ -12707,12 +12782,10 @@ function renderKarpenterExecView(container) {
     };
     
     // Helper to calculate weighted average grouped by a dimension
-    // Aggregates data by the groupBy field, calculates avg for each group, then averages those
-    // Uses the passed-in data (duration-filtered) for the card avg so duration filter changes the displayed %
-    const calcGroupedAvg = (data, groupBy) => {
-        if (!data || data.length === 0) return { avg: '--', trend: 0 };
+    // When dataPrevMonth is provided: card avg = average over data (latest month only), trend = % change vs dataPrevMonth (previous month)
+    const calcGroupedAvg = (data, groupBy, dataPrevMonth) => {
+        if (!data || data.length === 0) return { avg: '--', trend: 0, trendLabel: 'vs previous month' };
         
-        // Card average: compute from duration-filtered data so 7d/15d/30d change the displayed %
         const byGroup = {};
         data.forEach(r => {
             let key = 'unknown';
@@ -12729,7 +12802,7 @@ function renderKarpenterExecView(container) {
             }
             if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
             const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-            const capped = Math.min(100, Math.max(0, raw)); // CPU % must be 0-100; cap bad data
+            const capped = Math.min(100, Math.max(0, raw));
             byGroup[key].sum += capped;
             byGroup[key].count += 1;
         });
@@ -12739,125 +12812,76 @@ function renderKarpenterExecView(container) {
             : null;
         const cardAvg = rawCardAvg !== null ? Math.min(100, Math.max(0, rawCardAvg)).toFixed(2) : '--';
         
-        // For trend calculation, we need April (baseline) and target month from full filtered set (no duration)
-        // This ensures we can compare April baseline vs selected/latest month
-        const selectedMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : null;
-        // Use latest month in data (e.g. 2026-02) when "All Months" is selected, so cards show Feb 2026 avg
-        const monthsInData = [...new Set(karpenterData.mainSummary.map(r => r.month))].sort();
-        const latestMonthInData = monthsInData.length > 0 ? monthsInData[monthsInData.length - 1] : '2025-10';
-        const targetMonth = selectedMonth || latestMonthInData;
-        
-        // Get data for trend calculation: only April (baseline) and target month (latest or selected)
-        let dataForTrend = karpenterData.mainSummary.filter(row => {
-            // Apply all current filters EXCEPT month filter (using same logic as filterKarpenterData)
-            // FI filter
-            if (karpenterFilterState.fi !== 'all') {
-                const rowFI = row.falcon_instance || row.falconInstance || row.FI || row.fi || row.falcon_instance_name;
-                if (rowFI && rowFI !== karpenterFilterState.fi) return false;
-            }
-            
-            // FD filter
-            if (karpenterFilterState.fd !== 'all') {
-                const rowFD = row.functional_domain || row.functionalDomain || row.FD || row.fd;
-                if (rowFD && rowFD !== karpenterFilterState.fd) return false;
-            }
-            
-            // Environment filter (case-insensitive)
-            if (karpenterFilterState.environment !== 'all') {
-                const rowEnv = row.environment || row.Environment || row.env || row.Env;
-                if (rowEnv && rowEnv.toLowerCase() !== karpenterFilterState.environment.toLowerCase()) return false;
-            }
-            
-            // Cluster filter
-            if (karpenterFilterState.cluster !== 'all') {
-                const rowCluster = row.cluster || row.Cluster || row.k8s_cluster || row.k8sCluster || row.cluster_name;
-                if (rowCluster && rowCluster !== karpenterFilterState.cluster) return false;
-            }
-            
-            // Include only April (baseline) and target month (latest or selected)
-            const rowMonth = row.month || row.Month || row.month_code;
-            if (rowMonth !== '2025-04' && rowMonth !== targetMonth) return false;
-            return true;
-        });
-        
-        // Group by month and the dimension
-        const byMonth = {};
-        dataForTrend.forEach(r => {
-            const month = r.month || r.Month || r.month_code || 'unknown';
-            // Get the grouping key based on groupBy parameter
-            let key = 'unknown';
-            if (groupBy === 'falcon_instance') {
-                key = r.falcon_instance || r.falconInstance || r.FI || r.fi || r.falcon_instance_name || 'unknown';
-            } else if (groupBy === 'functional_domain') {
-                key = r.functional_domain || r.functionalDomain || r.FD || r.fd || 'unknown';
-            } else if (groupBy === 'environment') {
-                key = (r.environment || r.Environment || r.env || r.Env || 'unknown').toLowerCase();
-            } else if (groupBy === 'cluster') {
-                key = r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || 'unknown';
-            } else {
-                key = r[groupBy] || 'unknown';
-            }
-            
-            if (!byMonth[month]) byMonth[month] = {};
-            if (!byMonth[month][key]) byMonth[month][key] = { sum: 0, count: 0 };
-            byMonth[month][key].sum += parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-            byMonth[month][key].count += 1;
-        });
-        
-        // Calculate average for each month (average of group averages)
-        const months = Object.keys(byMonth).sort();
-        const monthlyAvgs = {};
-        months.forEach(m => {
-            const groups = Object.values(byMonth[m]);
-            const groupAvgs = groups.map(g => g.sum / g.count);
-            monthlyAvgs[m] = groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length;
-        });
-        
-        // Determine which month to use for average and trend calculation
-        const latestAvailableMonth = months.length > 0 ? months[months.length - 1] : null;
-        
-        // Use card average from duration-filtered data (computed above). Trend stays April vs target.
-        let avg = cardAvg;
-        
-        // Trend: ALWAYS compare October (or selected month) vs April baseline
         let trend = 0;
-        const aprilMonth = '2025-04';
-        const targetMonthForTrend = selectedMonth || latestAvailableMonth || '2025-10';
-        
-        // Compare target month vs April baseline
-        if (monthlyAvgs[aprilMonth] !== undefined && monthlyAvgs[targetMonthForTrend] !== undefined) {
-            const baselineAvg = monthlyAvgs[aprilMonth];
-            const targetAvg = monthlyAvgs[targetMonthForTrend];
-            
-            if (baselineAvg > 0) {
-                // Calculate percentage change from April baseline to target month
-                // This ensures positive trend when comparing April to October
-                trend = ((targetAvg - baselineAvg) / baselineAvg) * 100;
+        let trendLabel = 'vs previous month';
+        if (dataPrevMonth && dataPrevMonth.length > 0) {
+            const byGroupPrev = {};
+            dataPrevMonth.forEach(r => {
+                let key = 'unknown';
+                if (groupBy === 'falcon_instance') key = r.falcon_instance || r.falconInstance || r.FI || r.fi || r.falcon_instance_name || 'unknown';
+                else if (groupBy === 'functional_domain') key = r.functional_domain || r.functionalDomain || r.FD || r.fd || 'unknown';
+                else if (groupBy === 'environment') key = (r.environment || r.Environment || r.env || r.Env || 'unknown').toLowerCase();
+                else if (groupBy === 'cluster') key = r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || 'unknown';
+                else key = r[groupBy] || 'unknown';
+                if (!byGroupPrev[key]) byGroupPrev[key] = { sum: 0, count: 0 };
+                const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+                byGroupPrev[key].sum += Math.min(100, Math.max(0, raw));
+                byGroupPrev[key].count += 1;
+            });
+            const prevGroupAvgs = Object.values(byGroupPrev).map(g => g.sum / g.count);
+            const prevAvg = prevGroupAvgs.length > 0 ? prevGroupAvgs.reduce((a, b) => a + b, 0) / prevGroupAvgs.length : 0;
+            if (prevAvg > 0 && rawCardAvg !== null) {
+                trend = ((rawCardAvg - prevAvg) / prevAvg) * 100;
             }
-        } else {
-            console.warn(`⚠️ Missing data for trend calculation: April=${monthlyAvgs[aprilMonth] !== undefined}, Target=${monthlyAvgs[targetMonthForTrend] !== undefined}`);
+            const prevMonthName = dataPrevMonth[0].month_name || 'previous month';
+            trendLabel = 'vs ' + prevMonthName;
         }
         
-        return { avg, trend };
+        return { avg: cardAvg, trend, trendLabel };
     };
     
-    // Calculate metrics for each dimension
-    const fiMetrics = calcGroupedAvg(filteredData, 'falcon_instance');
-    const fdMetrics = calcGroupedAvg(filteredData, 'functional_domain');
-    const clusterMetrics = calcGroupedAvg(filteredData, 'cluster');
-    const envMetrics = calcGroupedAvg(filteredData, 'environment');
+    // Use latest month only for card averages (e.g. Feb); trend = vs previous month (e.g. Jan)
+    const latestMonth = monthsInData.length > 0 ? monthsInData[monthsInData.length - 1] : null;
+    const prevMonth = monthsInData.length >= 2 ? monthsInData[monthsInData.length - 2] : (latestMonth ? getPreviousMonth(latestMonth) : null);
+    const dataLatestMonth = latestMonth ? filteredData.filter(r => (r.month || r.Month || r.month_code) === latestMonth) : filteredData;
+    const dataPrevMonth = prevMonth ? filteredData.filter(r => (r.month || r.Month || r.month_code) === prevMonth) : [];
     
-    const avgFI = fiMetrics.avg;
-    const avgFD = fdMetrics.avg;
-    const avgCluster = clusterMetrics.avg;
-    const avgEnv = envMetrics.avg;
+    // Cluster-weighted average: one value per cluster (mean of its rows), then average those. Matches "Feb Full Karpenter avg CPU" (e.g. 59.9% disabled, 79.96% enabled).
+    const calcOverallAvgClusterWeighted = (data) => {
+        if (!data || data.length === 0) return null;
+        const byCluster = {};
+        data.forEach(r => {
+            const c = r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || 'unknown';
+            if (!byCluster[c]) byCluster[c] = { sum: 0, count: 0 };
+            const v = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+            byCluster[c].sum += Math.min(100, Math.max(0, v));
+            byCluster[c].count += 1;
+        });
+        const clusterAvgs = Object.values(byCluster).map(g => g.sum / g.count);
+        if (clusterAvgs.length === 0) return null;
+        const overall = clusterAvgs.reduce((a, b) => a + b, 0) / clusterAvgs.length;
+        return Math.min(100, Math.max(0, overall));
+    };
+    const rawOverallLatest = calcOverallAvgClusterWeighted(dataLatestMonth);
+    const rawOverallPrev = calcOverallAvgClusterWeighted(dataPrevMonth);
+    const cardAvg = rawOverallLatest !== null ? rawOverallLatest.toFixed(2) : '--';
+    let trend = 0;
+    let trendLabel = 'vs previous month';
+    if (rawOverallPrev !== null && rawOverallPrev > 0 && rawOverallLatest !== null) {
+        trend = ((rawOverallLatest - rawOverallPrev) / rawOverallPrev) * 100;
+        const prevMonthName = dataPrevMonth.length > 0 && dataPrevMonth[0].month_name ? dataPrevMonth[0].month_name : (prevMonth || 'previous month');
+        trendLabel = 'vs ' + prevMonthName;
+    }
     
-    // Calculate trends for each dimension based on filtered data
-    // Each metric calculates its own trend comparing filtered data's April vs latest month
-    const trendFI = fiMetrics.trend;
-    const trendFD = fdMetrics.trend;
-    const trendCluster = clusterMetrics.trend;
-    const trendEnv = envMetrics.trend;
+    // All four cards show the same overall average (cluster-weighted) and trend (latest month only)
+    const avgFI = cardAvg;
+    const avgFD = cardAvg;
+    const avgCluster = cardAvg;
+    const avgEnv = cardAvg;
+    const trendFI = trend;
+    const trendFD = trend;
+    const trendCluster = trend;
+    const trendEnv = trend;
     
     // Build trend chart data: Average % across all FIs, FDs, Clusters for each month (April 2025 to February 2026)
     // This aggregates data respecting all current filters
@@ -12887,11 +12911,19 @@ function renderKarpenterExecView(container) {
             return null;
         }
         
-        // Calculate average CPU across all records for this month
-        const sum = monthData.reduce((acc, r) => acc + parseFloat(r.avg_cpu || 0), 0);
-        const avg = sum / monthData.length;
+        // Use same cluster-weighted average as cards so trend chart matches (e.g. 59.9% Feb disabled)
+        const byCluster = {};
+        monthData.forEach(r => {
+            const c = r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || 'unknown';
+            if (!byCluster[c]) byCluster[c] = { sum: 0, count: 0 };
+            const v = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+            byCluster[c].sum += Math.min(100, Math.max(0, v));
+            byCluster[c].count += 1;
+        });
+        const clusterAvgs = Object.values(byCluster).map(g => g.sum / g.count);
+        const avg = clusterAvgs.length > 0 ? clusterAvgs.reduce((a, b) => a + b, 0) / clusterAvgs.length : 0;
         
-        console.log(`📦 ${monthName} (${monthCode}): ${monthData.length} rows, avg: ${avg.toFixed(2)}%`);
+        console.log(`📦 ${monthName} (${monthCode}): ${monthData.length} rows, ${clusterAvgs.length} clusters, cluster-weighted avg: ${avg.toFixed(2)}%`);
         
         return {
             month: monthName,
@@ -12918,23 +12950,23 @@ function renderKarpenterExecView(container) {
     // Build environment bar chart data - aggregate by environment from filtered data
     const envAgg = {};
     // Get the latest month from filtered data (or use trendData if available)
-    let latestMonth = null;
+    let envLatestMonth = null;
     if (karpenterFilterState.month !== 'all') {
-        latestMonth = karpenterFilterState.month;
+        envLatestMonth = karpenterFilterState.month;
     } else if (trendData.length > 0) {
         // Get the latest month code from trendData (which has month names)
         // Find the month code for the last month in trendData
         const lastMonthName = trendData[trendData.length - 1].month;
-        latestMonth = monthCodeMap[lastMonthName] || null;
+        envLatestMonth = monthCodeMap[lastMonthName] || null;
     } else if (monthsInData.length > 0) {
         // Fallback: use the latest month from filtered data
-        latestMonth = monthsInData[monthsInData.length - 1];
+        envLatestMonth = monthsInData[monthsInData.length - 1];
     }
     
     const envFiltered = karpenterFilterState.month !== 'all' 
         ? filteredData.filter(r => r.month === karpenterFilterState.month)
-        : latestMonth 
-            ? filteredData.filter(r => r.month === latestMonth)
+        : envLatestMonth 
+            ? filteredData.filter(r => r.month === envLatestMonth)
             : filteredData; // If no latest month, use all filtered data
     
     envFiltered.forEach(r => {
@@ -12974,6 +13006,11 @@ function renderKarpenterExecView(container) {
                     <button type="button" class="karpenter-toggle-btn ${karpenterFilterState.karpenterToggle === 'disabled' ? 'active' : ''}" data-value="disabled" onclick="setKarpenterToggle('disabled')">Karpenter Disabled</button>
                 </div>
             </div>
+            ${filteredData.length === 0 && karpenterFilterState.karpenterToggle === 'disabled' ? `
+            <div class="karpenter-empty-toggle-message">
+                ${(karpenterData.enabledClusterSet && karpenterData.enabledClusterSet.size > 0) ? 'No clusters outside the enabled list in the current data or filters.' : 'Load the enabled clusters list (karpenter_enabled_clusters.csv) to see Karpenter Disabled view.'}
+            </div>
+            ` : ''}
             <!-- Metric Cards -->
             <div class="karpenter-metrics-grid">
                 <div class="karpenter-metric-card">
@@ -12983,7 +13020,7 @@ function renderKarpenterExecView(container) {
                     </div>
                     <div class="karpenter-metric-value">${typeof avgFI === 'string' && avgFI !== '--' ? Math.min(100, parseFloat(avgFI) || 0).toFixed(2) : avgFI}%</div>
                     <div class="karpenter-metric-trend ${trendFI >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${trendFI >= 0 ? '+' : ''}${trendFI.toFixed(1)}% from April baseline
+                        ${trendFI >= 0 ? '+' : ''}${trendFI.toFixed(1)}% ${trendLabel}
                     </div>
                 </div>
                 
@@ -12994,7 +13031,7 @@ function renderKarpenterExecView(container) {
                     </div>
                     <div class="karpenter-metric-value">${typeof avgFD === 'string' && avgFD !== '--' ? Math.min(100, parseFloat(avgFD) || 0).toFixed(2) : avgFD}%</div>
                     <div class="karpenter-metric-trend ${trendFD >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${trendFD >= 0 ? '+' : ''}${trendFD.toFixed(1)}% from April baseline
+                        ${trendFD >= 0 ? '+' : ''}${trendFD.toFixed(1)}% ${trendLabel}
                     </div>
                 </div>
                 
@@ -13005,7 +13042,7 @@ function renderKarpenterExecView(container) {
                     </div>
                     <div class="karpenter-metric-value">${typeof avgCluster === 'string' && avgCluster !== '--' ? Math.min(100, parseFloat(avgCluster) || 0).toFixed(2) : avgCluster}%</div>
                     <div class="karpenter-metric-trend ${trendCluster >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${trendCluster >= 0 ? '+' : ''}${trendCluster.toFixed(1)}% from April baseline
+                        ${trendCluster >= 0 ? '+' : ''}${trendCluster.toFixed(1)}% ${trendLabel}
                     </div>
                 </div>
                 
@@ -13016,7 +13053,7 @@ function renderKarpenterExecView(container) {
                     </div>
                     <div class="karpenter-metric-value">${typeof avgEnv === 'string' && avgEnv !== '--' ? Math.min(100, parseFloat(avgEnv) || 0).toFixed(2) : avgEnv}%</div>
                     <div class="karpenter-metric-trend ${trendEnv >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${trendEnv >= 0 ? '+' : ''}${trendEnv.toFixed(1)}% from April baseline
+                        ${trendEnv >= 0 ? '+' : ''}${trendEnv.toFixed(1)}% ${trendLabel}
                     </div>
                 </div>
             </div>

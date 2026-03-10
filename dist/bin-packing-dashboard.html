@@ -930,7 +930,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const API_BASE_URL = urlParams.get('apiUrl') || 
                             window.BINPACKING_API_URL || 
-                            (window.location.hostname === 'localhost' ? '' : 'http://localhost:8080');
+                            (window.location.hostname === 'localhost' ? '' : 'http://localhost:3001');
         
         // Global variables
         let dashboardData = {};

@@ -26,12 +26,14 @@
         window.BINPACKING_API_URL = '';
         // Cost to Serve FY toggle default (must be set before fkp-dashboard.js so Executive Summary shows correct FY)
         window.costToServeFY = 'FY27';
+        // Stub sidebar handlers so onclick never throws "is not defined". fkp-dashboard.js overwrites with real implementations.
+        window.handleNavTabClick = function(id) { try { if (window.updateSidebarSection) window.updateSidebarSection(id); if (window.switchTab) window.switchTab(id); } catch (e) { console.error('handleNavTabClick', e); } };
+        window.handleNavSectionExpand = function(id) { try { var el = document.getElementById(id + '-subitems'); var main = document.querySelector('.nav-item.main-item[data-section="' + id + '"]'); if (el && main) { var on = el.classList.toggle('active'); main.classList.toggle('active', on); document.querySelectorAll('.nav-subitems').forEach(function(l){ if (l !== el) l.classList.remove('active'); }); document.querySelectorAll('.nav-item.main-item').forEach(function(m){ if (m !== main) m.classList.remove('active'); }); } } catch (e) { console.error('handleNavSectionExpand', e); } };
     </script>
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar">
+    <!-- Sidebar first, outside container - ensures it is never covered by main content -->
+    <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>HRP 360</h2>
                 <p class="sidebar-subtitle">Platform View</p>
@@ -48,17 +50,17 @@
 
                 <!-- Runtime Availability Section -->
                 <div class="nav-section">
-                    <div class="nav-item main-item" data-section="runtime-availability">
+                    <div class="nav-item main-item" data-section="runtime-availability" onclick="handleNavSectionExpand('runtime-availability'); return false;">
                         <span class="nav-icon">🛡️</span>
                         <span class="nav-text">Runtime Availability</span>
                         <span class="nav-arrow">▼</span>
                     </div>
                     
                     <div class="nav-subitems" id="runtime-availability-subitems">
-                        <div class="nav-subitem" data-tab="runtime-availability-detection" data-view="exec">
+                        <div class="nav-subitem" data-tab="runtime-availability-detection" data-view="exec" onclick="handleNavTabClick('runtime-availability-detection'); return false;">
                             <span class="nav-text">Detection</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-availability-prevention" data-view="both">
+                        <div class="nav-subitem" data-tab="runtime-availability-prevention" data-view="both" onclick="handleNavTabClick('runtime-availability-prevention'); return false;">
                             <span class="nav-text">Prevention</span>
                         </div>
                         <div class="nav-subitem" data-tab="runtime-availability-remediation" data-view="both" data-disabled="true">
@@ -69,20 +71,20 @@
 
                 <!-- Runtime Scale Section -->
                 <div class="nav-section">
-                    <div class="nav-item main-item" data-section="runtime-scale">
+                    <div class="nav-item main-item" data-section="runtime-scale" onclick="handleNavSectionExpand('runtime-scale'); return false;">
                         <span class="nav-icon">⚙️</span>
                         <span class="nav-text">Runtime Scale</span>
                         <span class="nav-arrow">▼</span>
                     </div>
                     
                     <div class="nav-subitems" id="runtime-scale-subitems">
-                        <div class="nav-subitem" data-tab="runtime-overview" data-view="exec">
+                        <div class="nav-subitem" data-tab="runtime-overview" data-view="exec" onclick="handleNavTabClick('runtime-overview'); return false;">
                             <span class="nav-text">Autoscaling</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-hpa" data-view="developer">
+                        <div class="nav-subitem" data-tab="runtime-hpa" data-view="developer" onclick="handleNavTabClick('runtime-hpa'); return false;">
                             <span class="nav-text">Autoscaling</span>
                         </div>
-                        <div class="nav-subitem" data-tab="runtime-karpenter" data-view="both">
+                        <div class="nav-subitem" data-tab="runtime-karpenter" data-view="both" onclick="handleNavTabClick('runtime-karpenter'); return false;">
                             <span class="nav-text">Karpenter</span>
                         </div>
                     </div>
@@ -90,23 +92,23 @@
 
                 <!-- Cost to Serve Section -->
                 <div class="nav-section">
-                    <div class="nav-item main-item" data-section="cost-to-serve">
+                    <div class="nav-item main-item" data-section="cost-to-serve" onclick="handleNavSectionExpand('cost-to-serve'); return false;">
                         <span class="nav-icon">💰</span>
                         <span class="nav-text">Cost to Serve</span>
                         <span class="nav-arrow">▼</span>
                     </div>
                     
                     <div class="nav-subitems" id="cost-to-serve-subitems">
-                        <div class="nav-subitem" data-tab="cost-to-serve-overview" data-view="exec">
+                        <div class="nav-subitem" data-tab="cost-to-serve-overview" data-view="exec" onclick="handleNavTabClick('cost-to-serve-overview'); return false;">
                             <span class="nav-text">Cost to Serve - HRP</span>
                         </div>
-                        <div class="nav-subitem" data-tab="cost-to-serve-hps" data-view="exec">
+                        <div class="nav-subitem" data-tab="cost-to-serve-hps" data-view="exec" onclick="handleNavTabClick('cost-to-serve-hps'); return false;">
                             <span class="nav-text">Cost to Serve - HPS</span>
                         </div>
-                        <div class="nav-subitem" data-tab="cost-to-serve-budget-forecast" data-view="exec">
+                        <div class="nav-subitem" data-tab="cost-to-serve-budget-forecast" data-view="exec" onclick="handleNavTabClick('cost-to-serve-budget-forecast'); return false;">
                             <span class="nav-text">Budget and Forecast</span>
                         </div>
-                        <div class="nav-subitem" data-tab="cost-to-serve-details" data-view="developer">
+                        <div class="nav-subitem" data-tab="cost-to-serve-details" data-view="developer" onclick="handleNavTabClick('cost-to-serve-details'); return false;">
                             <span class="nav-text">Initiative Details</span>
                         </div>
                     </div>
@@ -114,41 +116,97 @@
 
                 <!-- Onboarding Section -->
                 <div class="nav-section">
-                    <div class="nav-item main-item" data-section="onboarding">
+                    <div class="nav-item main-item" data-section="onboarding" onclick="handleNavSectionExpand('onboarding'); return false;">
                         <span class="nav-icon">📊</span>
                         <span class="nav-text">Onboarding</span>
                         <span class="nav-arrow">▼</span>
                     </div>
                     
                     <div class="nav-subitems" id="onboarding-subitems">
-                        <div class="nav-subitem" data-tab="executive-overview" data-view="exec">
+                        <div class="nav-subitem" data-tab="executive-overview" data-view="exec" onclick="handleNavTabClick('executive-overview'); return false;">
                             <span class="nav-text">Overview</span>
                         </div>
-                        <div class="nav-subitem" data-tab="migration-pipeline" data-view="exec">
+                        <div class="nav-subitem" data-tab="migration-pipeline" data-view="exec" onclick="handleNavTabClick('migration-pipeline'); return false;">
                             <span class="nav-text">Migration Pipeline</span>
                         </div>
-                        <div class="nav-subitem" data-tab="projections-roadmap" data-view="exec">
+                        <div class="nav-subitem" data-tab="projections-roadmap" data-view="exec" onclick="handleNavTabClick('projections-roadmap'); return false;">
                             <span class="nav-text">Projections & Roadmap</span>
                         </div>
-                        <div class="nav-subitem" data-tab="service-information" data-view="developer">
+                        <div class="nav-subitem" data-tab="service-information" data-view="developer" onclick="handleNavTabClick('service-information'); return false;">
                             <span class="nav-text">Overview</span>
                         </div>
-                        <div class="nav-subitem" data-tab="migration-dependencies" data-view="developer">
+                        <div class="nav-subitem" data-tab="migration-dependencies" data-view="developer" onclick="handleNavTabClick('migration-dependencies'); return false;">
                             <span class="nav-text">Migration Dependencies</span>
                         </div>
-                        <div class="nav-subitem" data-tab="cross-customer-analysis" data-view="developer">
+                        <div class="nav-subitem" data-tab="cross-customer-analysis" data-view="developer" onclick="handleNavTabClick('cross-customer-analysis'); return false;">
                             <span class="nav-text">COGS Analysis</span>
                         </div>
-                        <div class="nav-subitem" data-tab="integrations" data-view="developer">
+                        <div class="nav-subitem" data-tab="integrations" data-view="developer" onclick="handleNavTabClick('integrations'); return false;">
                             <span class="nav-text">Integrations</span>
                         </div>
                     </div>
                 </div>
 
             </nav>
-        </aside>
+    </aside>
 
-        <!-- Main Content Area -->
+    <!-- Load main dashboard script early so switchTab is available when sidebar clicks run -->
+    <script src="assets/js/fkp-dashboard.js?v=20250306-1"></script>
+    <script>
+    (function() {
+        function initSidebarClicks() {
+            if (window._sidebarClicksInited) return;
+            window._sidebarClicksInited = true;
+            var sidebar = document.querySelector('.sidebar');
+            if (!sidebar) return;
+            // Bind to sidebar in bubble phase so clicks on nav items are received by the sidebar
+            sidebar.addEventListener('click', function(e) {
+                var sub = e.target.closest('.nav-subitem[data-tab]');
+                if (sub && sub.getAttribute('data-disabled') !== 'true') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var tabId = sub.getAttribute('data-tab');
+                    document.querySelectorAll('.nav-subitem').forEach(function(i) { i.classList.remove('active'); });
+                    sub.classList.add('active');
+                    if (window.updateSidebarSection) window.updateSidebarSection(tabId);
+                    if (window.switchTab) window.switchTab(tabId);
+                    return;
+                }
+                var main = e.target.closest('.nav-item.main-item');
+                if (main) {
+                    var tabId = main.getAttribute('data-tab');
+                    if (tabId) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (tabId === 'exec-summary' && window.setExecSummaryView) { window.setExecSummaryView(); return; }
+                        document.querySelectorAll('.nav-subitems').forEach(function(l) { l.classList.remove('active'); });
+                        document.querySelectorAll('.nav-item.main-item').forEach(function(m) { m.classList.remove('active'); });
+                        main.classList.add('active');
+                        if (window.switchTab) window.switchTab(tabId);
+                        return;
+                    }
+                    var section = main.getAttribute('data-section');
+                    var sublist = section ? document.getElementById(section + '-subitems') : null;
+                    if (sublist) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        var open = !sublist.classList.contains('active');
+                        document.querySelectorAll('.nav-subitems').forEach(function(l) { l.classList.remove('active'); });
+                        document.querySelectorAll('.nav-item.main-item').forEach(function(m) { m.classList.remove('active'); });
+                        if (open) { sublist.classList.add('active'); main.classList.add('active'); }
+                    }
+                }
+            }, false);
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSidebarClicks);
+        } else {
+            initSidebarClicks();
+        }
+    })();
+    </script>
+
+    <div class="dashboard-container">
         <div class="main-content">
             <!-- Page Header -->
         <header class="page-header">
@@ -168,8 +226,7 @@
                     </div>
                     <!-- Last Refreshed (top right; hidden in Developer View) -->
                     <div class="last-refreshed-badge" id="last-refreshed-badge" title="Data last refreshed">Last Refreshed: <span id="last-refreshed-date">--/--/----</span></div>
-                    <a href="#" id="feedback-link" class="feedback-link" title="Send feedback" aria-label="Feedback">💬 Feedback</a>
-                    <a href="#" id="slack-link" class="slack-link" title="Open Slack" aria-label="Slack">
+                    <a href="https://salesforce.enterprise.slack.com/archives/C0AKJ74TYUE" id="slack-link" class="slack-link" title="Submit feedback in #hrp-360-support" aria-label="Open #hrp-360-support for feedback" target="_blank" rel="noopener noreferrer">
                         <svg class="slack-logo" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                             <path fill="#E01E5A" d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z"/>
                             <path fill="#36C5F0" d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z"/>
@@ -1310,8 +1367,7 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="assets/js/fkp-dashboard.js?v=20250304-2"></script>
+    <!-- Scripts (main dashboard script loaded after sidebar above) -->
     <script>
         // If tabs still don't work, the main script may have failed to load. Check console (F12) for errors.
         document.addEventListener('DOMContentLoaded', function() {

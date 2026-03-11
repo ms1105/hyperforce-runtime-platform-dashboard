@@ -15,7 +15,7 @@ const INTEGRATION_SERVICES = [
     'collectioninjector', 'metadata-concealer', 'identity-controller-refresher', 
     'identity-controller', 'clustermanagement', 'collectioninjectortest', 
     'visibility-agent', 'vault', 'mars', 'authzwebhook', 'kubesyntheticscaler',
-    'identitycontrollertest'
+    'identitycontrollertest', 'network-access-controller'
 ];
 
 // Global state management
@@ -3111,6 +3111,170 @@ function renderAvailabilityRemediationTab() {
 /**
  * Render comprehensive Availability Exec View (scrollable)
  */
+function getDetectionProductOptions() {
+    const hrpProductMap = availabilityData.hrpProductPrbOwnerMap || {};
+    return Object.keys(hrpProductMap).filter(p => p !== 'MAPS');
+}
+
+function getSelectedDetectionProduct() {
+    const options = getDetectionProductOptions();
+    const selected = availabilityData.detectionProductFilter;
+    return options.includes(selected) ? selected : 'All HRP Products';
+}
+
+function filterIncidentsByProduct(rows, product) {
+    if (!product || product === 'All HRP Products') return rows;
+    const hrpProductMap = availabilityData.hrpProductPrbOwnerMap || {};
+    const owners = new Set((hrpProductMap[product] || []).map(o => (o || '').toLowerCase()));
+    if (!owners.size) return [];
+    return rows.filter(row => owners.has((row.prb_owner || '').toLowerCase()));
+}
+
+function buildDetectionMonthlyBuckets(startDate) {
+    const incidentsByMonth = {};
+    const monthKeys = [];
+    const monthLabels = [];
+    for (let i = 0; i < 12; i++) {
+        const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        monthKeys.push(monthKey);
+        monthLabels.push(d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+        incidentsByMonth[monthKey] = {
+            name: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            incidents: [],
+            key: monthKey
+        };
+    }
+    const startLabel = incidentsByMonth[monthKeys[0]]?.name || monthLabels[0] || '';
+    const endLabel = incidentsByMonth[monthKeys[monthKeys.length - 1]]?.name || monthLabels[monthLabels.length - 1] || '';
+    const rangeLabel = startLabel && endLabel ? `${startLabel} - ${endLabel} (12 months)` : 'Last 12 months';
+    return { incidentsByMonth, monthKeys, monthLabels, rangeLabel };
+}
+
+function buildMonthlyChartData(incidentsByMonth, monthKeys, monthLabels) {
+    const monthlyChartData = {
+        labels: monthLabels,
+        mttd: [],
+        mttr: [],
+        incidents: []
+    };
+    monthKeys.forEach(monthKey => {
+        const monthData = incidentsByMonth[monthKey];
+        if (monthData && monthData.incidents.length > 0) {
+            const incs = monthData.incidents;
+            const validMttd = incs.filter(i => parseFloat(i.ttd_min) > 0);
+            const validMttr = incs.filter(i => parseFloat(i.ttr_min) > 0);
+            const avgMttd = validMttd.length > 0
+                ? Math.round(validMttd.reduce((sum, i) => sum + parseFloat(i.ttd_min), 0) / validMttd.length)
+                : 0;
+            const avgMttr = validMttr.length > 0
+                ? Math.round(validMttr.reduce((sum, i) => sum + parseFloat(i.ttr_min), 0) / validMttr.length)
+                : 0;
+            monthlyChartData.mttd.push(avgMttd);
+            monthlyChartData.mttr.push(avgMttr);
+            monthlyChartData.incidents.push(incs.length);
+        } else {
+            monthlyChartData.mttd.push(0);
+            monthlyChartData.mttr.push(0);
+            monthlyChartData.incidents.push(0);
+        }
+    });
+    return monthlyChartData;
+}
+
+function updateMttdMttrTrendChart(monthlyData) {
+    if (!mttdMttrTrendChart) {
+        initMttdMttrTrendChart(monthlyData);
+        return;
+    }
+    const datasets = mttdMttrTrendChart.data.datasets;
+    mttdMttrTrendChart.data.labels = monthlyData.labels;
+    if (datasets[0]) datasets[0].data = monthlyData.mttd;
+    if (datasets[1]) datasets[1].data = monthlyData.mttr;
+    mttdMttrTrendChart.update();
+}
+
+function buildIncidentKpiRows({ products, kpiSource, allSevIncidents, now, mttdTarget, mttrTarget }) {
+    return products.map(product => {
+        const productIncidents = filterIncidentsByProduct(kpiSource, product);
+        const sev0Count = productIncidents.filter(inc => inc.severity === 'Sev0').length;
+        const sev1Count = productIncidents.filter(inc => inc.severity === 'Sev1').length;
+        const validMttd = productIncidents.filter(inc => parseFloat(inc.ttd_min) > 0);
+        const validMttr = productIncidents.filter(inc => parseFloat(inc.ttr_min) > 0);
+        const avgMttd = validMttd.length
+            ? Math.round(validMttd.reduce((sum, inc) => sum + parseFloat(inc.ttd_min || 0), 0) / validMttd.length)
+            : 0;
+        const avgMttr = validMttr.length
+            ? Math.round(validMttr.reduce((sum, inc) => sum + parseFloat(inc.ttr_min || 0), 0) / validMttr.length)
+            : 0;
+        const productAllSev = filterIncidentsByProduct(allSevIncidents, product);
+        const latest = productAllSev
+            .map(inc => new Date(inc.detected_date))
+            .filter(date => !Number.isNaN(date.getTime()))
+            .sort((a, b) => b - a)[0];
+        const daysSince = latest ? Math.max(0, Math.floor((now - latest) / (24 * 60 * 60 * 1000))) : null;
+        return {
+            product,
+            sev0: sev0Count,
+            sev1: sev1Count,
+            mttd: avgMttd,
+            mttr: avgMttr,
+            daysSince,
+            mttdBreached: avgMttd > mttdTarget,
+            mttrBreached: avgMttr > mttrTarget,
+            mttdMet: avgMttd > 0 && avgMttd <= mttdTarget,
+            mttrMet: avgMttr > 0 && avgMttr <= mttrTarget
+        };
+    });
+}
+
+function updateDetectionExecWidgets() {
+    const cache = availabilityData.detectionCache;
+    if (!cache) return;
+    const selectedProduct = getSelectedDetectionProduct();
+    const kpiWindow = availabilityData.detectionKpiWindow || '12m';
+    const kpiSource = kpiWindow === '30d' ? cache.recentIncidents : cache.window12Sev;
+
+    const chartIncidents = filterIncidentsByProduct(cache.window12Incidents, selectedProduct);
+    const buckets = buildDetectionMonthlyBuckets(cache.twelveMonthStart);
+    chartIncidents.forEach(inc => {
+        const date = new Date(inc.detected_date);
+        if (Number.isNaN(date.getTime())) return;
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        if (buckets.incidentsByMonth[monthKey]) {
+            buckets.incidentsByMonth[monthKey].incidents.push(inc);
+        }
+    });
+    const monthlyChartData = buildMonthlyChartData(buckets.incidentsByMonth, buckets.monthKeys, buckets.monthLabels);
+    updateMttdMttrTrendChart(monthlyChartData);
+
+    const tableBody = document.querySelector('.incident-kpi-table tbody');
+    if (tableBody) {
+        const rows = buildIncidentKpiRows({
+            products: getDetectionProductOptions(),
+            kpiSource,
+            allSevIncidents: cache.allSevIncidents,
+            now: cache.now,
+            mttdTarget: cache.mttdTarget,
+            mttrTarget: cache.mttrTarget
+        });
+        tableBody.innerHTML = rows.map(row => `
+            <tr>
+                <td>${row.product}</td>
+                <td class="align-center">${row.sev0}</td>
+                <td class="align-center">${row.sev1}</td>
+                <td class="align-center${row.mttdBreached ? ' sla-breach' : row.mttdMet ? ' sla-met' : ''}">${row.mttd || '—'}</td>
+                <td class="align-center${row.mttrBreached ? ' sla-breach' : row.mttrMet ? ' sla-met' : ''}">${row.mttr || '—'}</td>
+                <td class="align-center">${row.daysSince !== null ? row.daysSince : '—'}</td>
+            </tr>
+        `).join('');
+    }
+
+    document.querySelectorAll('.incident-kpi-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.window === kpiWindow);
+    });
+}
+
 function renderAvailabilityExecView(container, options = {}) {
     console.log('🛡️ renderAvailabilityExecView called, container:', container);
     
@@ -3156,6 +3320,9 @@ function renderAvailabilityExecView(container, options = {}) {
         return incDate >= twelveMonthStart && incDate <= now;
     });
 
+    const hrpProductOptions = getDetectionProductOptions();
+    const selectedProduct = getSelectedDetectionProduct();
+
         // Calculate KPI metrics from incidents_e360_total.csv (last 12 months)
     const sev0Incidents = window12Incidents.filter(inc => inc.severity === 'Sev0').length;
     const sev1Incidents = window12Incidents.filter(inc => inc.severity === 'Sev1').length;
@@ -3198,6 +3365,17 @@ function renderAvailabilityExecView(container, options = {}) {
             avgMttr = Math.round(totalMttr / validMttr.length);
         }
     }
+
+    // Calculate Avg MTTD/MTTR for last 12 months (Sev0/Sev1 only)
+    const window12Sev = window12Incidents.filter(inc => inc.severity === 'Sev0' || inc.severity === 'Sev1');
+    const validMttd12 = window12Sev.filter(inc => parseFloat(inc.ttd_min) > 0);
+    const validMttr12 = window12Sev.filter(inc => parseFloat(inc.ttr_min) > 0);
+    const avgMttd12 = validMttd12.length
+        ? Math.round(validMttd12.reduce((sum, inc) => sum + parseFloat(inc.ttd_min || 0), 0) / validMttd12.length)
+        : 0;
+    const avgMttr12 = validMttr12.length
+        ? Math.round(validMttr12.reduce((sum, inc) => sum + parseFloat(inc.ttr_min || 0), 0) / validMttr12.length)
+        : 0;
     
     // HRP Service Readiness Score - placeholder (will be updated later)
     const observabilityCoverage = 65;
@@ -3218,36 +3396,24 @@ function renderAvailabilityExecView(container, options = {}) {
         recentIncidentsCount: recentIncidents.length
     });
     
-    // Calculate monthly MTTD/MTTR for hero cards
-    // Group incidents by month
-    const incidentsByMonth = {};
-    const monthKeys = [];
-    const monthLabels = [];
-    for (let i = 0; i < 12; i++) {
-        const d = new Date(twelveMonthStart.getFullYear(), twelveMonthStart.getMonth() + i, 1);
-        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        monthKeys.push(monthKey);
-        monthLabels.push(d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
-        incidentsByMonth[monthKey] = { name: d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }), incidents: [], key: monthKey };
-    }
-    window12Incidents.forEach(inc => {
+    const chartIncidents = filterIncidentsByProduct(window12Incidents, selectedProduct);
+    const buckets = buildDetectionMonthlyBuckets(twelveMonthStart);
+    chartIncidents.forEach(inc => {
         const date = new Date(inc.detected_date);
         if (Number.isNaN(date.getTime())) return;
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        if (incidentsByMonth[monthKey]) {
-            incidentsByMonth[monthKey].incidents.push(inc);
+        if (buckets.incidentsByMonth[monthKey]) {
+            buckets.incidentsByMonth[monthKey].incidents.push(inc);
         }
     });
     
-    const currentMonthKey = monthKeys[monthKeys.length - 1];
-    const lastMonthKey = monthKeys[monthKeys.length - 2];
+    const currentMonthKey = buckets.monthKeys[buckets.monthKeys.length - 1];
+    const lastMonthKey = buckets.monthKeys[buckets.monthKeys.length - 2];
     
-    const currentMonthData = incidentsByMonth[currentMonthKey] || { name: 'N/A', incidents: [] };
-    const lastMonthData = incidentsByMonth[lastMonthKey] || { name: 'N/A', incidents: [] };
+    const currentMonthData = buckets.incidentsByMonth[currentMonthKey] || { name: 'N/A', incidents: [] };
+    const lastMonthData = buckets.incidentsByMonth[lastMonthKey] || { name: 'N/A', incidents: [] };
 
-    const startLabel = incidentsByMonth[monthKeys[0]]?.name || monthLabels[0] || '';
-    const endLabel = incidentsByMonth[monthKeys[monthKeys.length - 1]]?.name || monthLabels[monthLabels.length - 1] || '';
-    const rangeLabel = startLabel && endLabel ? `${startLabel} - ${endLabel} (12 months)` : 'Last 12 months';
+    const rangeLabel = buckets.rangeLabel;
     
     // Calculate current month metrics
     const calcMonthMetrics = (monthData) => {
@@ -3308,37 +3474,11 @@ function renderAvailabilityExecView(container, options = {}) {
         mttrSlaMet
     });
     
-    // Calculate monthly MTTD/MTTR for trend chart (last 12 months)
-    const monthlyChartData = {
-        labels: monthLabels,
-        mttd: [],
-        mttr: [],
-        incidents: []
-    };
-    
-    monthKeys.forEach(monthKey => {
-        const monthData = incidentsByMonth[monthKey];
-        if (monthData && monthData.incidents.length > 0) {
-            const incs = monthData.incidents;
-            const validMttd = incs.filter(i => parseFloat(i.ttd_min) > 0);
-            const validMttr = incs.filter(i => parseFloat(i.ttr_min) > 0);
-            
-            const avgMttdMonth = validMttd.length > 0 
-                ? Math.round(validMttd.reduce((sum, i) => sum + parseFloat(i.ttd_min), 0) / validMttd.length) 
-                : 0;
-            const avgMttrMonth = validMttr.length > 0 
-                ? Math.round(validMttr.reduce((sum, i) => sum + parseFloat(i.ttr_min), 0) / validMttr.length) 
-                : 0;
-            
-            monthlyChartData.mttd.push(avgMttdMonth);
-            monthlyChartData.mttr.push(avgMttrMonth);
-            monthlyChartData.incidents.push(incs.length);
-        } else {
-            monthlyChartData.mttd.push(0);
-            monthlyChartData.mttr.push(0);
-            monthlyChartData.incidents.push(0);
-        }
-    });
+    const monthlyChartData = buildMonthlyChartData(
+        buckets.incidentsByMonth,
+        buckets.monthKeys,
+        buckets.monthLabels
+    );
     
     console.log('🛡️ Monthly chart data:', monthlyChartData);
     
@@ -3432,6 +3572,30 @@ function renderAvailabilityExecView(container, options = {}) {
     const formattedDate = renderNow.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const formattedTime = renderNow.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     
+    const kpiWindow = availabilityData.detectionKpiWindow || '12m';
+    const kpiSource = kpiWindow === '30d' ? recentIncidents : window12Sev;
+    const productList = hrpProductOptions;
+    const productKpiRows = buildIncidentKpiRows({
+        products: productList,
+        kpiSource,
+        allSevIncidents: incidents.filter(inc => inc.severity === 'Sev0' || inc.severity === 'Sev1'),
+        now,
+        mttdTarget: mttdMetric.target,
+        mttrTarget: mttrMetric.target
+    });
+
+    availabilityData.detectionCache = {
+        incidents,
+        window12Incidents,
+        window12Sev,
+        recentIncidents,
+        allSevIncidents: incidents.filter(inc => inc.severity === 'Sev0' || inc.severity === 'Sev1'),
+        now,
+        twelveMonthStart,
+        mttdTarget: mttdMetric.target,
+        mttrTarget: mttrMetric.target
+    };
+
     console.log('🛡️ About to set innerHTML, variables:', {
         sev0Incidents,
         sev1Incidents,
@@ -3464,24 +3628,73 @@ function renderAvailabilityExecView(container, options = {}) {
             <div class="avail-summary-grid">
                 <div class="avail-summary-card critical" onclick="openAvailabilityExecModal('sev0')">
                     <div class="avail-card-label">Sev0 Incidents (12mo)</div>
+                    <div class="avail-card-sla is-empty">&nbsp;</div>
                     <div class="avail-card-value critical">${sev0Incidents}</div>
                     <div class="avail-card-trend">${sev0Trend}</div>
                 </div>
                 <div class="avail-summary-card warning" onclick="openAvailabilityExecModal('sev1')">
                     <div class="avail-card-label">Sev1 Incidents (12mo)</div>
+                    <div class="avail-card-sla is-empty">&nbsp;</div>
                     <div class="avail-card-value warning">${sev1Incidents}</div>
                     <div class="avail-card-trend">${sev1Trend}</div>
                 </div>
                 <div class="avail-summary-card" onclick="openAvailabilityExecModal('mttd')">
                     <div class="avail-card-label">Avg MTTD (30d)</div>
+                    <div class="avail-card-sla">SLA Target &lt;${mttdMetric.target} min</div>
                     <div class="avail-card-value ${avgMttd > mttdMetric.target ? 'critical' : 'info'}">${avgMttd}<span class="avail-unit">min</span></div>
-                    <div class="avail-card-trend positive">SLA Target &lt;${mttdMetric.target} min</div>
+                    <div class="avail-card-trend positive"><span class="sub-metric-strong">12mo avg: ${avgMttd12 || '—'} min</span></div>
                 </div>
                 <div class="avail-summary-card" onclick="openAvailabilityExecModal('mttr')">
                     <div class="avail-card-label">Avg MTTR (30d)</div>
+                    <div class="avail-card-sla">SLA Target &lt;${mttrMetric.target} min</div>
                     <div class="avail-card-value ${avgMttr > mttrMetric.target ? 'critical' : 'info'}">${avgMttr}<span class="avail-unit">min</span></div>
-                    <div class="avail-card-trend positive">SLA Target &lt;${mttrMetric.target} min</div>
+                    <div class="avail-card-trend positive"><span class="sub-metric-strong">12mo avg: ${avgMttr12 || '—'} min</span></div>
                 </div>
+            </div>
+
+            <div class="sla-section-divider"></div>
+            <div class="incident-kpi-header">
+                <div class="incident-kpi-title">HRP Product Incident KPIs</div>
+                <div class="incident-kpi-toggle">
+                    <button class="incident-kpi-btn ${kpiWindow === '12m' ? 'active' : ''}" data-window="12m">Last 12 months</button>
+                    <button class="incident-kpi-btn ${kpiWindow === '30d' ? 'active' : ''}" data-window="30d">Last 30 days</button>
+                </div>
+            </div>
+            <div class="incident-kpi-table-wrap">
+                <table class="availability-modal-table incident-kpi-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Sev0</th>
+                            <th>Sev1</th>
+                            <th>
+                                <div class="incident-kpi-header-label">
+                                    Avg MTTD
+                                    <div class="incident-kpi-sla">SLA Target &lt;${mttdMetric.target} min</div>
+                                </div>
+                            </th>
+                            <th>
+                                <div class="incident-kpi-header-label">
+                                    Avg MTTR
+                                    <div class="incident-kpi-sla">SLA Target &lt;${mttrMetric.target} min</div>
+                                </div>
+                            </th>
+                            <th>Days Since Last Incident</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${productKpiRows.map(row => `
+                            <tr>
+                                <td>${row.product}</td>
+                                <td class="align-center">${row.sev0}</td>
+                                <td class="align-center">${row.sev1}</td>
+                                <td class="align-center${row.mttdBreached ? ' sla-breach' : row.mttdMet ? ' sla-met' : ''}">${row.mttd || '—'}</td>
+                                <td class="align-center${row.mttrBreached ? ' sla-breach' : row.mttrMet ? ' sla-met' : ''}">${row.mttr || '—'}</td>
+                                <td class="align-center">${row.daysSince !== null ? row.daysSince : '—'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
             </div>
             
             <!-- SLA Compliance Section -->
@@ -3507,7 +3720,16 @@ function renderAvailabilityExecView(container, options = {}) {
             <!-- MTTD/MTTR Trend Chart -->
             <div class="sla-chart-section">
                 <div class="sla-chart-header">
-                    <div class="sla-chart-title">📉 11-Month Trend (Mar 2025 - Jan 2026)</div>
+                <div class="sla-chart-title">📉 12-Month Trend (${rangeLabel})</div>
+                <div class="sla-chart-filter">
+                    <label for="sla-product-filter">HRP Product</label>
+                    <select id="sla-product-filter">
+                        <option value="All HRP Products"${selectedProduct === 'All HRP Products' ? ' selected' : ''}>All HRP Products</option>
+                        ${productList.map(product => `
+                            <option value="${product}"${selectedProduct === product ? ' selected' : ''}>${product}</option>
+                        `).join('')}
+                    </select>
+                </div>
                     <div class="sla-chart-tabs">
                         <button class="sla-chart-tab active" data-metric="both">Both</button>
                         <button class="sla-chart-tab" data-metric="mttd">MTTD Only</button>
@@ -3548,7 +3770,7 @@ function renderAvailabilityExecView(container, options = {}) {
             <!-- Service Impact Breakdown Table -->
             <div class="sla-coverage-section">
                 <div class="sla-coverage-header">
-                    <div class="sla-coverage-title">📊 Service Impact Breakdown (Mar 2025 - Jan 2026)</div>
+                <div class="sla-coverage-title">📊 Service Impact Breakdown (${rangeLabel})</div>
                 </div>
                 <table class="sla-coverage-table">
                     <thead>
@@ -3594,7 +3816,7 @@ function renderAvailabilityExecView(container, options = {}) {
                 <div class="sla-impact-brand">
                     <div class="sla-impact-logo">📣</div>
                     <div class="sla-impact-text">
-                        <h2>Detection - Alert Quality</h2>
+                        <h2>Detection - Incident Alert Quality</h2>
                     </div>
                 </div>
             </div>
@@ -3667,6 +3889,20 @@ function renderAvailabilityExecView(container, options = {}) {
         console.error('❌ HTML not set properly! Length:', container.innerHTML.length);
         console.error('❌ Container innerHTML:', container.innerHTML);
     }
+
+    const productSelect = document.getElementById('sla-product-filter');
+    if (productSelect) {
+        productSelect.addEventListener('change', (e) => {
+            availabilityData.detectionProductFilter = e.target.value || 'All HRP Products';
+            updateDetectionExecWidgets();
+        });
+    }
+    document.querySelectorAll('.incident-kpi-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            availabilityData.detectionKpiWindow = btn.dataset.window || '12m';
+            updateDetectionExecWidgets();
+        });
+    });
     
     // Render charts and tables
     console.log('🛡️ Rendering charts and tables...');
@@ -13874,6 +14110,9 @@ let availabilityData = {
     ingressAlerts: { headers: [], rows: [] },
     ingressDistribution: { headers: [], rows: [] },
     ingressAccuracy: { headers: [], rows: [] },
+    hrpProductPrbOwnerMap: {},
+    detectionProductFilter: 'All HRP Products',
+    detectionKpiWindow: '12m',
     testInventory: {
         customerScenario: { headers: [], rows: [] },
         integration: { headers: [], rows: [] },
@@ -14162,6 +14401,15 @@ async function loadAllAvailabilityData() {
             else finalizedMap[service] = product;
         });
         availabilityData.fitServiceProductMap = finalizedMap;
+
+        try {
+            const mapResponse = await fetch(encodedBasePath + 'hrp_product_prb_owner_map.json');
+            if (mapResponse.ok) {
+                availabilityData.hrpProductPrbOwnerMap = await mapResponse.json();
+            }
+        } catch (e) {
+            console.warn('⚠️ Could not load hrp_product_prb_owner_map.json');
+        }
         
         availabilityData.loaded = true;
         

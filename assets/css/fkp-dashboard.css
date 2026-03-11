@@ -182,7 +182,7 @@ body {
     overflow-x: hidden !important;
     overflow-y: auto !important;
     position: relative;
-    z-index: 1;
+    z-index: auto;
     width: 100%;
     max-width: 100%;
 }
@@ -1263,7 +1263,7 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
 .main-content {
     width: 100%;
     max-width: 100%;
-    z-index: 1;
+    z-index: auto;
 }
 
 /* Filters Panel */
@@ -2811,7 +2811,7 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
 .modal {
     display: none;
     position: fixed;
-    z-index: 10000;
+    z-index: 100000;
     inset: 0;
     width: 100%;
     height: 100%;
@@ -4288,6 +4288,18 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     letter-spacing: 1px;
     margin-bottom: 0.5rem;
     font-weight: 600;
+    min-height: 26px;
+}
+
+.avail-card-sla {
+    font-size: 12px;
+    color: #8a8a8a;
+    margin-bottom: 0.4rem;
+    min-height: 16px;
+}
+
+.avail-card-sla.is-empty {
+    color: transparent;
 }
 
 .avail-card-value {
@@ -4322,6 +4334,10 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
 
 .avail-card-trend.positive { color: #2e844a; }
 .avail-card-trend.negative { color: #c23934; }
+
+.sub-metric-strong {
+    font-weight: 700;
+}
 
 @media (max-width: 1200px) {
     .avail-summary-grid { grid-template-columns: repeat(3, 1fr); }
@@ -4630,6 +4646,22 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     gap: 0.5rem;
 }
 
+.sla-chart-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #1f2933;
+}
+
+.sla-chart-filter select {
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    font-size: 0.85rem;
+}
+
 .sla-chart-tab {
     padding: 0.5rem 1rem;
     border: none;
@@ -4640,6 +4672,84 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     cursor: pointer;
     border-radius: 6px;
     transition: all 0.2s;
+}
+
+.incident-kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0 0.5rem;
+}
+
+.incident-kpi-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #111827;
+}
+
+.incident-kpi-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.incident-kpi-btn {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #1f2933;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.incident-kpi-btn.active {
+    background: #1b96ff;
+    color: #ffffff;
+    border-color: #1b96ff;
+}
+
+.incident-kpi-table-wrap {
+    margin-bottom: 1rem;
+}
+
+.incident-kpi-header-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.incident-kpi-sla {
+    font-size: 0.75rem;
+    color: #8a8a8a;
+    font-weight: 500;
+}
+
+.incident-kpi-table thead th {
+    background: #eef2f7;
+    color: #374151;
+    font-weight: 700;
+}
+
+.incident-kpi-table tbody tr:nth-child(odd) {
+    background: #f8fafc;
+}
+
+.incident-kpi-table tbody td:first-child {
+    font-weight: 700;
+    color: #374151;
+}
+
+.incident-kpi-table td.sla-breach {
+    background: #fdecea;
+    color: #b42318;
+    font-weight: 500;
+}
+
+.incident-kpi-table td.sla-met {
+    background: #e7f6ec;
+    color: #1f7a3f;
+    font-weight: 500;
 }
 
 .sla-chart-tab:hover {

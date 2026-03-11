@@ -1,0 +1,10 @@
+{
+  "Managed Mesh": ["Mesh"],
+  "Ingress Gateway": ["Ingress"],
+  "Falcon Kubernetes Service": ["FKP"],
+  "Workload Identity": ["STRIDE"],
+  "Vegacache": ["Vegacache"],
+  "Message Queue": ["MQ", "Message Queue"],
+  "KRE": ["KRE-US", "KRE-HYD"],
+  "MAPS": []
+}

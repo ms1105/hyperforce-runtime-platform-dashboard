@@ -576,6 +576,30 @@ The Overview tab (`executive-overview`) has three main sections:
 - Adoption calculated based on FKP instances vs total instances
 - Migration stage calculated from instance-level stages
 
+### Onboarding Data Pipeline (Key Rules)
+- **Prod detection**: `stage|prod|esvc` in `fi` (case-insensitive)
+- **FKP detection**: `sam` in `k8s_cluster` (case-insensitive)
+- **Integration services**: excluded from adoption + self-managed lists (see `INTEGRATION_SERVICES` in `assets/js/fkp-dashboard.js`, includes `network-access-controller`)
+- **Exclude**: `label_p_servicename = 'unknown'`
+- **Non-FKP prod**: include only `isProd && !isFKP`
+- **Environment mapping**: `fi` contains `gia` → GIA2H, else Commercial; Blackjack uses `blackjack_adoption_normalized.csv`
+
+### services_with_self_managed_prod.csv Rules
+- Source data: `fkp_adoption.csv` + `blackjack_adoption_normalized.csv`
+- Include services with **>=1 non-FKP prod** instance (after integration exclusion)
+- Org fields use `service_cloud_mapping_utf8.csv` (Org Leader/Parent Cloud/Cloud/Team Name)
+- ETAs/Dependencies/Comments prefer **FY27 SoT** when present
+- Missing SoT: set ETAs to `TBD`, Comments = `Newly Added`, Feature Dependencies empty
+- If count > 0 and ETA is exactly `N/A`, set ETA → `TBD` and report for follow-up
+- `network-access-controller`: EKS integration → excluded from adoption + self-managed
+
+### Blackjack Normalization
+- Input: `assets/data/blackjack_adoption.csv`
+- Output: `assets/data/blackjack_adoption_normalized.csv`
+- Schema: `fi, fd, k8s_cluster, label_p_servicename, customerType, migrationStage`
+- Deduplicate by unique instance (fi/fd/cluster/service)
+- `customerType = BlackJack`
+
 ---
 
 ## 🛡️ Availability Tab Details
@@ -722,6 +746,30 @@ renderAvailabilitySLATable()         // Render SLA table from sla_data.csv
 - **URL Encoding** - Filenames with spaces must be URL-encoded when fetching
 - **Case-Insensitive Matching** - Status values (Complete/Partial/Missing) matched case-insensitively
 - **No Filters** - Availability tab does not show filters (filters hidden for Exec View tabs)
+
+### Detection (Runtime Availability)
+- Source: `assets/data/availability/incidents_e360_total.csv` (fully replaces `incidents2.csv`)
+- KPI windows: Sev0/Sev1 = **last 12 months anchored to today**; MTTD/MTTR = **last 30 days (Sev0/Sev1 only)**
+- Trend chart: **last 12 months** anchored to today
+- HRP Product filter uses `assets/data/availability/hrp_product_prb_owner_map.json`
+- HRP Product Incident KPIs table has 12m/30d toggle; “Days since last incident” ignores toggle
+- Exec Summary KPIs route to Detection tab + open matching modal
+
+### Detection - Incident Alert Quality (Exec View)
+- Section header: **Detection - Incident Alert Quality**
+- Data source: `assets/data/availability/ingress_incident_analysis.csv`
+- KPIs: Total Alerts, Confirmed Ingress Issues, False Positives
+- Pie: Probable Causes for False Positives (Ingress Issue = No)
+- Filter: HRP Product default = **Ingress Gateway** (other products show no data)
+- Slack logic: include **incident-related** threads where Ingress team was pulled in / IG mentioned
+
+### Prevention (Runtime Availability)
+- Preventive Test Coverage summary uses FIT + inventory CSVs
+- Integration Tests use FIT `Run Type`:
+  - `PreDeploymentValidation` → Pre
+  - `PostDeploymentValidation` → Post
+- Integration Summary: default **Summarize by Product** only; clicking product shows Run Types for that product
+- `WIS`/`STRIDE` → **Workload Identity** normalization
 
 ---
 

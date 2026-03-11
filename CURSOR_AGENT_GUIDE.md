@@ -139,7 +139,7 @@ const INTEGRATION_SERVICES = [
     'collectioninjector', 'metadata-concealer', 'identity-controller-refresher', 
     'identity-controller', 'clustermanagement', 'collectioninjectortest', 
     'visibility-agent', 'vault', 'mars', 'authzwebhook', 'kubesyntheticscaler',
-    'identitycontrollertest'
+    'identitycontrollertest', 'network-access-controller'
 ];
 ```
 
@@ -149,6 +149,29 @@ Services always excluded from all calculations:
 ```javascript
 const EXCLUDED_SERVICES = ['unknown'];
 ```
+
+### Onboarding Data Pipeline (Key Rules)
+- **Prod detection**: `stage|prod|esvc` in `fi` (case-insensitive)
+- **FKP detection**: `sam` in `k8s_cluster` (case-insensitive)
+- **Integration services**: excluded from adoption + self-managed lists (see `INTEGRATION_SERVICES`)
+- **Non-FKP prod**: include only `isProd && !isFKP`
+- **Environment mapping**: `fi` contains `gia` → GIA2H, else Commercial; BlackJack from normalized BJ file
+
+### BlackJack Normalization
+- Input: `assets/data/blackjack_adoption.csv`
+- Output: `assets/data/blackjack_adoption_normalized.csv`
+- Schema: `fi, fd, k8s_cluster, label_p_servicename, customerType, migrationStage`
+- Deduplicate by unique instance (fi/fd/cluster/service)
+- `customerType = BlackJack`
+
+### services_with_self_managed_prod.csv Rules
+- Source data: `fkp_adoption.csv` + `blackjack_adoption_normalized.csv`
+- Include services with **>=1 non-FKP prod** instance (after integration exclusion)
+- Org fields use `service_cloud_mapping_utf8.csv` (Org Leader/Parent Cloud/Cloud/Team Name)
+- ETAs/Dependencies/Comments prefer **FY27 SoT** when present
+- Missing SoT: set ETAs to `TBD`, Comments = `Newly Added`, Feature Dependencies empty
+- If count > 0 and ETA is exactly `N/A`, set ETA → `TBD` and report for follow-up
+- `network-access-controller`: EKS integration → excluded from adoption + self-managed
 
 ---
 
@@ -381,7 +404,7 @@ my-service,FY26Q2,FY26Q3,TBD,ARM support
 ### Availability Data Files
 | File | Purpose |
 |------|---------|
-| `assets/data/availability/incidents2.csv` | Availability KPIs (sev0/1, MTTD/MTTR) |
+| `assets/data/availability/incidents_e360_total.csv` | Availability KPIs (sev0/1, MTTD/MTTR) |
 | `assets/data/availability/hrp_service_readiness_score_data.csv` | Test readiness matrix |
 | `assets/data/availability/customer_test_scenario_view.csv` | Test inventory (customer scenarios) |
 | `assets/data/availability/integration_test_view.csv` | Test inventory (integration) |
@@ -408,14 +431,24 @@ my-service,FY26Q2,FY26Q3,TBD,ARM support
 
 ---
 
-## 🧭 Detection - Alert Quality (Exec View)
+## 🧭 Detection (Runtime Availability)
 
-- Section lives under Detection Exec → Service Impact Analysis, labeled **Detection - Alert Quality**
+- Source: `assets/data/availability/incidents_e360_total.csv` (fully replaces `incidents2.csv`)
+- KPI windows: Sev0/Sev1 = **last 12 months anchored to today**; MTTD/MTTR = **last 30 days (Sev0/Sev1 only)**
+- Trend chart: **last 12 months** anchored to today
+- HRP Product filter uses `assets/data/availability/hrp_product_prb_owner_map.json`
+- HRP Product Incident KPIs table has 12m/30d toggle; “Days since last incident” ignores toggle
+- Exec Summary KPIs route to Detection tab + open matching modal
+
+## 🧭 Detection - Incident Alert Quality (Exec View)
+
+- Section lives under Detection Exec → Service Impact Analysis, labeled **Detection - Incident Alert Quality**
 - Data source: `assets/data/availability/ingress_incident_analysis.csv`
 - KPI block: Total Alerts, Confirmed Ingress Issues, False Positives
 - Pie chart: **Probable Causes for False Positives** only (Ingress Issue = No)
 - Table columns: Incident, Probable Cause, Root Cause Summary, Link to Slack Thread, HRP Cause or not
 - HRP Product filter: defaults to **Ingress Gateway**; other products show **No Data**
+- Slack logic: include **incident-related** threads where Ingress team was pulled in / IG mentioned
 
 ---
 
@@ -425,6 +458,11 @@ my-service,FY26Q2,FY26Q3,TBD,ARM support
 - Prevention Developer View card label updated to **Critical Path Tests**
 - Integration trend chart renders only when Product or RunType is selected; uses FIT success rate (fallback to 100 - failure rate)
 - `renderInventoryProductSummary` must define `visibleProducts` locally to avoid ReferenceError
+- Integration Tests use FIT `Run Type`:
+  - `PreDeploymentValidation` → Pre
+  - `PostDeploymentValidation` → Post
+- Integration Summary: default **Summarize by Product** only; clicking product shows Run Types for that product
+- `WIS`/`STRIDE` → **Workload Identity** normalization
 
 ---
 

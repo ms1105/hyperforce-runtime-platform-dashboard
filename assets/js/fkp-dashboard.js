@@ -539,8 +539,8 @@ function renderAvailabilityPreventionExecView(container) {
                             <tr>
                                 <th>HRP Product</th>
                                 <th onclick="openAvailabilityInventoryTab('customerScenario')" class="inventory-clickable-header">Critical Path Tests</th>
-                                <th onclick="openAvailabilityInventoryTab('integration')" class="inventory-clickable-header">Integration Tests (Pre-Deployment)</th>
-                                <th onclick="openAvailabilityInventoryTab('integration')" class="inventory-clickable-header">Integration Tests (Post-Deployment)</th>
+                                <th onclick="openAvailabilityInventoryTab('integration')" class="inventory-clickable-header">FIT Tests - PreDeployment</th>
+                                <th onclick="openAvailabilityInventoryTab('integration')" class="inventory-clickable-header">FIT Tests - PostDeployment</th>
                                 <th onclick="openAvailabilityInventoryTab('scalePerf')" class="inventory-clickable-header">Scale &amp; Perf Tests</th>
                                 <th onclick="openAvailabilityInventoryTab('chaos')" class="inventory-clickable-header">Chaos Tests</th>
                             </tr>
@@ -569,7 +569,7 @@ function renderAvailabilityPreventionExecView(container) {
 
             <div class="exec-summary-section-header">
                 <span class="readiness-section-icon">🔗</span>
-                <span>Integration Test Summary for HRP Products</span>
+                <span>FIT Test Summary for HRP Products</span>
             </div>
             <div class="prevention-fit-controls-row">
                 <div class="prevention-fit-controls">
@@ -2296,6 +2296,10 @@ async function renderExecutiveSummary() {
         const avgMttrSev0 = calcAvg(sev0Recent, 'ttr_min');
         const avgMttdSev1 = calcAvg(sev1Recent, 'ttd_min');
         const avgMttrSev1 = calcAvg(sev1Recent, 'ttr_min');
+        const avgMttdSev0_12 = calcAvg(sev0Window, 'ttd_min');
+        const avgMttrSev0_12 = calcAvg(sev0Window, 'ttr_min');
+        const avgMttdSev1_12 = calcAvg(sev1Window, 'ttd_min');
+        const avgMttrSev1_12 = calcAvg(sev1Window, 'ttr_min');
         const sev0Latest = getLatestBySeverity('Sev0');
         const sev1Latest = getLatestBySeverity('Sev1');
         const sev0DaysSince = sev0Latest ? Math.max(0, Math.floor((now - sev0Latest) / msPerDay)) : null;
@@ -2531,15 +2535,6 @@ async function renderExecutiveSummary() {
         const testMttrHours = 4.2;
         const testMttrSub = '↓ 1.3 hrs improvement';
 
-        const detectionModalTypeForTitle = (title) => {
-            const normalized = (title || '').toLowerCase();
-            if (normalized.includes('sev0')) return 'sev0';
-            if (normalized.includes('sev1')) return 'sev1';
-            if (normalized.includes('mttd')) return 'mttd';
-            if (normalized.includes('mttr')) return 'mttr';
-            return null;
-        };
-
         const kpiCard = ({
             title,
             value,
@@ -2572,21 +2567,21 @@ async function renderExecutiveSummary() {
                             value: sev0Incidents,
                             sub: sev0Months.length ? `${sev0Incidents} total (${sev0Months.join(', ')})` : `${sev0Incidents} total`,
                             valueClass: 'text-red',
-                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Sev0 Incidents')}')`
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Avg MTTD (Last 30 D)',
                             value: `${avgMttdSev0}<span class="exec-summary-unit">min</span>`,
-                            sub: 'SLA Target <10 min',
+                            sub: `SLA Target <10 min<br><span class="exec-summary-sub-metric ${slaClass(avgMttdSev0_12, 10)}">12mo avg: ${avgMttdSev0_12} min</span>`,
                             valueClass: slaClass(avgMttdSev0, 10),
-                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Avg MTTD')}')`
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Avg MTTR (Last 30 D)',
                             value: `${avgMttrSev0}<span class="exec-summary-unit">min</span>`,
-                            sub: 'SLA Target <30 min',
+                            sub: `SLA Target <30 min<br><span class="exec-summary-sub-metric ${slaClass(avgMttrSev0_12, 30)}">12mo avg: ${avgMttrSev0_12} min</span>`,
                             valueClass: slaClass(avgMttrSev0, 30),
-                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Avg MTTR')}')`
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Days Since Last Incident',
@@ -2604,21 +2599,21 @@ async function renderExecutiveSummary() {
                             value: sev1Incidents,
                             sub: sev1ServiceCount > 0 ? `${sev1Incidents} total across ${sev1ServiceCount} services` : `${sev1Incidents} total`,
                             valueClass: 'text-orange',
-                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Sev1 Incidents')}')`
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Avg MTTD (Last 30 D)',
                             value: `${avgMttdSev1}<span class="exec-summary-unit">min</span>`,
-                            sub: 'SLA Target <10 min',
+                            sub: `SLA Target <10 min<br><span class="exec-summary-sub-metric ${slaClass(avgMttdSev1_12, 10)}">12mo avg: ${avgMttdSev1_12} min</span>`,
                             valueClass: slaClass(avgMttdSev1, 10),
-                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Avg MTTD')}')`
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Avg MTTR (Last 30 D)',
                             value: `${avgMttrSev1}<span class="exec-summary-unit">min</span>`,
-                            sub: 'SLA Target <30 min',
+                            sub: `SLA Target <30 min<br><span class="exec-summary-sub-metric ${slaClass(avgMttrSev1_12, 30)}">12mo avg: ${avgMttrSev1_12} min</span>`,
                             valueClass: slaClass(avgMttrSev1, 30),
-                            onClick: `openDetectionExecModal('${detectionModalTypeForTitle('Avg MTTR')}')`
+                            onClick: "switchTab('runtime-availability-detection'); scrollToTabContent('runtime-availability-detection')"
                         })}
                         ${kpiCard({
                             title: 'Days Since Last Incident',
@@ -2638,14 +2633,14 @@ async function renderExecutiveSummary() {
                 <div class="exec-summary-section-card">
                     <div class="exec-summary-kpi-grid columns-4">
                         ${kpiCard({
-                            title: 'Products - Pre-Deployment Testing',
+                            title: 'Products - Pre-Deployment FIT Testing',
                             value: preProductCount || 0,
                             sub: `${preServiceCount} services enabled across ${totalHrpServices} total HRP services`,
                             valueClass: 'text-blue',
                             onClick: "openAvailabilityInventoryTabFromKpi('integration','PreDeployment')"
                         })}
                         ${kpiCard({
-                            title: 'Pre-Deployment Test Success Rate (Last 30 D)',
+                            title: 'Pre-Deployment FIT Test Success Rate (Last 30 D)',
                             value: preSuccessRate !== null ? `${preSuccessRate.toFixed(1)}%` : 'TBD',
                             sub: preDelta.text,
                             subClass: preDelta.className,
@@ -2653,7 +2648,7 @@ async function renderExecutiveSummary() {
                             onClick: "openAvailabilityInventoryTabFromKpi('integration','PreDeployment')"
                         })}
                         ${kpiCard({
-                            title: 'Post-Deployment Test Success Rate (Last 30 D)',
+                            title: 'Post-Deployment FIT Test Success Rate (Last 30 D)',
                             value: postSuccessRate !== null ? `${postSuccessRate.toFixed(1)}%` : 'TBD',
                             sub: postDelta.text,
                             subClass: postDelta.className,
@@ -3028,12 +3023,6 @@ async function renderAvailabilityDetectionTab() {
         // Render comprehensive scrollable Exec View
         renderAvailabilityExecView(container, { includeReadiness: false });
 
-        if (availabilityData.pendingDetectionModal) {
-            const modalType = availabilityData.pendingDetectionModal;
-            availabilityData.pendingDetectionModal = null;
-            setTimeout(() => openAvailabilityExecModal(modalType), 0);
-        }
-        
         console.log('✅ Runtime Availability - Detection rendered');
         console.log('🛡️ Container innerHTML length after render:', container.innerHTML.length);
     } catch (error) {
@@ -3235,7 +3224,7 @@ function updateDetectionExecWidgets() {
     const kpiWindow = availabilityData.detectionKpiWindow || '12m';
     const kpiSource = kpiWindow === '30d' ? cache.recentIncidents : cache.window12Sev;
 
-    const chartIncidents = filterIncidentsByProduct(cache.window12Incidents, selectedProduct);
+    const chartIncidents = filterIncidentsByProduct(cache.window12Sev, selectedProduct);
     const buckets = buildDetectionMonthlyBuckets(cache.twelveMonthStart);
     chartIncidents.forEach(inc => {
         const date = new Date(inc.detected_date);
@@ -3396,7 +3385,7 @@ function renderAvailabilityExecView(container, options = {}) {
         recentIncidentsCount: recentIncidents.length
     });
     
-    const chartIncidents = filterIncidentsByProduct(window12Incidents, selectedProduct);
+    const chartIncidents = filterIncidentsByProduct(window12Sev, selectedProduct);
     const buckets = buildDetectionMonthlyBuckets(twelveMonthStart);
     chartIncidents.forEach(inc => {
         const date = new Date(inc.detected_date);
@@ -3624,35 +3613,6 @@ function renderAvailabilityExecView(container, options = {}) {
             </div>
             <hr class="availability-header-divider">
             
-            <!-- Exec KPI Summary Cards -->
-            <div class="avail-summary-grid">
-                <div class="avail-summary-card critical" onclick="openAvailabilityExecModal('sev0')">
-                    <div class="avail-card-label">Sev0 Incidents (12mo)</div>
-                    <div class="avail-card-sla is-empty">&nbsp;</div>
-                    <div class="avail-card-value critical">${sev0Incidents}</div>
-                    <div class="avail-card-trend">${sev0Trend}</div>
-                </div>
-                <div class="avail-summary-card warning" onclick="openAvailabilityExecModal('sev1')">
-                    <div class="avail-card-label">Sev1 Incidents (12mo)</div>
-                    <div class="avail-card-sla is-empty">&nbsp;</div>
-                    <div class="avail-card-value warning">${sev1Incidents}</div>
-                    <div class="avail-card-trend">${sev1Trend}</div>
-                </div>
-                <div class="avail-summary-card" onclick="openAvailabilityExecModal('mttd')">
-                    <div class="avail-card-label">Avg MTTD (30d)</div>
-                    <div class="avail-card-sla">SLA Target &lt;${mttdMetric.target} min</div>
-                    <div class="avail-card-value ${avgMttd > mttdMetric.target ? 'critical' : 'info'}">${avgMttd}<span class="avail-unit">min</span></div>
-                    <div class="avail-card-trend positive"><span class="sub-metric-strong">12mo avg: ${avgMttd12 || '—'} min</span></div>
-                </div>
-                <div class="avail-summary-card" onclick="openAvailabilityExecModal('mttr')">
-                    <div class="avail-card-label">Avg MTTR (30d)</div>
-                    <div class="avail-card-sla">SLA Target &lt;${mttrMetric.target} min</div>
-                    <div class="avail-card-value ${avgMttr > mttrMetric.target ? 'critical' : 'info'}">${avgMttr}<span class="avail-unit">min</span></div>
-                    <div class="avail-card-trend positive"><span class="sub-metric-strong">12mo avg: ${avgMttr12 || '—'} min</span></div>
-                </div>
-            </div>
-
-            <div class="sla-section-divider"></div>
             <div class="incident-kpi-header">
                 <div class="incident-kpi-title">HRP Product Incident KPIs</div>
                 <div class="incident-kpi-toggle">
@@ -3854,15 +3814,6 @@ function renderAvailabilityExecView(container, options = {}) {
                 </div>
             </div>
             
-            <div class="modal" id="availability-exec-modal" onclick="closeAvailabilityExecModal(event)">
-                <div class="modal-content" onclick="event.stopPropagation()">
-                    <div class="modal-header">
-                        <h3 id="availability-exec-modal-title">Details</h3>
-                        <button class="modal-close" onclick="closeAvailabilityExecModal()">&times;</button>
-                    </div>
-                    <div class="modal-body" id="availability-exec-modal-body"></div>
-                </div>
-            </div>
         </div>
     `;
     
@@ -4310,7 +4261,7 @@ function renderAvailabilityInventoryView(options = {}) {
     };
     const testTypeCards = [
         { key: 'customerScenario', label: 'Critical Path Tests', icon: '🧑‍💼' },
-        { key: 'integration', label: 'Integration Tests', icon: '🔗' },
+        { key: 'integration', label: 'Falcon Integration Tests (FIT)', icon: '🔗' },
         { key: 'scalePerf', label: 'Scale & Perf Tests', icon: '📈' },
         { key: 'chaos', label: 'Chaos Tests', icon: '🔥' }
     ];
@@ -5621,7 +5572,7 @@ function renderInventoryDetail(type) {
         const trendHtml = shouldShowTrend ? `
             <div class="inventory-detail-card">
                 <div class="inventory-detail-header">
-                    <h3>Trend of Integration Tests over time</h3>
+                    <h3>Trend of Falcon Integration Tests (FIT) over time</h3>
                 </div>
                 <div class="chart-body">
                     <div class="chart-container">
@@ -7434,44 +7385,6 @@ function buildReleaseConfidenceModal() {
     };
 }
 
-function openAvailabilityExecModal(type) {
-    const modal = document.getElementById('availability-exec-modal');
-    const titleEl = document.getElementById('availability-exec-modal-title');
-    const bodyEl = document.getElementById('availability-exec-modal-body');
-    if (!modal || !titleEl || !bodyEl) return;
-    
-    const builders = {
-        sev0: buildExecSev0Modal,
-        sev1: buildExecSev1Modal,
-        mttd: buildExecMttdModal,
-        mttr: buildExecMttrModal,
-        // readiness modal removed
-    };
-    
-    const builder = builders[type];
-    if (!builder) return;
-    
-    const content = builder();
-    titleEl.textContent = content.title;
-    bodyEl.innerHTML = content.body;
-    modal.style.display = 'block';
-}
-
-function openDetectionExecModal(type) {
-    availabilityData.pendingDetectionModal = type;
-    switchTab('runtime-availability-detection');
-    scrollToTabContent('runtime-availability-detection');
-}
-
-function closeAvailabilityExecModal(event) {
-    const modal = document.getElementById('availability-exec-modal');
-    if (!modal) return;
-    if (event && event.target && event.target !== modal) {
-        return;
-    }
-    modal.style.display = 'none';
-}
-
 function getLatestIncidentDate(incidents) {
     let latest = null;
     incidents.forEach(inc => {
@@ -7491,166 +7404,6 @@ function formatDetectedMonth(date) {
 
 function formatDetectedDate(date) {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function buildExecSev0Modal() {
-    const incidents = availabilityData.incidents || [];
-    const now = new Date();
-    now.setHours(23, 59, 59, 999);
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    start.setMonth(start.getMonth() - 11);
-    
-    const rows = incidents.filter(inc => {
-        const date = new Date(inc.detected_date);
-        return inc.severity === 'Sev0' && date >= start && date <= now;
-    });
-    
-    const tableRows = rows.map(inc => {
-        const date = new Date(inc.detected_date);
-        const month = formatDetectedMonth(date);
-        const incidentId = inc['Incident ID'] || inc.incident_id || '';
-        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${incidentId}</td><td class="align-center">${month}</td></tr>`;
-    }).join('');
-    
-    return {
-        title: 'Sev0 Incidents — Last 12 Months',
-        body: `
-            <div class="fit-modal">
-                <table class="availability-modal-table">
-                    <thead>
-                        <tr>
-                            <th>Service</th>
-                            <th>Incident ID</th>
-                            <th>Detected Month</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows || `<tr><td colspan="3" class="empty-state">No Sev0 incidents found</td></tr>`}
-                    </tbody>
-                </table>
-            </div>
-        `
-    };
-}
-
-function buildExecSev1Modal() {
-    const incidents = availabilityData.incidents || [];
-    const now = new Date();
-    now.setHours(23, 59, 59, 999);
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    start.setMonth(start.getMonth() - 11);
-    
-    const counts = {};
-    incidents.forEach(inc => {
-        const date = new Date(inc.detected_date);
-        if (inc.severity !== 'Sev1' || date < start || date > now) return;
-        const service = inc.prb_owner || 'Unknown';
-        counts[service] = (counts[service] || 0) + 1;
-    });
-    
-    const tableRows = Object.entries(counts)
-        .sort((a, b) => b[1] - a[1])
-        .map(([service, count]) => `<tr><td>${service}</td><td class="mono align-center">${count}</td></tr>`)
-        .join('');
-    
-    return {
-        title: 'Sev1 Incidents — By Service (Last 12 Months)',
-        body: `
-            <div class="fit-modal">
-                <table class="availability-modal-table">
-                    <thead>
-                        <tr>
-                            <th>Service</th>
-                            <th>Number of Sev1 Incidents</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows || `<tr><td colspan="2" class="empty-state">No Sev1 incidents found</td></tr>`}
-                    </tbody>
-                </table>
-            </div>
-        `
-    };
-}
-
-function buildExecMttdModal() {
-    const incidents = availabilityData.incidents || [];
-    const now = new Date();
-    now.setHours(23, 59, 59, 999);
-    const start = new Date(now);
-    start.setDate(start.getDate() - 30);
-    
-    const rows = incidents.filter(inc => {
-        const date = new Date(inc.detected_date);
-        return (inc.severity === 'Sev0' || inc.severity === 'Sev1') &&
-            date >= start && date <= now && parseFloat(inc.ttd_min) > 0;
-    });
-    
-    const tableRows = rows.map(inc => {
-        const date = formatDetectedDate(new Date(inc.detected_date));
-        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${Math.round(parseFloat(inc.ttd_min))}</td><td class="align-center">${date}</td><td class="align-center">${inc.severity || '-'}</td></tr>`;
-    }).join('');
-    
-    return {
-        title: 'Avg MTTD (30d) — Incident Detail',
-        body: `
-            <div class="fit-modal">
-                <table class="availability-modal-table">
-                    <thead>
-                        <tr>
-                            <th>Service</th>
-                            <th>MTTD (min)</th>
-                            <th>Detected Date</th>
-                            <th>Severity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows || `<tr><td colspan="4" class="empty-state">No incidents found in last 30 days</td></tr>`}
-                    </tbody>
-                </table>
-            </div>
-        `
-    };
-}
-
-function buildExecMttrModal() {
-    const incidents = availabilityData.incidents || [];
-    const now = new Date();
-    now.setHours(23, 59, 59, 999);
-    const start = new Date(now);
-    start.setDate(start.getDate() - 30);
-    
-    const rows = incidents.filter(inc => {
-        const date = new Date(inc.detected_date);
-        return (inc.severity === 'Sev0' || inc.severity === 'Sev1') &&
-            date >= start && date <= now && parseFloat(inc.ttr_min) > 0;
-    });
-    
-    const tableRows = rows.map(inc => {
-        const date = formatDetectedDate(new Date(inc.detected_date));
-        return `<tr><td>${inc.prb_owner || '-'}</td><td class="mono align-center">${Math.round(parseFloat(inc.ttr_min))}</td><td class="align-center">${date}</td><td class="align-center">${inc.severity || '-'}</td></tr>`;
-    }).join('');
-    
-    return {
-        title: 'Avg MTTR (30d) — Incident Detail',
-        body: `
-            <div class="fit-modal">
-                <table class="availability-modal-table">
-                    <thead>
-                        <tr>
-                            <th>Service</th>
-                            <th>MTTR (min)</th>
-                            <th>Detected Date</th>
-                            <th>Severity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows || `<tr><td colspan="4" class="empty-state">No incidents found in last 30 days</td></tr>`}
-                    </tbody>
-                </table>
-            </div>
-        `
-    };
 }
 
 function initFitTrendChart(canvasId = 'fitTrendChart') {
@@ -14119,7 +13872,6 @@ let availabilityData = {
         scalePerf: { headers: [], rows: [] },
         chaos: { headers: [], rows: [] }
     },
-    pendingDetectionModal: null,
     loaded: false
 };
 

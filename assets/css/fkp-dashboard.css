@@ -1668,6 +1668,22 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     color: #64748b;
 }
 
+.exec-summary-sub-metric {
+    font-weight: 600;
+}
+
+.exec-summary-sub-metric.text-green {
+    color: #2e844a;
+}
+
+.exec-summary-sub-metric.text-red {
+    color: #c23934;
+}
+
+.exec-summary-sub-metric.text-slate {
+    color: #334155;
+}
+
 .exec-summary-kpi-value.days-number {
     font-size: 2.71875rem;
 }
@@ -5891,6 +5907,8 @@ body:has(.tab-pane#executive-overview.active) .filter-row {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    justify-content: center;
+    text-align: center;
 }
 
 .inventory-tab-card--customerScenario {

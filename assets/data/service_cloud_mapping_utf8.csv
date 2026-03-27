@@ -215,6 +215,7 @@ apiq-e2c-extrctn,Sales Cloud Auriga,Sales AI,Sales,Meir Amiel
 apiq-e2c-mgrt-schdlr,Sales Cloud Auriga,Sales AI,Sales,Meir Amiel
 apiq-e2e-fit-tests,Activities 360 Q3 Engg,Activity Platform,Sales,Meir Amiel
 apiq-e2e-verifier-service,A360 Stargate,Activity Platform,Sales,Meir Amiel
+apiq-eci-extrctn-schdlr,Sales Cloud Auriga,Sales AI and Data Foundation,Sales,Meir Amiel
 apiq-eci-realtime-bot-service,ECI Foundation,Sales Intelligence Platform,Sales,Meir Amiel
 apiq-eci-realtime-insights,ECI Foundation,Sales Intelligence Platform,Sales,Meir Amiel
 apiq-eci-realtime-zoom,ECI Foundation,Sales Intelligence Platform,Sales,Meir Amiel
@@ -544,7 +545,10 @@ arm-auth-proxy-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidh
 arm-jafar-service,MS Universal Management Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-mcm2-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-monitoring-ingest,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+arm-monitoring-query,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+arm-monitoring-sync,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-ms-atlas-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+arm-ms-auth-proxy-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-ms-mcm-service,MS Runtime Manager,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-platform-alerts,MS Universal Management Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 arm-platform-alerts-restricted,MS Universal Management Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -809,7 +813,7 @@ cdp-statement-of-consent,Fredericton Express,D360 Customer Data Platform (CDP),D
 cdp-transform-engine,CDP Batch Transforms OffCore,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 cdp-usage-etl,EPIC Team,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 cef-platform,KRE-HYD,HyperForce Runtime Platform,HPS,Paul Constantinides
-cell-reservation-system,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
+cell-reservation-system,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
 central-feature-toggles,CC Digital Evergreen,CC ECOM Infra,Commerce Cloud Kernel,Meir Amiel
 certapi,TIP Security Data Fabric - VDP,Secure Stack Engineering,GIA,Jim Wiese
 certificateservices,PKI - RA,Data Security,Salesforce Trust Platform (STP),Meir Amiel
@@ -978,6 +982,7 @@ data-prism,GenAI Intelligence Data Orchestration,Search,Search,Muralidhar Krishn
 data-quality-outcome-link,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
 data-quality-service,TIP Detection Platform - Detection Framework,Secure Stack Engineering,GIA,Jim Wiese
 data-resilience,DataSec - Resilience,Data Security,Salesforce Trust Platform (STP),Meir Amiel
+data-resilience-restore,DataSec - Resilience,Data Security,Salesforce Trust Platform (STP),Meir Amiel
 data-seed,AI Data Seeding,Developer Platform,Platform Services,Muralidhar Krishnaprasad
 datadetect-scanner,Data Detect,Trusted Services,Platform Services,Muralidhar Krishnaprasad
 dataloader-billing-service,MS Dataloader,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -985,7 +990,7 @@ dataloader-console-service,MS Dataloader,MuleSoft Product Org,MuleSoft,Muralidha
 dataloader-experience-service,MS Dataloader,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 dataloader-falcon-restricted,MS Dataloader,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 dataloader-tasks-service,MS Dataloader,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
-dataplumber-k8s,CP CE-CloudInfra-TOC,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
+dataplumber-k8s,CP CE-CloudInfra-TOC,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
 datorama-control-box,MCI Next Backend Infra,MC Intelligence Cloud,Marketing,Meir Amiel
 datorama-dataaggregator,EMI and MCI Data Infra,MC Intelligence Cloud,Marketing,Meir Amiel
 datorama-eks,MCI Service Delivery,MC Intelligence Cloud,Marketing,Muralidhar Krishnaprasad
@@ -1013,9 +1018,9 @@ dbiebot,HLE,App Data Services,HPS,Paul Constantinides
 dbschema-upgrade,DB Schema,App Data Services,HPS,Paul Constantinides
 dbstream,Org Migration Core,App Data Services,HPS,Paul Constantinides
 dc-graph-execution-service,Search Splat,Search,Search,Muralidhar Krishnaprasad
-dc-rcm,TDP - Bridge Edge Experiences & Dataserver,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-dc-rcm-corpnet,TDP - Bridge Edge Experiences & Dataserver,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-dc-rcm-db,TDP - Bridge Edge Experiences & Dataserver,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
+dc-rcm,TDP - Bridge Edge Experiences & Dataserver,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+dc-rcm-corpnet,TDP - Bridge Edge Experiences & Dataserver,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+dc-rcm-db,TDP - Bridge Edge Experiences & Dataserver,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
 dda-ack-api,DnA Data Mgt Tools,Data Intelligence,Data & Analytics (DnA),Joe Inzerillo
 defender,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 delphi-app,Governed Product Usage,Trusted Work Platform,Salesforce Trust Platform (STP),Meir Amiel
@@ -1099,6 +1104,7 @@ dx-mcp-servers-external,Agent Platform & Tools,MAGIC,Reliable AI-Driven Develope
 dx-mcp-servers-golang,Agent Platform & Tools,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 dx-mcp-servers-python,Agent Platform & Tools,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 dx-mcp-servers-typescript,Agent Platform & Tools,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+dx-platform,Unified Portal,AIForce,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 dxgateway,fedx-cp,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 e2ev,Sitebridge,Hyperforce Secure Networking (HSN),Salesforce Trust Platform (STP),Meir Amiel
 e360-api-service,E360 Platform Inbound Shaolin,Digital Engagement,Service,Muralidhar Krishnaprasad
@@ -1165,8 +1171,10 @@ einstein-sagemaker,Einstein Infra US,Agentforce Foundations,AI Cloud,Muralidhar 
 einstein-sagemaker-ids,Einstein Infra US,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 einstein-transcribe,Speech Foundations — Voice Services,Agentforce Lifecycle and Applied AI,AI Cloud,Muralidhar Krishnaprasad
 einstein-watcher,Einstein Infra US,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
+eip-uip-pm-activity,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 ek-connectors-service,CDP Unstructured Data,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
 ek-harmonization-service,Enterprise Knowledge Harmonization,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
+em-ingestion,Data Services - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 eng-ai-metrics,Autonomous Agents Team,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 eng-ai-model-gateway,Autonomous Agents Team,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 entities-predictor,Einstein.ai Language,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
@@ -1232,6 +1240,7 @@ fdx-api,Falcon Portal,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darry
 fdxui,Falcon Portal,MAGIC,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 feast-db,AI Platform Feature Store & Feature Engineering Framework,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 fedx-armn,fedx-cp,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
+fedx-cp-api,fedx-cp,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 fedx-cp-infra,fedx-cp,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 fedx-sahl,fedx-cp,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 fedx-watchtower,FEDX Watchdog,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -1274,7 +1283,8 @@ fit-validatorr,Falcon Integration Testing (FIT),Developer Productivity Experienc
 fkp-controlplane,GCP Build,HyperForce Runtime Platform,HPS,Paul Constantinides
 fkp-vertical-pod-autoscaler,HCCP,HyperForce Runtime Platform,HPS,Paul Constantinides
 fkpbaas,Falcon Application Services And Tooling - FAST,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
-flink-kubernetes-operator,CP CE-CloudInfra-TOC,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
+flexible-ingestion-batch,Data Services - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
+flink-kubernetes-operator,CP CE-CloudInfra-TOC,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
 flowsnake-history-server,Flowsnake,Flowsnake,Unified Intelligence Platform,Darryn Dieken
 flowsnake-impersonation-proxy,Flowsnake,Flowsnake,Unified Intelligence Platform,Darryn Dieken
 flowsnake-spark-operator,Flowsnake,Flowsnake,Unified Intelligence Platform,Darryn Dieken
@@ -1353,7 +1363,7 @@ fwe-platform-ft,CRE Field Service DevOps,Field Service Edge,Field Service,Meir A
 fwe-portal,FSL - Resource - Scheduling Hawks,Field Service Lightning,Field Service,Meir Amiel
 fwe-push,CRE Field Service DevOps,Field Service Edge,Field Service,Meir Amiel
 fwe-territory-optimization,Optimization Engineering,Field Service Lightning,Field Service,Meir Amiel
-g-2-g,CP CE-CloudInfra-PRB,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
+g-2-g,CP CE-CloudInfra-PRB,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
 gadget-diagnostics-service,Proactive Monitoring Engineering,Hyperscale Core CRM,HPS,Paul Constantinides
 gadget-monitoring-service,Proactive Monitoring Engineering,Hyperscale Core CRM,HPS,Paul Constantinides
 gadget-watch,Proactive Monitoring Engineering,Hyperscale Core CRM,HPS,Paul Constantinides
@@ -1371,6 +1381,7 @@ gdcui,Release Automation Platform,"CRMD - Change, Release Management + DevOps",I
 gdcworker,Release Automation Platform,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 gid-service,Global Identity Setup,,,Alice Steinglass
 gid-service-hf,Identity Data,Identity Services,Platform Services,Muralidhar Krishnaprasad
+gid-sync-service,MS CSP,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 gidruntime,Global Identity Runtime,Identity Services,Platform Services,Muralidhar Krishnaprasad
 gov-change-linter,GovCloud Secure Artifact Engineering (GovSAE),GIA,GIA,Jim Wiese
 govbot-slack-prd,GovCloud Release Engineering (GovRelEng),GIA,GIA,Jim Wiese
@@ -1510,6 +1521,7 @@ industries-rcg-tenant-mgmt,Industries RCG TPM Off Core 2,Retail and Consumer Goo
 industries-rcg-test,Industries RCG TPM Off Core 2,Retail and Consumer Goods,Industries,Ramesh Ragineni
 industries-rcg-tpm,Industries RCG TPM Off Core 2,Retail and Consumer Goods,Industries,Ramesh Ragineni
 inetmon,Hyperforce Networking,Hyperforce Secure Networking (HSN),Salesforce Trust Platform (STP),Meir Amiel
+ingestion-lsmoplogs-service,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 ingestion-traces-service,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 ingestion-transform-uo-dc-logs,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 ingestion-transform-uo-dc-metrics,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -1519,7 +1531,7 @@ ingestion-validation-sharding-persistence-job,MS MDAS Ingestion and Logging,Mule
 ingressassistant,Ingress Gateway,HyperForce Runtime Platform,HPS,Paul Constantinides
 ingressconfig,Ingress Gateway,HyperForce Runtime Platform,HPS,Paul Constantinides
 ingressgateway,Ingress Gateway,HyperForce Runtime Platform,HPS,Paul Constantinides
-instant-analytics,AX VAST Web Experience Enhancement,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
+instant-analytics,AX VAST Web Experience Enhancement,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
 intakeapp,Falcon SRE US,Site Reliability Engineering,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 intakeappui,Falcon SRE US,Site Reliability Engineering,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 integration-test-service,Falcon Integration Testing (FIT),Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -1528,6 +1540,7 @@ intent-predictor,Einstein.ai Language,Agentforce Lifecycle and Applied AI,AI Clo
 intent-predictor-meta,Einstein.ai Language,Agentforce Lifecycle and Applied AI,AI Cloud,Muralidhar Krishnaprasad
 interactive-data-science,Einstein Interactive Data Science,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
 interactive-data-science-db,Einstein Interactive Data Science,Agentforce Foundations,AI Cloud,Muralidhar Krishnaprasad
+internal-ai-telemetry,C360 Apps-AI-Tooling,Central Performance,Central Performance,Muralidhar Krishnaprasad
 internal-testenv-portal-api,FIREInfra DevOps,Core DX,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 internal-testenv-portal-dba,FIREInfra DevOps,Core DX,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 ipam,Hyperforce Networking,Hyperforce Secure Networking (HSN),Salesforce Trust Platform (STP),Meir Amiel
@@ -1556,6 +1569,7 @@ itsm-cmdb-victory-webapp,ITSM Maurya,Service Cloud TAM Expansion SoR,Service,Mur
 itsm-cmdb-webapp-ui,ITSM-CMDB-ITOM,Service Cloud TAM Expansion SoR,Service,Muralidhar Krishnaprasad
 itsm-msteams-employee-app,ITSM Vayu,Service Cloud TAM Expansion SoR,Service,Muralidhar Krishnaprasad
 itsm-msteams-fulfiller-app,ITSM Vayu,Service Cloud TAM Expansion SoR,Service,Muralidhar Krishnaprasad
+ixp-core,Incident Experiences,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 ixp-slack,Incident Experiences,Customer Availability Products,Customer Availability Products & Services,Darryn Dieken
 janus,Syssec Infra,1P Availability & Reliability,Salesforce Trust Platform (STP),Meir Amiel
 jarvisapiserver,HASE,SDB,HPS,Paul Constantinides
@@ -1590,6 +1604,7 @@ kerberos-appauth,Infra IAM - Authentication,Hyperforce Guardians,Salesforce Trus
 kerberos-auth,Infra IAM - Authentication,Hyperforce Guardians,Salesforce Trust Platform (STP),Meir Amiel
 keyescrow,KMS Customer Success,Data Security,Salesforce Trust Platform (STP),Meir Amiel
 keystone-async-proc,Keystone Catalog,App Data Services,HPS,Paul Constantinides
+kg-db-service,Unified Context Engineering,AIForce,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 kingfisher,NetSec Service Engineering & Architecture(SEA),1P Availability & Reliability,Salesforce Trust Platform (STP),Meir Amiel
 klusterlet,FKP Cross Control,HyperForce Runtime Platform,HPS,Paul Constantinides
 kmmapp,KRE-HYD,HyperForce Runtime Platform,HPS,Paul Constantinides
@@ -1629,6 +1644,7 @@ log-proxy,Identity Sync,Identity Services,Platform Services,Muralidhar Krishnapr
 logs-opensearch-dashboards-service,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 logs-opensearch-infra,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 logs-processor,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+loom,MonCloud Events,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 louper,govcloud compliance automation,GIA,GIA,Jim Wiese
 louper-c,govcloud compliance automation,GIA,GIA,Jim Wiese
 lpt,PACE,Hyperforce Guardians,Salesforce Trust Platform (STP),Meir Amiel
@@ -1757,6 +1773,7 @@ mco-smpp,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Am
 mco-spooler,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 mco-vesag,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
 mco-zookeeper,SMS Last Mile,In Market Messaging Services,Marketing Tech Cloud,Meir Amiel
+mdp-batch-ingestion,Data Services - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 mds-collector-service,MS Tooling & Connectivity Services,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 mds-deployment-job,MS Composer Runtime aka MDS/MTS,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 mds-mts-infra,MS Connectors - Vector,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
@@ -2210,9 +2227,14 @@ op-common-cell-management-service,MS MDAS Metrics and Traces,MuleSoft Product Or
 op-common-cell-management-service-infra,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 op-common-config-service,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 op-common-config-service-infra,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+op-common-flink-operator,MS MDAS Ingestion and Logging,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 op-common-janitor-jobs,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 op-common-template-registration-job,MS MDAS Metering,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 op-grafana-ui,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+op-logs-archive-processor,MS MDAS Metrics and Traces,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+op-visualizer-experience-api,MS MDAS IA,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+op-visualizer-topology-api,MS MDAS IA,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+op-visualizer-topology-processor,MS MDAS IA,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 operation-catalog-manager,SFMP,Trusted Work Platform,Salesforce Trust Platform (STP),Meir Amiel
 ops-buddy,CRM Database Sustaining Engineering,SDB,HPS,Paul Constantinides
 ops-buddy-api,CRM Database Sustaining Engineering,SDB,HPS,Paul Constantinides
@@ -2290,7 +2312,7 @@ platform-metabolism,Identity Platform Sync,Identity Services,Platform Services,M
 platform-radio,Platform Radio,Identity Services,Platform Services,Muralidhar Krishnaprasad
 platform-security-netsec-cdn,MS Security Eng,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 platform-services-infra,MS API Platform,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
-pod-registry-service,CP CS-Commerce,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
+pod-registry-service,CP CS-Commerce,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
 polarity-predictor,Einstein.ai Language,Agentforce Lifecycle and Applied AI,AI Cloud,Muralidhar Krishnaprasad
 policy-distribution,STRIDE,HyperForce Runtime Platform,HPS,Paul Constantinides
 policy-releaser,NetSec - Falcon Platform Services (FPS),Hyperforce Secure Networking (HSN),Salesforce Trust Platform (STP),Meir Amiel
@@ -2341,6 +2363,7 @@ qpid,Message Queue,HyperForce Runtime Platform,HPS,Paul Constantinides
 quantumk,Quantum,Hyperforce Guardians,Salesforce Trust Platform (STP),Meir Amiel
 quantumkgia2h,Quantum,Hyperforce Guardians,Salesforce Trust Platform (STP),Meir Amiel
 quantumks2s,Quantum,Hyperforce Guardians,Salesforce Trust Platform (STP),Meir Amiel
+quark,Crypto Knights,Data Security,Salesforce Trust Platform (STP),Meir Amiel
 query-service,Search Splat,Search,Search,Muralidhar Krishnaprasad
 r2c2,EAGLE,SCALE - SF Change and Infrastructure Lifecycle Eng.,Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 r53proxy,DDI,DNS Engineering and Operations,Infrastructure Strategy Data Center Operations (ISDO),Darryn Dieken
@@ -2445,7 +2468,7 @@ scalecenter-ai,Scale Center,Hyperscale Core CRM,HPS,Paul Constantinides
 scdp-model-serving,EntSecIAM-Auto-IAM,Enterprise Security,Security & Compliance,Jim Wiese
 scim-1password,IAM - Privileged Access Management,Enterprise Security,Security & Compliance,Jim Wiese
 scim-1password-infra,IAM - Privileged Access Management,Enterprise Security,Security & Compliance,Jim Wiese
-scim-service,CP CS-Users Groups and Sites,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
+scim-service,CP CS-Users Groups and Sites,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
 scot-mend-nginx-proxy,SFCI SCoT,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 scot-mend-renovate,SFCI SCoT,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 scot-mend-renovate-github,SFCI SCoT,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
@@ -2560,7 +2583,9 @@ service-directory,Universal Service Directory,Monitoring Cloud,Big Data & Observ
 service-mesh-xapi-service,MS API Runtime Control Plane,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 service-ownership-console,MonCloud Notifications,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 servicemesh,Mesh Control Plane,HyperForce Runtime Platform,HPS,Paul Constantinides
+sf-common-ingestion,Data Services - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 sf-iceberg-rest-catalog,Interactive Analytics,Salesforce Presto,Unified Intelligence Platform,Darryn Dieken
+sf-spark-history-service,UIP Foundation & Exploration,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 sf-spark-portal,Flowsnake,Flowsnake,Unified Intelligence Platform,Darryn Dieken
 sf-spark-scheduler,Flowsnake,Flowsnake,Unified Intelligence Platform,Darryn Dieken
 sfb-arbiter,Salesforce Backup (Backup and Restore),Trusted Services,Platform Services,Muralidhar Krishnaprasad
@@ -2748,154 +2773,156 @@ supplychainsec-updates-pipeline,AST - Application Security Technology,Secure Sta
 suraksha,PKI - Foundations,Data Security,Salesforce Trust Platform (STP),Meir Amiel
 synesis,ILM TIGER,"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 taasresponder,MC_DRHAM,Engagement Platform,Marketing Tech Cloud,Meir Amiel
-tabcld-activity-log-svc,CP CS-Admin Experience - CEPP / Activity Log,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-admin-api-broker-svc,CP CS-Services-Governance,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-allegro-svc,CP CS-Services-Governance,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-asset-key-rotation,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-atr-svc,CP CS-Licensing Product,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-bridge-extract,Tableau Data Platform - Bridge & Data Server,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-data-acceleration,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-dda,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-extract-refresh,Hyper Database - Hyper In Tableau,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-flow,Tableau Data Platform - Prep Authoring Platform,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-scheduler,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-subscription,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-system-all-dep,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-system-no-dep,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-backgrounder-system-thumbnails,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-catalog-ingestor,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-catalog-provider-ext-content,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-catalog-provider-flow-content,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-catalog-provider-tableau-content,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-catalog-query,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-ceds-test-service,CP CE-CloudInfra-CEDS,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-cloud-admin-experience-services,CP CS-Platform and Operational Excellence,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-collections-service,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-content-draft-metadata-service,AX VAST Publishing,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-content-exploration,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-content-exploration-index-mgmt,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-contentprovider,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-credentials-service,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-custom-domains-service,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-data-stories-for-dashboards,ACE NTBUE Core Experiences,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-database-maintenance,CP CS-Storage and Search Services (SaSS),Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-database-setup,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-dataplane-infra-rds,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-dataprofiling,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-dataserver,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-edgepoolregistry,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-efs-mounts,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-email-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-ext-content-provider,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-extension-exporting-service,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-flow-minerva,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-floweditor,Tableau Data Platform - Prep Authoring Platform,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-flowprovider,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-frontend,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-headless-bi,AX DMC HDM,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-hosted-static-assets,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-hyper,Hyper Database - Hyper In Tableau,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-infra-dataplane,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-infra-dataplane-account,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-infra-functional-tests,CP CE-CloudInfra-Pod Infrastructure,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-ip-allow,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-ip-allowlist-management-service,CP CS-Server Administration,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-kms-service,CP CE-Security Features,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-launchdarkly-relay-proxy-offline,CP CE-CloudInfra-SRE,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-minerva,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-nightly-downscaler,CP CE-Containerization-Container Services,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-notifications-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pod-scaling-controller,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-policy-store-svc,CP CS-Services-Governance,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-postgres-collector,CP CS-Storage and Search Services (SaSS),Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-postgres-exporter,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-private-connect-broker,CP CE-Security Features,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-private-connect-infra,CP CE-Security Features,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-publishedconnection,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-analyst-experience,ACE Pulse Web Experiences and Integrations,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-ap-metrics-usage-service,ACE NTBUE BU In the Flow of Work Services,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-embeddings-service,ACE NTBUE GAI,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-event-stream-service,ACE NTBUE BU In the Flow of Work Services,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-feature-flag-service,ACE NTBUE Core Experiences,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-image-service,ACE Pulse Web Experiences and Integrations,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-insights-service,ACE Pulse Insights Service,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-insights-zhuzhing-service,ACE NTBUE GAI,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-metric-query-service,ACE NTBUE Core Metrics,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-metric-subscription-service,ACE NTBUE BU In the Flow of Work Services,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-notification-service,ACE NTBUE BU In the Flow of Work Services,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-pulse-timeseries-service,ACE Pulse Insights Service,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-querygateway,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-recommendations-service,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-relationshipingestor,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-relationshipservice,Tableau Data Platform - Catalog,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-remote-agent-service,Tableau Data Platform - Bridge & Data Server,Tableau Data Platform,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-scheduling-service,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-sso,CP CS-Tableau Identity and Authentication,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-sso-api,CP CS-Tableau Identity and Authentication,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-tableauid,CP CS-Tableau Identity and Authentication,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-tcm-session-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-user-interaction-service,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-vizdata-service,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-vizdata-service-haproxy,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-vizdata-service-http,AX DMC HDM,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-vizportal,"CP CS-Schedules, Platform of APIs and MessageBus (SPAM)",Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-vizportal-high-resource,"CP CS-Schedules, Platform of APIs and MessageBus (SPAM)",Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-vizqlserver,AX VAST VizQL Server Ops,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-workbook-persistence-service,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabcld-worker,Tableau Data Plane Onboarding,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-activity-log-service,CP CS-Admin Experience - CEPP / Activity Log,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-allegro-svc,CP CS-Services-Governance,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-bridgeextract,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-dda,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-extract-refresh,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-flow,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-scheduler,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-subscription,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-system-all-dep,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-system-no-dep,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-backgrounder-system-thumbnails,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-broadcast-management-service,"CP CS-Projects, Sharing and Permissions",Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-collections-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-content-draft-metadata-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-content-exploration,ACE AI Experiences,Analytic Consumer Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-credentials-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-custom-domains-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-data-profiling,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-dataserver,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-edgepool-registry,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-entity-snapshot-service,CP CS-Admin Experience - CEPP / Activity Log,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-flow-minerva,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-floweditor,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-governance-alerting-svc,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-hyper-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-minerva,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-policy-store-svc,CP CS-Services-Governance,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-postgres-collector,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-published-connection,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-query-gateway,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-recommendations-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-scheduling-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-tcm-entitlement-svc,CP CS-Site Entitlements,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-tcm-orchestrator-svc,CP CS-Site Entitlements,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-tcm-session-svc,CP CS-Tableau Identity and Authentication,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-tcm-tenant-svc,CP CS-Tenant Management,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-tcm-uiserver-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-tcm-user-replication-svc,CP CS-Global User Management,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-tcm-user-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-tcm-zeus-ui,CP CS-Site Entitlements,Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-user-interaction-service,"CP CS-Projects, Sharing and Permissions",Tableau Cloud Platform - CS,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-vizdata-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-vizdata-service-haproxy,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-vizqlserver,AX VAST VizQL Server Ops,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabhf-workbook-persistence-service,CP CE-Containerization-Core Containerization,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-activity-log-svc,CP CS-Admin Experience - CEPP / Activity Log,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-admin-api-broker-svc,CP CS-Services-Governance,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-allegro-svc,CP CS-Services-Governance,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-asset-key-rotation,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-atr-svc,CP CS-Licensing Product,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-bridge-extract,Tableau Data Platform - Bridge & Data Server,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-data-acceleration,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-dda,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-extract-refresh,Hyper Database - Hyper In Tableau,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-flow,Tableau Data Platform - Prep Authoring Platform,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-scheduler,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-subscription,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-system-all-dep,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-system-no-dep,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-backgrounder-system-thumbnails,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-catalog-ingestor,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-catalog-provider-ext-content,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-catalog-provider-flow-content,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-catalog-provider-tableau-content,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-catalog-query,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-ceds-test-service,CP CE-CloudInfra-CEDS,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-cloud-admin-experience-services,CP CS-Platform and Operational Excellence,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-collections-service,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-content-draft-metadata-service,AX VAST Publishing,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-content-exploration,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-content-exploration-index-mgmt,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-contentprovider,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-credentials-service,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-custom-domains-service,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-data-stories-for-dashboards,ACE NTBUE Core Experiences,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-database-maintenance,CP CS-Storage and Search Services (SaSS),Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-database-setup,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-dataplane-infra-rds,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-dataprofiling,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-dataserver,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-edgepoolregistry,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-efs-mounts,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-email-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-ext-content-provider,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-extension-exporting-service,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-flow-minerva,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-floweditor,Tableau Data Platform - Prep Authoring Platform,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-flowprovider,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-frontend,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-headless-bi,AX DMC HDM,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-hosted-static-assets,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-hyper,Hyper Database - Hyper In Tableau,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-infra-dataplane,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-infra-dataplane-account,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-infra-functional-tests,CP CE-CloudInfra-Pod Infrastructure,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-ip-allow,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-ip-allowlist-management-service,CP CS-Server Administration,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-kms-service,CP CE-Security Features,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-launchdarkly-relay-proxy-offline,CP CE-CloudInfra-SRE,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-minerva,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-nightly-downscaler,CP CE-Containerization-Container Services,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-notifications-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pod-scaling-controller,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-policy-store-svc,CP CS-Services-Governance,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-postgres-collector,CP CS-Storage and Search Services (SaSS),Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-postgres-exporter,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-private-connect-broker,CP CE-Security Features,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-private-connect-infra,CP CE-Security Features,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-publishedconnection,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-analyst-experience,ACE Pulse Web Experiences and Integrations,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-ap-metrics-usage-service,ACE NTBUE BU In the Flow of Work Services,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-embeddings-service,ACE NTBUE GAI,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-event-stream-service,ACE NTBUE BU In the Flow of Work Services,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-feature-flag-service,ACE NTBUE Core Experiences,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-image-service,ACE Pulse Web Experiences and Integrations,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-insights-service,ACE Pulse Insights Service,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-insights-zhuzhing-service,ACE NTBUE GAI,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-metric-query-service,ACE NTBUE Core Metrics,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-metric-subscription-service,ACE NTBUE BU In the Flow of Work Services,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-notification-service,ACE NTBUE BU In the Flow of Work Services,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-pulse-timeseries-service,ACE Pulse Insights Service,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-querygateway,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-recommendations-service,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-relationshipingestor,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-relationshipservice,Tableau Data Platform - Catalog,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-remote-agent-service,Tableau Data Platform - Bridge & Data Server,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-scheduling-service,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-sso,CP CS-Tableau Identity and Authentication,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-sso-api,CP CS-Tableau Identity and Authentication,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-tableauid,CP CS-Tableau Identity and Authentication,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-tcm-session-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-user-interaction-service,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-vizdata-service,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-vizdata-service-haproxy,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-vizdata-service-http,AX DMC HDM,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-vizportal,"CP CS-Schedules, Platform of APIs and MessageBus (SPAM)",Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-vizportal-high-resource,"CP CS-Schedules, Platform of APIs and MessageBus (SPAM)",Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-vizqlserver,AX VAST VizQL Server Ops,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-workbook-persistence-service,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabcld-worker,Tableau Data Plane Onboarding,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-activity-log-service,CP CS-Admin Experience - CEPP / Activity Log,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-allegro-svc,CP CS-Services-Governance,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-bridgeextract,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-dda,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-extract-refresh,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-flow,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-scheduler,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-subscription,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-system-all-dep,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-system-no-dep,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-backgrounder-system-thumbnails,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-broadcast-management-service,"CP CS-Projects, Sharing and Permissions",Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-collections-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-content-draft-metadata-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-content-exploration,ACE AI Experiences,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-credentials-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-custom-domains-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-data-profiling,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-dataserver,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-edgepool-registry,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-entity-snapshot-service,CP CS-Admin Experience - CEPP / Activity Log,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-flow-minerva,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-floweditor,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-governance-alerting-svc,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-hyper-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-mcp-svc,AX Integrations Essentials,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-minerva,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-policy-store-svc,CP CS-Services-Governance,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-postgres-collector,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-published-connection,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-query-gateway,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-recommendations-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-sass-health-kit,CP CS-Storage and Search Services (SaSS),Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-scheduling-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-tcm-entitlement-svc,CP CS-Site Entitlements,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-tcm-orchestrator-svc,CP CS-Site Entitlements,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-tcm-session-svc,CP CS-Tableau Identity and Authentication,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-tcm-tenant-svc,CP CS-Tenant Management,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-tcm-uiserver-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-tcm-user-replication-svc,CP CS-Global User Management,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-tcm-user-svc,CP CE-Tableau Cloud Control Plane Platform,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-tcm-zeus-ui,CP CS-Site Entitlements,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-user-interaction-service,"CP CS-Projects, Sharing and Permissions",Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-vizdata-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-vizdata-service-haproxy,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-vizqlserver,AX VAST VizQL Server Ops,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabhf-workbook-persistence-service,CP CE-Containerization-Core Containerization,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
 table-management,Data Services - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 table-maintenance,CDP_Lakehouse,D360 Customer Data Platform (CDP),D360,Muralidhar Krishnaprasad
-tableau-database-pipeline-snapshot,CP CE-CloudInfra-TOC,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
-tableau-exchange-backend,AX Integrations Essentials,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tableau-kms-service,CP CE-Security Features,Tableau Cloud Platform - CE,Analytics Cloud,Muralidhar Krishnaprasad
+tableau-database-pipeline-snapshot,CP CE-CloudInfra-TOC,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
+tableau-exchange-backend,AX Integrations Essentials,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tableau-kms-service,CP CE-Security Features,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
 tableau-viz-service-nc,TUA-VIZ-Analyst Exploration,Tableau Unified Analytics,Analytics Cloud,Muralidhar Krishnaprasad
-tabpub-prerender,AX DMC Public Platform and Integrations,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
-tabpub-vizhub,AX DMC Public Platform and Integrations,Analytics Experiences,Analytics Cloud,Muralidhar Krishnaprasad
+tabpub-prerender,AX DMC Public Platform and Integrations,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
+tabpub-vizhub,AX DMC Public Platform and Integrations,Tableau Core,Analytics Cloud,Muralidhar Krishnaprasad
 tabsecrets-service,Secrets Management,Data Security,Salesforce Trust Platform (STP),Meir Amiel
 taleggio-publisher,Release Intelligence and Signals Engineering (RISE),"CRMD - Change, Release Management + DevOps",Infrastructure Lifecycle Mgmt (ILM),Darryn Dieken
 tanium,Control Planes,Secure Stack Engineering,GIA,Jim Wiese
@@ -2999,7 +3026,7 @@ tip-usdl-streaming-platform,TIP - USDL Enablement,Secure Stack Engineering,GIA,J
 tm-tool,AST - Application Security Technology,Secure Stack Engineering,GIA,Jim Wiese
 tobin-dev-docs-en,MS Falcon Integration Team,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
 tobin-dev-docs-web,MS Falcon Integration Team,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
-toc-flink-cluster,CP CE-CloudInfra-TOC,Tableau DP&E,Analytics Cloud,Muralidhar Krishnaprasad
+toc-flink-cluster,CP CE-CloudInfra-TOC,Tableau Platform Services,Analytics Cloud,Muralidhar Krishnaprasad
 topology-generator,MonCloud API Platforms,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 tracer,Tracer,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 tracer-ajna-consumer,Tracer,Monitoring Cloud,Big Data & Observability,Darryn Dieken
@@ -3013,6 +3040,9 @@ tracer-ingestion-compactor,Tracer,Monitoring Cloud,Big Data & Observability,Darr
 tracer-kibana,Tracer,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 tracer-s3-coordinator,Tracer,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 tracer-s3-worker,Tracer,Monitoring Cloud,Big Data & Observability,Darryn Dieken
+tracer-streaming,Tracer,Monitoring Cloud,Big Data & Observability,Darryn Dieken
+tracer-query-coordinator,Tracer,Monitoring Cloud,Big Data & Observability,Darryn Dieken
+tracer-query-worker,Tracer,Monitoring Cloud,Big Data & Observability,Darryn Dieken
 traffic-policy-operator,Mesh API Runtime,HyperForce Runtime Platform,HPS,Paul Constantinides
 trailblazer-profile-service,Digital Profile Service,Marketing Technology,CMO,Joe Inzerillo
 trino-gateway,Interactive Analytics,Salesforce Presto,Unified Intelligence Platform,Darryn Dieken
@@ -3040,6 +3070,7 @@ ucs-content-ingestion,Digital-Content+Taxonomy,Marketing Technology,CMO,Joe Inze
 uip-ai-comm-service,UIP Foundation & Exploration,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uip-ajna-onboarding,DeepSea - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uip-bigdata-portal,UIP Foundation & Exploration,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
+uip-ds-ingestion,Data Services - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uip-ds-ingestion-service,DeepSea - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uip-events-gateway,DeepSea - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
 uip-events-gateway-processor,DeepSea - Data Ingestion and Management,Unified Intelligence Platform,Unified Intelligence Platform,Darryn Dieken
@@ -3109,6 +3140,7 @@ usms-mco,GIA2H Build and Onboarding,GIA,GIA,Jim Wiese
 util,Nexus & Artifactory Infrastructure,Developer Productivity Experience,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken
 vaas-verificationengine,Verification as a Service (VaaS),Identity Services,Platform Services,Muralidhar Krishnaprasad
 validation-service,MS Mycroft,MuleSoft Product Org,MuleSoft,Muralidhar Krishnaprasad
+vanguard-tools,CCE Vanguard,Customer Centric Engineering,ILM - Infrastructure Lifecycle Management,Darryn Dieken
 vault,Secrets Management,Data Security,Salesforce Trust Platform (STP),Meir Amiel
 vault-accelerator,Secrets Management,Data Security,Salesforce Trust Platform (STP),Meir Amiel
 vault-canary,Secrets Management,Data Security,Salesforce Trust Platform (STP),Meir Amiel
@@ -3141,7 +3173,8 @@ waas-profiles-crud,NetSec - L7 Firewall,Hyperforce Secure Networking (HSN),Sales
 waas-rate-limiter,NetSec - L7 Firewall,Hyperforce Secure Networking (HSN),Salesforce Trust Platform (STP),Meir Amiel
 waas-redis,NetSec - L7 Firewall,Hyperforce Secure Networking (HSN),Salesforce Trust Platform (STP),Meir Amiel
 waas-validation-controller,NetSec - L7 Firewall,Hyperforce Secure Networking (HSN),Salesforce Trust Platform (STP),Meir Amiel
-waii-service,Data Cloud Platform Engineering,D360 Service Delivery,D360,Muralidhar Krishnaprasad
+waii-service,Data 360 Waii Service,D360 Service Delivery,D360,Muralidhar Krishnaprasad
+waii-service-router,Data 360 Waii Service,D360 Service Delivery,D360,Muralidhar Krishnaprasad
 wardenui,Warden AIOps Platform,Hyperscale Core CRM,HPS,Paul Constantinides
 wardenwebhook,Warden AIOps Platform,Hyperscale Core CRM,HPS,Paul Constantinides
 watchdog-pug,FEDX Watchdog,Continuous Provisioning,Reliable AI-Driven Developer eXperience (RADX),Darryn Dieken

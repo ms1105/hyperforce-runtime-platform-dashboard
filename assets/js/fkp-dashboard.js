@@ -13097,6 +13097,32 @@ function renderKarpenterExecView(container) {
             const bOrder = envOrderMap[b.name.toLowerCase()] !== undefined ? envOrderMap[b.name.toLowerCase()] : 999;
             return aOrder - bOrder;
         });
+
+    // Build environment trend data by month (for multi-line chart)
+    const envTrendOrder = ['prod', 'esvc', 'staging', 'test', 'perf', 'dev'];
+    const envLabelMap = { prod: 'Prod', esvc: 'Esvc', staging: 'Stage', test: 'Test', perf: 'Perf', dev: 'Dev' };
+    const monthLabelsByCode = {};
+    trendMonthCodes.forEach(monthCode => {
+        const monthData = dataForTrendMonths.filter(r => r.month === monthCode);
+        const first = monthData[0] || {};
+        const yearSuffix = monthCode.includes('-') ? monthCode.split('-')[0] : '';
+        monthLabelsByCode[monthCode] = first.month_name ? `${first.month_name} ${yearSuffix}` : monthCode;
+    });
+
+    const envSeries = envTrendOrder.map(envKey => {
+        const points = trendMonthCodes.map(monthCode => {
+            const rows = dataForTrendMonths.filter(r => {
+                const e = (r.environment || r.Environment || r.env || r.Env || '').toLowerCase();
+                return r.month === monthCode && e === envKey;
+            });
+            if (rows.length === 0) return null;
+            const vals = rows.map(r => Math.min(100, Math.max(0, parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0))));
+            const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+            return { monthCode, monthLabel: monthLabelsByCode[monthCode], value: roundAvgCpuPercent(avg) };
+        });
+        const hasAny = points.some(Boolean);
+        return { key: envKey, label: envLabelMap[envKey], points, hasAny };
+    }).filter(s => s.hasAny);
     
     container.innerHTML = `
         <div class="karpenter-exec-content">
@@ -13183,6 +13209,14 @@ function renderKarpenterExecView(container) {
                     <div class="karpenter-bar-chart" id="karpenter-bar-chart">
                         ${renderKarpenterBarChart(envBarData)}
                     </div>
+                </div>
+            </div>
+            <div class="karpenter-trend-section" style="margin-top: 1rem;">
+                <div class="karpenter-trend-section-header">
+                    <span class="karpenter-trend-title">Avg. CPU Allocation rate Trends by Environment</span>
+                </div>
+                <div class="karpenter-trend-chart" id="karpenter-env-trend-chart">
+                    ${renderKarpenterEnvironmentTrendChart(envSeries, trendMonthCodes, monthLabelsByCode)}
                 </div>
             </div>
         </div>
@@ -13928,6 +13962,104 @@ function renderKarpenterTrendChart(data) {
                 return `<text x="${p.x}" y="${chartHeight - 8}" text-anchor="middle" font-size="8" fill="#64748b">${p.label}</text>`;
             }).join('')}
             ${yTicks.map(t => `<text x="${yLabelX}" y="${t.y + 3}" text-anchor="end" font-size="8" fill="#64748b">${t.val}%</text>`).join('')}
+        </svg>
+    `;
+}
+
+/**
+ * Render Karpenter environment-wise trend chart (multi-line)
+ */
+function renderKarpenterEnvironmentTrendChart(series, monthCodes, monthLabelsByCode) {
+    if (!series || series.length === 0 || !monthCodes || monthCodes.length === 0) {
+        return '<div class="no-data">No environment trend data available</div>';
+    }
+
+    const shortMonth = { January: 'Jan', February: 'Feb', March: 'Mar', April: 'Apr', May: 'May', June: 'Jun', July: 'Jul', August: 'Aug', September: 'Sep', October: 'Oct', November: 'Nov', December: 'Dec' };
+    const labelFromCode = (code) => {
+        const raw = monthLabelsByCode[code] || code;
+        const parts = String(raw).split(/\s+/);
+        if (parts.length >= 2) return `${shortMonth[parts[0]] || parts[0]} ${parts[1]}`;
+        return raw;
+    };
+
+    const chartWidth = 760;
+    const chartHeight = 260;
+    const paddingTop = 24;
+    const paddingBottom = 44;
+    const paddingLeft = 44;
+    const paddingRight = 18;
+    const plotWidth = chartWidth - paddingLeft - paddingRight;
+    const plotHeight = chartHeight - paddingTop - paddingBottom;
+    const baselineY = paddingTop + plotHeight;
+    const yTicks = [0, 20, 40, 60, 80, 100];
+    const pointSpacing = monthCodes.length > 1 ? plotWidth / (monthCodes.length - 1) : 0;
+    const xPosByMonth = {};
+    monthCodes.forEach((m, i) => { xPosByMonth[m] = paddingLeft + i * pointSpacing; });
+
+    const palette = {
+        prod: '#1d4ed8',
+        esvc: '#0369a1',
+        stage: '#7c3aed',
+        staging: '#7c3aed',
+        test: '#0284c7',
+        perf: '#0f766e',
+        dev: '#16a34a'
+    };
+
+    const seriesPoints = series.map(s => ({
+        ...s,
+        color: palette[s.key] || '#334155',
+        pts: s.points.map(p => {
+            if (!p) return null;
+            const x = xPosByMonth[p.monthCode];
+            const y = paddingTop + plotHeight - (Math.max(0, Math.min(100, p.value)) / 100) * plotHeight;
+            return { ...p, x, y };
+        })
+    }));
+
+    const createSmoothPath = (pts) => {
+        const clean = pts.filter(Boolean);
+        if (clean.length === 0) return '';
+        if (clean.length === 1) return `M ${clean[0].x},${clean[0].y}`;
+        let d = `M ${clean[0].x},${clean[0].y}`;
+        for (let i = 0; i < clean.length - 1; i++) {
+            const p0 = clean[i];
+            const p1 = clean[i + 1];
+            const cx1 = p0.x + (p1.x - p0.x) * 0.45;
+            const cy1 = p0.y;
+            const cx2 = p0.x + (p1.x - p0.x) * 0.55;
+            const cy2 = p1.y;
+            d += ` C ${cx1},${cy1} ${cx2},${cy2} ${p1.x},${p1.y}`;
+        }
+        return d;
+    };
+
+    const hGrid = yTicks.map(v => {
+        const y = paddingTop + plotHeight - (v / 100) * plotHeight;
+        return `<line x1="${paddingLeft}" y1="${y}" x2="${paddingLeft + plotWidth}" y2="${y}" stroke="#e5e7eb" stroke-width="1" />`;
+    }).join('');
+    const vGrid = monthCodes.map(m => `<line x1="${xPosByMonth[m]}" y1="${paddingTop}" x2="${xPosByMonth[m]}" y2="${baselineY}" stroke="#eef2f7" stroke-width="1" />`).join('');
+
+    const lines = seriesPoints.map(s => `<path d="${createSmoothPath(s.pts)}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />`).join('');
+    const dots = seriesPoints.map(s => s.pts.filter(Boolean).map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${s.color}" stroke="white" stroke-width="1.2" />`).join('')).join('');
+    const legend = seriesPoints.map(s => `<span style="display:inline-flex;align-items:center;gap:0.35rem;margin-right:0.8rem;font-size:11px;color:#475569;"><span style="width:8px;height:8px;border-radius:50%;background:${s.color};display:inline-block;"></span>${s.label}</span>`).join('');
+
+    const xLabels = monthCodes.map(m => `<text x="${xPosByMonth[m]}" y="${chartHeight - 8}" text-anchor="middle" font-size="8" fill="#64748b">${labelFromCode(m)}</text>`).join('');
+    const yLabels = yTicks.map(v => {
+        const y = paddingTop + plotHeight - (v / 100) * plotHeight;
+        return `<text x="${paddingLeft - 10}" y="${y + 3}" text-anchor="end" font-size="8" fill="#64748b">${v}%</text>`;
+    }).join('');
+
+    return `
+        <div style="margin-bottom:0.5rem;">${legend}</div>
+        <svg viewBox="0 0 ${chartWidth} ${chartHeight}" style="width: 100%; height: 100%; min-height: 220px;">
+            ${hGrid}
+            ${vGrid}
+            ${lines}
+            ${dots}
+            <line x1="${paddingLeft}" y1="${baselineY}" x2="${paddingLeft + plotWidth}" y2="${baselineY}" stroke="#cbd5e1" stroke-width="1" />
+            ${xLabels}
+            ${yLabels}
         </svg>
     `;
 }

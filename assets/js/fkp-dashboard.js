@@ -13135,6 +13135,32 @@ function renderKarpenterExecView(container) {
         const hasAny = points.some(Boolean);
         return { key: envKey, label: envLabelMap[envKey], points, hasAny };
     }).filter(s => s.hasAny);
+
+    const buildGaugeCard = (label, icon, avgValue, trendValue) => {
+        const parsed = typeof avgValue === 'string' ? parseFloat(avgValue) : avgValue;
+        const gaugeValue = Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : 0;
+        const arcLength = Math.PI * 55;
+        const fillLength = (gaugeValue / 100) * arcLength;
+        const trendClass = trendValue >= 0 ? 'trend-up' : 'trend-down';
+        const trendText = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}% ${trendLabel}`;
+        return `
+            <div class="karpenter-metric-card karpenter-speedometer-card">
+                <div class="karpenter-metric-header">
+                    <span class="karpenter-metric-label">${label}</span>
+                    <span class="karpenter-metric-icon">${icon}</span>
+                </div>
+                <div class="karpenter-speedometer-wrap">
+                    <svg viewBox="0 0 140 90" class="karpenter-speedometer-svg" aria-hidden="true">
+                        <path d="M 15 75 A 55 55 0 0 1 125 75" class="karpenter-speedometer-track"></path>
+                        <path d="M 15 75 A 55 55 0 0 1 125 75" class="karpenter-speedometer-fill"
+                            style="stroke-dasharray: ${fillLength} ${arcLength};"></path>
+                        <text x="70" y="68" text-anchor="middle" class="karpenter-speedometer-value">${gaugeValue.toFixed(2)}%</text>
+                    </svg>
+                </div>
+                <div class="karpenter-metric-trend ${trendClass}">${trendText}</div>
+            </div>
+        `;
+    };
     
     container.innerHTML = `
         <div class="karpenter-exec-content">
@@ -13154,49 +13180,10 @@ function renderKarpenterExecView(container) {
             ` : ''}
             <!-- Metric Cards -->
             <div class="karpenter-metrics-grid">
-                <div class="karpenter-metric-card">
-                    <div class="karpenter-metric-header">
-                        <span class="karpenter-metric-label">Avg. CPU Allocation rate - FI</span>
-                        <span class="karpenter-metric-icon">📊</span>
-                    </div>
-                    <div class="karpenter-metric-value">${typeof avgFI === 'string' && avgFI !== '--' ? Math.min(100, parseFloat(avgFI) || 0).toFixed(2) : avgFI}%</div>
-                    <div class="karpenter-metric-trend ${trendFI >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${trendFI >= 0 ? '+' : ''}${trendFI.toFixed(1)}% ${trendLabel}
-                    </div>
-                </div>
-                
-                <div class="karpenter-metric-card">
-                    <div class="karpenter-metric-header">
-                        <span class="karpenter-metric-label">Avg. CPU Allocation rate - FD</span>
-                        <span class="karpenter-metric-icon">⚙️</span>
-                    </div>
-                    <div class="karpenter-metric-value">${typeof avgFD === 'string' && avgFD !== '--' ? Math.min(100, parseFloat(avgFD) || 0).toFixed(2) : avgFD}%</div>
-                    <div class="karpenter-metric-trend ${trendFD >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${trendFD >= 0 ? '+' : ''}${trendFD.toFixed(1)}% ${trendLabel}
-                    </div>
-                </div>
-                
-                <div class="karpenter-metric-card">
-                    <div class="karpenter-metric-header">
-                        <span class="karpenter-metric-label">Avg. CPU Allocation rate - Cluster</span>
-                        <span class="karpenter-metric-icon">🖥️</span>
-                    </div>
-                    <div class="karpenter-metric-value">${typeof avgCluster === 'string' && avgCluster !== '--' ? Math.min(100, parseFloat(avgCluster) || 0).toFixed(2) : avgCluster}%</div>
-                    <div class="karpenter-metric-trend ${trendCluster >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${trendCluster >= 0 ? '+' : ''}${trendCluster.toFixed(1)}% ${trendLabel}
-                    </div>
-                </div>
-                
-                <div class="karpenter-metric-card">
-                    <div class="karpenter-metric-header">
-                        <span class="karpenter-metric-label">Avg. CPU Allocation rate - Environment</span>
-                        <span class="karpenter-metric-icon">🌐</span>
-                    </div>
-                    <div class="karpenter-metric-value">${typeof avgEnv === 'string' && avgEnv !== '--' ? Math.min(100, parseFloat(avgEnv) || 0).toFixed(2) : avgEnv}%</div>
-                    <div class="karpenter-metric-trend ${trendEnv >= 0 ? 'trend-up' : 'trend-down'}">
-                        ${trendEnv >= 0 ? '+' : ''}${trendEnv.toFixed(1)}% ${trendLabel}
-                    </div>
-                </div>
+                ${buildGaugeCard('Avg. CPU Allocation rate - FI', '📊', avgFI, trendFI)}
+                ${buildGaugeCard('Avg. CPU Allocation rate - FD', '⚙️', avgFD, trendFD)}
+                ${buildGaugeCard('Avg. CPU Allocation rate - Cluster', '🖥️', avgCluster, trendCluster)}
+                ${buildGaugeCard('Avg. CPU Allocation rate - Environment', '🌐', avgEnv, trendEnv)}
             </div>
             
             <!-- Charts Row -->

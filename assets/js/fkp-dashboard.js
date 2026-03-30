@@ -13060,25 +13060,15 @@ function renderKarpenterExecView(container) {
     
     console.log('📦 Trend data (actual):', trendData.map(d => `${d.month}: ${d.value}%`));
     
-    // Build environment month-series from selected toggle only (single source for both bar + env trend).
-    const toggle = karpenterFilterState.karpenterToggle || 'all';
-    const toggleFiltered = karpenterData.mainSummary.filter(row => {
-        const status = String(row.karpenter_status || '').trim().toLowerCase();
-        if (toggle === 'all') return status === 'karpenter_enabled' || status === 'karpenter disabled' || status === 'karpenter_disabled' || status === 'karpenter enabled';
-        if (toggle === 'enabled') return status === 'karpenter_enabled' || status === 'karpenter enabled';
-        if (toggle === 'disabled') return status === 'karpenter_disabled' || status === 'karpenter disabled';
-        return false;
-    });
-    const knownMonthCodes = new Set((KARPENTER_FULL_FILES || []).map(m => m.month));
-    const toggleMonths = [...new Set(toggleFiltered.map(r => r.month))]
+    // Build environment month-series from active filters (FI/FD/Cluster/Environment/Toggle/Duration),
+    // and month behavior:
+    // - Month = all -> latest month in the filtered set
+    // - Month selected -> selected month only
+    const envSourceRows = filterKarpenterData(karpenterData.mainSummary, false, true);
+    const envMonths = [...new Set(envSourceRows.map(r => r.month || r.Month || r.month_code))]
         .filter(Boolean)
-        .filter(m => knownMonthCodes.size === 0 || knownMonthCodes.has(m))
         .sort(monthCodeOrder);
-    // Use latest month only (March 2026 when present) for environment bar in All Months mode.
-    const allKnownMonths = [...new Set(karpenterData.mainSummary.map(r => r.month))].filter(Boolean).sort(monthCodeOrder);
-    const envLatestMonth = allKnownMonths.includes('2026-03')
-        ? '2026-03'
-        : (toggleMonths.length > 0 ? toggleMonths[toggleMonths.length - 1] : null);
+    const envLatestMonth = envMonths.length > 0 ? envMonths[envMonths.length - 1] : null;
     const targetMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : envLatestMonth;
     
     const normalizeEnvKey = (val) => {
@@ -13089,8 +13079,8 @@ function renderKarpenterExecView(container) {
     };
 
     const envMonthly = {};
-    toggleFiltered.forEach(r => {
-        const m = r.month;
+    envSourceRows.forEach(r => {
+        const m = r.month || r.Month || r.month_code;
         if (!m) return;
         const key = normalizeEnvKey(r.environment || r.Environment || r.env || r.Env);
         if (!key) return;
@@ -13102,26 +13092,6 @@ function renderKarpenterExecView(container) {
         envMonthly[m][key].count += 1;
     });
 
-    // Validated pivot alignment for March 2026 (Karpenter Enabled).
-    // Keeps Bar + Environment Trend consistent with approved values.
-    const validatedEnvOverrides = {
-        enabled: {
-            '2026-03': {
-                dev: 86.60,
-                esvc: 72.48,
-                prod: 82.05,
-                staging: 80.64,
-                test: 79.90
-            }
-        }
-    };
-    if (validatedEnvOverrides[toggle] && validatedEnvOverrides[toggle]['2026-03']) {
-        const ov = validatedEnvOverrides[toggle]['2026-03'];
-        envMonthly['2026-03'] = envMonthly['2026-03'] || {};
-        Object.keys(ov).forEach(envKey => {
-            envMonthly['2026-03'][envKey] = { sum: ov[envKey], count: 1 };
-        });
-    }
     // Define environment order: Dev, Test, Perf, Stage, Esvc, Prod
     const envOrder = ['Prod', 'Esvc', 'Stage', 'Test', 'Perf', 'Dev'];
     const envOrderMap = {};
@@ -13131,7 +13101,7 @@ function renderKarpenterExecView(container) {
     
     const monthEnvAgg = targetMonth && envMonthly[targetMonth] ? envMonthly[targetMonth] : {};
     const monthRowsCount = targetMonth
-        ? toggleFiltered.filter(r => (r.month || r.Month || r.month_code) === targetMonth).length
+        ? envSourceRows.filter(r => (r.month || r.Month || r.month_code) === targetMonth).length
         : 0;
     const envBarData = Object.entries(monthEnvAgg)
         .map(([key, e]) => ({
@@ -13143,21 +13113,25 @@ function renderKarpenterExecView(container) {
             const bOrder = envOrderMap[b.name.toLowerCase()] !== undefined ? envOrderMap[b.name.toLowerCase()] : 999;
             return aOrder - bOrder;
         });
-    console.log('📦 Environment chart month (single-month only):', targetMonth, '| toggle:', toggle, '| rows:', monthRowsCount, '| values:', envBarData.map(e => `${e.name}: ${e.value.toFixed(2)}%`).join(', '));
+    console.log('📦 Environment chart month (single-month only):', targetMonth, '| rows:', monthRowsCount, '| values:', envBarData.map(e => `${e.name}: ${e.value.toFixed(2)}%`).join(', '));
 
     // Build environment trend data by month (for multi-line chart)
     const envTrendOrder = ['prod', 'esvc', 'staging', 'test', 'perf', 'dev'];
     const envLabelMap = { prod: 'Prod', esvc: 'Esvc', staging: 'Stage', test: 'Test', perf: 'Perf', dev: 'Dev' };
     const monthLabelsByCode = {};
-    toggleMonths.forEach(monthCode => {
-        const monthData = toggleFiltered.filter(r => r.month === monthCode);
+    envMonths.forEach(monthCode => {
+        const monthData = envSourceRows.filter(r => (r.month || r.Month || r.month_code) === monthCode);
         const first = monthData[0] || {};
         const yearSuffix = monthCode.includes('-') ? monthCode.split('-')[0] : '';
         monthLabelsByCode[monthCode] = first.month_name ? `${first.month_name} ${yearSuffix}` : monthCode;
     });
 
+    const envTrendMonths = karpenterFilterState.month !== 'all'
+        ? envMonths.filter(m => m === karpenterFilterState.month)
+        : envMonths;
+
     const envSeries = envTrendOrder.map(envKey => {
-        const points = toggleMonths.map(monthCode => {
+        const points = envTrendMonths.map(monthCode => {
             const agg = envMonthly[monthCode] && envMonthly[monthCode][envKey] ? envMonthly[monthCode][envKey] : null;
             if (!agg || agg.count === 0) return null;
             const avg = agg.sum / agg.count;
@@ -13247,7 +13221,7 @@ function renderKarpenterExecView(container) {
                     <span class="karpenter-trend-title">Avg. CPU Allocation rate Trends by Environment</span>
                 </div>
                 <div class="karpenter-trend-chart" id="karpenter-env-trend-chart">
-                    ${renderKarpenterEnvironmentTrendChart(envSeries, toggleMonths, monthLabelsByCode)}
+                    ${renderKarpenterEnvironmentTrendChart(envSeries, envTrendMonths, monthLabelsByCode)}
                 </div>
             </div>
         </div>

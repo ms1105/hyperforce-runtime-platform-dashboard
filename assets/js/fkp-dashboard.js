@@ -13063,12 +13063,11 @@ function renderKarpenterExecView(container) {
     // Build environment month-series from selected toggle only (single source for both bar + env trend).
     const toggle = karpenterFilterState.karpenterToggle || 'all';
     const toggleFiltered = karpenterData.mainSummary.filter(row => {
-        if (toggle === 'all') return true;
         const status = String(row.karpenter_status || '').trim().toLowerCase();
-        const isEnabled = status === 'karpenter_enabled' || status === 'karpenter enabled';
-        if (toggle === 'enabled') return isEnabled;
-        if (toggle === 'disabled') return !isEnabled;
-        return true;
+        if (toggle === 'all') return status === 'karpenter_enabled' || status === 'karpenter disabled' || status === 'karpenter_disabled' || status === 'karpenter enabled';
+        if (toggle === 'enabled') return status === 'karpenter_enabled' || status === 'karpenter enabled';
+        if (toggle === 'disabled') return status === 'karpenter_disabled' || status === 'karpenter disabled';
+        return false;
     });
     const knownMonthCodes = new Set((KARPENTER_FULL_FILES || []).map(m => m.month));
     const toggleMonths = [...new Set(toggleFiltered.map(r => r.month))]
@@ -13076,7 +13075,8 @@ function renderKarpenterExecView(container) {
         .filter(m => knownMonthCodes.size === 0 || knownMonthCodes.has(m))
         .sort(monthCodeOrder);
     // Use latest month only (March 2026 when present) for environment bar in All Months mode.
-    const envLatestMonth = toggleMonths.includes('2026-03')
+    const allKnownMonths = [...new Set(karpenterData.mainSummary.map(r => r.month))].filter(Boolean).sort(monthCodeOrder);
+    const envLatestMonth = allKnownMonths.includes('2026-03')
         ? '2026-03'
         : (toggleMonths.length > 0 ? toggleMonths[toggleMonths.length - 1] : null);
     const targetMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : envLatestMonth;

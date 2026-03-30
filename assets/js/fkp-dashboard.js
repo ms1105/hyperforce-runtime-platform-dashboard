@@ -13070,8 +13070,15 @@ function renderKarpenterExecView(container) {
         if (toggle === 'disabled') return !isEnabled;
         return true;
     });
-    const toggleMonths = [...new Set(toggleFiltered.map(r => r.month))].filter(Boolean).sort(monthCodeOrder);
-    const envLatestMonth = toggleMonths.length > 0 ? toggleMonths[toggleMonths.length - 1] : null;
+    const knownMonthCodes = new Set((KARPENTER_FULL_FILES || []).map(m => m.month));
+    const toggleMonths = [...new Set(toggleFiltered.map(r => r.month))]
+        .filter(Boolean)
+        .filter(m => knownMonthCodes.size === 0 || knownMonthCodes.has(m))
+        .sort(monthCodeOrder);
+    // Use latest month only (March 2026 when present) for environment bar in All Months mode.
+    const envLatestMonth = toggleMonths.includes('2026-03')
+        ? '2026-03'
+        : (toggleMonths.length > 0 ? toggleMonths[toggleMonths.length - 1] : null);
     const targetMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : envLatestMonth;
     
     const normalizeEnvKey = (val) => {
@@ -13102,6 +13109,9 @@ function renderKarpenterExecView(container) {
     });
     
     const monthEnvAgg = targetMonth && envMonthly[targetMonth] ? envMonthly[targetMonth] : {};
+    const monthRowsCount = targetMonth
+        ? toggleFiltered.filter(r => (r.month || r.Month || r.month_code) === targetMonth).length
+        : 0;
     const envBarData = Object.entries(monthEnvAgg)
         .map(([key, e]) => ({
             name: key.charAt(0).toUpperCase() + key.slice(1),
@@ -13112,7 +13122,7 @@ function renderKarpenterExecView(container) {
             const bOrder = envOrderMap[b.name.toLowerCase()] !== undefined ? envOrderMap[b.name.toLowerCase()] : 999;
             return aOrder - bOrder;
         });
-    console.log('📦 Environment chart month:', targetMonth, '| toggle:', toggle, '| values:', envBarData.map(e => `${e.name}: ${e.value.toFixed(2)}%`).join(', '));
+    console.log('📦 Environment chart month (single-month only):', targetMonth, '| toggle:', toggle, '| rows:', monthRowsCount, '| values:', envBarData.map(e => `${e.name}: ${e.value.toFixed(2)}%`).join(', '));
 
     // Build environment trend data by month (for multi-line chart)
     const envTrendOrder = ['prod', 'esvc', 'staging', 'test', 'perf', 'dev'];

@@ -13060,16 +13060,59 @@ function renderKarpenterExecView(container) {
     
     console.log('📦 Trend data (actual):', trendData.map(d => `${d.month}: ${d.value}%`));
     
-    // Build environment month-series from active filters (FI/FD/Cluster/Environment/Toggle/Duration),
-    // and month behavior:
-    // - Month = all -> latest month in the filtered set
-    // - Month selected -> selected month only
+    // Build environment month-series from active filters.
+    // Month behavior:
+    // - Month = all -> latest month in the filtered scope (ignoring toggle), so All/Enabled/Disabled stay aligned.
+    // - Month selected -> selected month only.
+    const prevToggleForEnv = karpenterFilterState.karpenterToggle;
+    karpenterFilterState.karpenterToggle = 'all';
+    const envScopeRows = filterKarpenterData(karpenterData.mainSummary, false, true);
+    karpenterFilterState.karpenterToggle = prevToggleForEnv;
+
     const envSourceRows = filterKarpenterData(karpenterData.mainSummary, false, true);
-    const envMonths = [...new Set(envSourceRows.map(r => r.month || r.Month || r.month_code))]
+    const envMonths = [...new Set(envScopeRows.map(r => r.month || r.Month || r.month_code))]
         .filter(Boolean)
         .sort(monthCodeOrder);
     const envLatestMonth = envMonths.length > 0 ? envMonths[envMonths.length - 1] : null;
     const targetMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : envLatestMonth;
+
+    // Pie chart source ignores enabled/disabled toggle to show full split for the same scoped month.
+    const prevToggleForPie = karpenterFilterState.karpenterToggle;
+    karpenterFilterState.karpenterToggle = 'all';
+    const pieBaseRows = filterKarpenterData(karpenterData.mainSummary, false, true);
+    karpenterFilterState.karpenterToggle = prevToggleForPie;
+    const pieMonths = [...new Set(pieBaseRows.map(r => r.month || r.Month || r.month_code))]
+        .filter(Boolean)
+        .sort(monthCodeOrder);
+    const pieTargetMonth = karpenterFilterState.month !== 'all'
+        ? karpenterFilterState.month
+        : (pieMonths.length > 0 ? pieMonths[pieMonths.length - 1] : null);
+    const pieMonthRows = pieTargetMonth
+        ? pieBaseRows.filter(r => (r.month || r.Month || r.month_code) === pieTargetMonth)
+        : pieBaseRows;
+    const clusterTripleStatusMap = new Map();
+    pieMonthRows.forEach(r => {
+        const fi = (r.falcon_instance || r.falconInstance || r.FI || r.fi || '').trim();
+        const fd = (r.functional_domain || r.functionalDomain || r.FD || r.fd || '').trim();
+        const cl = (r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || '').trim();
+        if (!fi && !fd && !cl) return;
+        const key = `${fi}||${fd}||${cl}`;
+        const status = String(r.karpenter_status || '').trim().toLowerCase();
+        const isEnabled = status === 'karpenter_enabled' || status === 'karpenter enabled';
+        const prev = clusterTripleStatusMap.get(key) || { enabled: 0, disabled: 0 };
+        if (isEnabled) prev.enabled += 1;
+        else prev.disabled += 1;
+        clusterTripleStatusMap.set(key, prev);
+    });
+    let enabledTriples = 0;
+    let disabledTriples = 0;
+    clusterTripleStatusMap.forEach(v => {
+        if (v.enabled >= v.disabled) enabledTriples += 1;
+        else disabledTriples += 1;
+    });
+    const totalTriples = enabledTriples + disabledTriples;
+    const enabledPct = totalTriples > 0 ? (enabledTriples / totalTriples) * 100 : 0;
+    const disabledPct = totalTriples > 0 ? (disabledTriples / totalTriples) * 100 : 0;
     
     const normalizeEnvKey = (val) => {
         const e = String(val || '').trim().toLowerCase();
@@ -13092,8 +13135,8 @@ function renderKarpenterExecView(container) {
         envMonthly[m][key].count += 1;
     });
 
-    // Define environment order: Dev, Test, Perf, Stage, Esvc, Prod
-    const envOrder = ['Prod', 'Esvc', 'Stage', 'Test', 'Perf', 'Dev'];
+    // Fixed environment order for bar chart
+    const envOrder = ['Prod', 'Esvc', 'Stage', 'Dev', 'Test'];
     const envOrderMap = {};
     envOrder.forEach((env, idx) => {
         envOrderMap[env.toLowerCase()] = idx;
@@ -13108,6 +13151,7 @@ function renderKarpenterExecView(container) {
             name: key.charAt(0).toUpperCase() + key.slice(1),
             value: e.count > 0 ? (e.sum / e.count) : 0
         }))
+        .filter(item => envOrderMap[item.name.toLowerCase()] !== undefined)
         .sort((a, b) => {
             const aOrder = envOrderMap[a.name.toLowerCase()] !== undefined ? envOrderMap[a.name.toLowerCase()] : 999;
             const bOrder = envOrderMap[b.name.toLowerCase()] !== undefined ? envOrderMap[b.name.toLowerCase()] : 999;
@@ -13116,7 +13160,7 @@ function renderKarpenterExecView(container) {
     console.log('📦 Environment chart month (single-month only):', targetMonth, '| rows:', monthRowsCount, '| values:', envBarData.map(e => `${e.name}: ${e.value.toFixed(2)}%`).join(', '));
 
     // Build environment trend data by month (for multi-line chart)
-    const envTrendOrder = ['prod', 'esvc', 'staging', 'test', 'perf', 'dev'];
+    const envTrendOrder = ['prod', 'esvc', 'staging', 'dev', 'test'];
     const envLabelMap = { prod: 'Prod', esvc: 'Esvc', staging: 'Stage', test: 'Test', perf: 'Perf', dev: 'Dev' };
     const monthLabelsByCode = {};
     envMonths.forEach(monthCode => {
@@ -13184,6 +13228,30 @@ function renderKarpenterExecView(container) {
                 ${(karpenterData.enabledClusterSet && karpenterData.enabledClusterSet.size > 0) ? 'No clusters outside the enabled list in the current data or filters. Add Jan/Feb Full Karpenter files (with karpenter_status column) under assets/data/Cpu allocation rate monthly files/ for Karpenter Disabled data when using a deployed app.' : 'Load the enabled clusters list (karpenter_enabled_clusters.csv) or add Jan/Feb Full Karpenter files under assets/data/Cpu allocation rate monthly files/ to see Karpenter Disabled view.'}
             </div>
             ` : ''}
+            <div class="karpenter-top-analytics-row">
+                <div class="karpenter-cluster-pie-section">
+                    <div class="karpenter-cluster-pie-header">
+                        <span class="karpenter-trend-title">Total Clusters (FI/FD/Cluster)</span>
+                        <span class="karpenter-trend-legend">Month: ${pieTargetMonth || '-'}</span>
+                    </div>
+                    ${renderKarpenterClusterPie({
+                        total: totalTriples,
+                        enabled: enabledTriples,
+                        disabled: disabledTriples,
+                        enabledPct,
+                        disabledPct
+                    })}
+                </div>
+                <div class="karpenter-env-bar-section karpenter-env-bar-inline">
+                    <div class="karpenter-env-bar-header">
+                        <span class="karpenter-env-bar-title">Avg. CPU Allocation rate by Environment</span>
+                        <span class="karpenter-env-bar-legend"><span class="legend-dot"></span> Avg. CPU Allocation rate (%)</span>
+                    </div>
+                    <div class="karpenter-bar-chart" id="karpenter-bar-chart">
+                        ${renderKarpenterBarChart(envBarData)}
+                    </div>
+                </div>
+            </div>
             <!-- Metric Cards -->
             <div class="karpenter-metrics-grid">
                 ${buildGaugeCard('Avg. CPU Allocation rate - FI', '📊', avgFI, trendFI)}
@@ -13202,17 +13270,6 @@ function renderKarpenterExecView(container) {
                     </div>
                     <div class="karpenter-trend-chart" id="karpenter-trend-chart">
                         ${renderKarpenterTrendChart(trendData)}
-                    </div>
-                </div>
-                
-                <!-- Environment Bar Chart - minimal layout, no card -->
-                <div class="karpenter-env-bar-section">
-                    <div class="karpenter-env-bar-header">
-                        <span class="karpenter-env-bar-title">Avg. CPU Allocation rate by Environment</span>
-                        <span class="karpenter-env-bar-legend"><span class="legend-dot"></span> Avg. CPU Allocation rate (%)</span>
-                    </div>
-                    <div class="karpenter-bar-chart" id="karpenter-bar-chart">
-                        ${renderKarpenterBarChart(envBarData)}
                     </div>
                 </div>
             </div>
@@ -14072,6 +14129,41 @@ function renderKarpenterEnvironmentTrendChart(series, monthCodes, monthLabelsByC
             ${xLabels}
             ${yLabels}
         </svg>
+    `;
+}
+
+/**
+ * Render Karpenter cluster split pie (enabled vs disabled)
+ */
+function renderKarpenterClusterPie(stats) {
+    const total = stats?.total || 0;
+    const enabled = stats?.enabled || 0;
+    const disabled = stats?.disabled || 0;
+    const enabledPct = stats?.enabledPct || 0;
+    const disabledPct = stats?.disabledPct || 0;
+    const pieGradient = `conic-gradient(#0176D3 0deg ${enabledPct * 3.6}deg, #94a3b8 ${enabledPct * 3.6}deg 360deg)`;
+
+    return `
+        <div class="karpenter-cluster-pie-wrap">
+            <div class="karpenter-cluster-pie" style="background: ${pieGradient};">
+                <div class="karpenter-cluster-pie-center">
+                    <div class="karpenter-cluster-pie-total">${total}</div>
+                    <div class="karpenter-cluster-pie-label">Total</div>
+                </div>
+            </div>
+            <div class="karpenter-cluster-pie-stats">
+                <div class="pie-stat-row">
+                    <span class="dot enabled"></span>
+                    <span class="pie-stat-label">Enabled</span>
+                    <span class="pie-stat-value">${enabled} (${enabledPct.toFixed(1)}%)</span>
+                </div>
+                <div class="pie-stat-row">
+                    <span class="dot disabled"></span>
+                    <span class="pie-stat-label">Disabled</span>
+                    <span class="pie-stat-value">${disabled} (${disabledPct.toFixed(1)}%)</span>
+                </div>
+            </div>
+        </div>
     `;
 }
 

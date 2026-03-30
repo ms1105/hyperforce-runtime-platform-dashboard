@@ -13137,6 +13137,14 @@ function renderKarpenterExecView(container) {
 
     // Fixed environment order for bar chart
     const envOrder = ['Prod', 'Esvc', 'Stage', 'Dev', 'Test'];
+    const envDisplayMap = {
+        prod: 'Prod',
+        esvc: 'Esvc',
+        staging: 'Stage',
+        stage: 'Stage',
+        dev: 'Dev',
+        test: 'Test'
+    };
     const envOrderMap = {};
     envOrder.forEach((env, idx) => {
         envOrderMap[env.toLowerCase()] = idx;
@@ -13148,7 +13156,7 @@ function renderKarpenterExecView(container) {
         : 0;
     const envBarData = Object.entries(monthEnvAgg)
         .map(([key, e]) => ({
-            name: key.charAt(0).toUpperCase() + key.slice(1),
+            name: envDisplayMap[key] || (key.charAt(0).toUpperCase() + key.slice(1)),
             value: e.count > 0 ? (e.sum / e.count) : 0
         }))
         .filter(item => envOrderMap[item.name.toLowerCase()] !== undefined)

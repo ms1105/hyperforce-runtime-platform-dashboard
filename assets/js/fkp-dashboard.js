@@ -13078,8 +13078,16 @@ function renderKarpenterExecView(container) {
     const envFiltered = targetMonth ? toggleFiltered.filter(r => r.month === targetMonth) : toggleFiltered;
     console.log('📦 Environment chart month:', targetMonth, '| toggle:', toggle, '| rows:', envFiltered.length);
     
+    const normalizeEnvKey = (val) => {
+        const e = String(val || '').trim().toLowerCase();
+        if (e === 'stage') return 'staging';
+        if (e === 'prod' || e === 'esvc' || e === 'test' || e === 'dev' || e === 'staging' || e === 'perf') return e;
+        return '';
+    };
+
     envFiltered.forEach(r => {
-        const key = r.environment;
+        const key = normalizeEnvKey(r.environment || r.Environment || r.env || r.Env);
+        if (!key) return;
         if (!envAgg[key]) {
             envAgg[key] = { name: key.charAt(0).toUpperCase() + key.slice(1), sum: 0, count: 0 };
         }
@@ -13103,6 +13111,7 @@ function renderKarpenterExecView(container) {
             const bOrder = envOrderMap[b.name.toLowerCase()] !== undefined ? envOrderMap[b.name.toLowerCase()] : 999;
             return aOrder - bOrder;
         });
+    console.log('📦 Environment chart values:', envBarData.map(e => `${e.name}: ${e.value.toFixed(2)}%`).join(', '));
 
     // Build environment trend data by month (for multi-line chart)
     const envTrendOrder = ['prod', 'esvc', 'staging', 'test', 'perf', 'dev'];
@@ -13118,7 +13127,7 @@ function renderKarpenterExecView(container) {
     const envSeries = envTrendOrder.map(envKey => {
         const points = trendMonthCodes.map(monthCode => {
             const rows = dataForTrendMonths.filter(r => {
-                const e = (r.environment || r.Environment || r.env || r.Env || '').toLowerCase();
+                const e = normalizeEnvKey(r.environment || r.Environment || r.env || r.Env);
                 return r.month === monthCode && e === envKey;
             });
             if (rows.length === 0) return null;

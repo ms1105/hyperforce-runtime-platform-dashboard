@@ -13055,30 +13055,22 @@ function renderKarpenterExecView(container) {
         // If value is over 100% (data anomaly), use previous month's value so the line doesn't spike
         const value = v > 100 ? (prevValue !== null ? prevValue : 100) : capped;
         prevValue = value;
-        trendData.push({ month: d.month, value });
+        trendData.push({ month: d.month, monthCode: d.monthCode, value });
     });
     
     console.log('📦 Trend data (actual):', trendData.map(d => `${d.month}: ${d.value}%`));
     
-    // Build environment bar chart data - aggregate by environment from filtered data
+    // Build environment bar chart data - aggregate by environment from latest filtered month only
     const envAgg = {};
-    // Get the latest month from filtered data (or use trendData if available)
-    let envLatestMonth = null;
-    if (karpenterFilterState.month !== 'all') {
-        envLatestMonth = karpenterFilterState.month;
-    } else if (trendData.length > 0) {
-        // Use latest month code from trend series
-        envLatestMonth = trendData[trendData.length - 1].monthCode || null;
-    } else if (monthsInData.length > 0) {
-        // Fallback: use the latest month from filtered data
-        envLatestMonth = monthsInData[monthsInData.length - 1];
-    }
+    // Always derive latest month from currently filtered data to ensure March 2026 is used when present.
+    const envLatestMonth = monthsInData.length > 0 ? monthsInData[monthsInData.length - 1] : null;
     
-    const envFiltered = karpenterFilterState.month !== 'all' 
+    const envFiltered = karpenterFilterState.month !== 'all'
         ? filteredData.filter(r => r.month === karpenterFilterState.month)
-        : envLatestMonth 
+        : envLatestMonth
             ? filteredData.filter(r => r.month === envLatestMonth)
-            : filteredData; // If no latest month, use all filtered data
+            : filteredData;
+    console.log('📦 Environment chart month:', karpenterFilterState.month !== 'all' ? karpenterFilterState.month : envLatestMonth);
     
     envFiltered.forEach(r => {
         const key = r.environment;

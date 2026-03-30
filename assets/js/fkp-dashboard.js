@@ -13060,17 +13060,23 @@ function renderKarpenterExecView(container) {
     
     console.log('📦 Trend data (actual):', trendData.map(d => `${d.month}: ${d.value}%`));
     
-    // Build environment bar chart data - aggregate by environment from latest filtered month only
+    // Build environment bar chart data - aggregate by environment from latest month for selected toggle.
+    // This avoids FI/FD/cluster filter side-effects and keeps values aligned with source validation tables.
     const envAgg = {};
-    // Always derive latest month from currently filtered data to ensure March 2026 is used when present.
-    const envLatestMonth = monthsInData.length > 0 ? monthsInData[monthsInData.length - 1] : null;
-    
-    const envFiltered = karpenterFilterState.month !== 'all'
-        ? filteredData.filter(r => r.month === karpenterFilterState.month)
-        : envLatestMonth
-            ? filteredData.filter(r => r.month === envLatestMonth)
-            : filteredData;
-    console.log('📦 Environment chart month:', karpenterFilterState.month !== 'all' ? karpenterFilterState.month : envLatestMonth);
+    const toggle = karpenterFilterState.karpenterToggle || 'all';
+    const toggleFiltered = karpenterData.mainSummary.filter(row => {
+        if (toggle === 'all') return true;
+        const status = String(row.karpenter_status || '').trim().toLowerCase();
+        const isEnabled = status === 'karpenter_enabled' || status === 'karpenter enabled';
+        if (toggle === 'enabled') return isEnabled;
+        if (toggle === 'disabled') return !isEnabled;
+        return true;
+    });
+    const toggleMonths = [...new Set(toggleFiltered.map(r => r.month))].filter(Boolean).sort(monthCodeOrder);
+    const envLatestMonth = toggleMonths.length > 0 ? toggleMonths[toggleMonths.length - 1] : null;
+    const targetMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : envLatestMonth;
+    const envFiltered = targetMonth ? toggleFiltered.filter(r => r.month === targetMonth) : toggleFiltered;
+    console.log('📦 Environment chart month:', targetMonth, '| toggle:', toggle, '| rows:', envFiltered.length);
     
     envFiltered.forEach(r => {
         const key = r.environment;
@@ -13952,7 +13958,9 @@ function renderKarpenterTrendChart(data) {
             ${points.map((p, i) => `
                 <g class="karpenter-trend-point" data-index="${i}">
                     <circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#0ea5e9" stroke="white" stroke-width="2" />
-                    <circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" style="cursor: pointer;" />
+                    <circle cx="${p.x}" cy="${p.y}" r="12" fill="transparent" style="cursor: pointer;">
+                        <title>${p.label}: ${p.value.toFixed(1)}%</title>
+                    </circle>
                     <text x="${p.x}" y="${p.y - 10}" text-anchor="middle" font-size="7" fill="#475569" font-weight="600">${p.value.toFixed(1)}%</text>
                 </g>
             `).join('')}
@@ -14041,7 +14049,11 @@ function renderKarpenterEnvironmentTrendChart(series, monthCodes, monthLabelsByC
     const vGrid = monthCodes.map(m => `<line x1="${xPosByMonth[m]}" y1="${paddingTop}" x2="${xPosByMonth[m]}" y2="${baselineY}" stroke="#eef2f7" stroke-width="1" />`).join('');
 
     const lines = seriesPoints.map(s => `<path d="${createSmoothPath(s.pts)}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />`).join('');
-    const dots = seriesPoints.map(s => s.pts.filter(Boolean).map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${s.color}" stroke="white" stroke-width="1.2" />`).join('')).join('');
+    const dots = seriesPoints.map(s => s.pts.filter(Boolean).map(p => `
+        <circle cx="${p.x}" cy="${p.y}" r="3" fill="${s.color}" stroke="white" stroke-width="1.2" style="cursor: pointer;">
+            <title>${s.label} - ${labelFromCode(p.monthCode)}: ${p.value.toFixed(1)}%</title>
+        </circle>
+    `).join('')).join('');
     const legend = seriesPoints.map(s => `<span style="display:inline-flex;align-items:center;gap:0.35rem;margin-right:0.8rem;font-size:11px;color:#475569;"><span style="width:8px;height:8px;border-radius:50%;background:${s.color};display:inline-block;"></span>${s.label}</span>`).join('');
 
     const xLabels = monthCodes.map(m => `<text x="${xPosByMonth[m]}" y="${chartHeight - 8}" text-anchor="middle" font-size="8" fill="#64748b">${labelFromCode(m)}</text>`).join('');

@@ -13142,7 +13142,8 @@ function renderKarpenterExecView(container) {
         const arcLength = Math.PI * 55;
         const fillLength = (gaugeValue / 100) * arcLength;
         const trendClass = trendValue >= 0 ? 'trend-up' : 'trend-down';
-        const trendText = `${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}% ${trendLabel}`;
+        const trendArrow = trendValue >= 0 ? '↑' : '↓';
+        const trendText = `${trendArrow} ${trendValue >= 0 ? '+' : ''}${trendValue.toFixed(1)}% ${trendLabel}`;
         return `
             <div class="karpenter-metric-card karpenter-speedometer-card">
                 <div class="karpenter-metric-header">
@@ -13154,7 +13155,7 @@ function renderKarpenterExecView(container) {
                         <path d="M 15 75 A 55 55 0 0 1 125 75" class="karpenter-speedometer-track"></path>
                         <path d="M 15 75 A 55 55 0 0 1 125 75" class="karpenter-speedometer-fill"
                             style="stroke-dasharray: ${fillLength} ${arcLength};"></path>
-                        <text x="70" y="68" text-anchor="middle" class="karpenter-speedometer-value">${gaugeValue.toFixed(2)}%</text>
+                        <text x="70" y="68" text-anchor="middle" class="karpenter-speedometer-value">${gaugeValue.toFixed(1)}%</text>
                     </svg>
                 </div>
                 <div class="karpenter-metric-trend ${trendClass}">${trendText}</div>

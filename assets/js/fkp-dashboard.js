@@ -12140,14 +12140,36 @@ let karpenterFilterState = {
 
 /**
  * Round to 2 decimals for avg. CPU allocation rate % (cluster_packing_percent).
- * e.g. 14.828398815660400 → 14.82
- * Caps at 0-100 so bad CSV values (e.g. 2680) don't break cards.
+ * e.g. 14.828398815660400 -> 14.82
+ * Keep raw percent (no upper cap) so dashboard values match source pivots.
  */
 function roundAvgCpuPercent(value) {
     const n = parseFloat(value);
     if (isNaN(n)) return 0;
     const rounded = Math.round(n * 100) / 100;
-    return Math.min(100, Math.max(0, rounded));
+    return Math.max(0, rounded);
+}
+
+/**
+ * Compute robust average for CPU percentages.
+ * If the raw mean is unrealistically high (data anomaly), trim top 1% outliers.
+ */
+function computeRobustAvgCpu(values) {
+    const clean = (values || [])
+        .map(v => parseFloat(v))
+        .filter(v => Number.isFinite(v) && v >= 0);
+    if (clean.length === 0) return null;
+
+    const sorted = clean.slice().sort((a, b) => a - b);
+    const rawMean = sorted.reduce((a, b) => a + b, 0) / sorted.length;
+    if (rawMean <= 200 || sorted.length < 50) {
+        return rawMean;
+    }
+
+    const trimCount = Math.max(1, Math.floor(sorted.length * 0.01));
+    const trimmed = sorted.slice(0, sorted.length - trimCount);
+    if (trimmed.length === 0) return rawMean;
+    return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
 }
 
 /**
@@ -12932,8 +12954,8 @@ function renderKarpenterExecView(container) {
             }
             if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
             const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-            const capped = Math.min(100, Math.max(0, raw));
-            byGroup[key].sum += capped;
+            const nonNegative = Math.max(0, raw);
+            byGroup[key].sum += nonNegative;
             byGroup[key].count += 1;
         });
         const groupAvgs = Object.values(byGroup).map(g => g.sum / g.count);
@@ -12955,7 +12977,7 @@ function renderKarpenterExecView(container) {
                 else key = r[groupBy] || 'unknown';
                 if (!byGroupPrev[key]) byGroupPrev[key] = { sum: 0, count: 0 };
                 const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-                byGroupPrev[key].sum += Math.min(100, Math.max(0, raw));
+                byGroupPrev[key].sum += Math.max(0, raw);
                 byGroupPrev[key].count += 1;
             });
             const prevGroupAvgs = Object.values(byGroupPrev).map(g => g.sum / g.count);
@@ -12989,9 +13011,8 @@ function renderKarpenterExecView(container) {
     // Row-average for selected month/status. This matches source full files directly.
     const calcOverallAvg = (data) => {
         if (!data || data.length === 0) return null;
-        const vals = data.map(r => Math.min(100, Math.max(0, parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0))));
-        if (vals.length === 0) return null;
-        return vals.reduce((a, b) => a + b, 0) / vals.length;
+        const vals = data.map(r => r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+        return computeRobustAvgCpu(vals);
     };
     const rawOverallLatest = calcOverallAvg(dataLatestMonth);
     const rawOverallPrev = calcOverallAvg(dataPrevMonth);
@@ -13029,8 +13050,8 @@ function renderKarpenterExecView(container) {
         if (monthData.length === 0) return null;
         
         // Use row-average (same as cards) for consistent values.
-        const vals = monthData.map(r => Math.min(100, Math.max(0, parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0))));
-        const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+        const vals = monthData.map(r => r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+        const avg = computeRobustAvgCpu(vals) || 0;
         
         const first = monthData[0] || {};
         const yearSuffix = monthCode.includes('-') ? monthCode.split('-')[0] : '';
@@ -13325,6 +13346,8 @@ function renderKarpenterDeveloperView(container) {
     karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
     karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
     karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
+    // Developer view supports only Enabled scope.
+    karpenterFilterState.karpenterToggle = 'enabled';
     
     // Get filtered cluster data based on current filter state
     let filteredData = filterKarpenterData(karpenterData.clusterSummary, true);
@@ -13509,22 +13532,16 @@ function renderKarpenterDeveloperView(container) {
     
     container.innerHTML = `
         <div class="karpenter-dev-content">
-            <!-- Karpenter Enabled / Disabled toggle (Developer view) -->
+            <!-- Karpenter toggle (Developer view: enabled only) -->
             <div class="karpenter-toggle-row">
                 <span class="karpenter-toggle-label">View:</span>
                 <div class="karpenter-toggle-group">
-                    <button type="button" class="karpenter-toggle-btn ${karpenterFilterState.karpenterToggle === 'all' ? 'active' : ''}" data-value="all" onclick="setKarpenterToggle('all')">All</button>
                     <button type="button" class="karpenter-toggle-btn ${karpenterFilterState.karpenterToggle === 'enabled' ? 'active' : ''}" data-value="enabled" onclick="setKarpenterToggle('enabled')">Karpenter Enabled</button>
-                    <button type="button" class="karpenter-toggle-btn ${karpenterFilterState.karpenterToggle === 'disabled' ? 'active' : ''}" data-value="disabled" onclick="setKarpenterToggle('disabled')">Karpenter Disabled</button>
                 </div>
             </div>
             ${filteredData.length === 0 ? `
             <div class="karpenter-empty-toggle-message">
-                ${karpenterFilterState.karpenterToggle === 'enabled'
-                    ? 'No enabled clusters found for the current filters.'
-                    : karpenterFilterState.karpenterToggle === 'disabled'
-                        ? 'No disabled clusters found for the current filters.'
-                        : 'No clusters found for the current filters.'}
+                No enabled clusters found for the current filters.
             </div>
             ` : ''}
             <!-- Heatmaps Section -->

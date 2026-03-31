@@ -12152,7 +12152,7 @@ function roundAvgCpuPercent(value) {
 
 /**
  * Compute robust average for CPU percentages.
- * If the raw mean is unrealistically high (data anomaly), trim top 1% outliers.
+ * If the mean crosses 100% (data anomaly), progressively trim top-end outliers.
  */
 function computeRobustAvgCpu(values) {
     const clean = (values || [])
@@ -12160,16 +12160,26 @@ function computeRobustAvgCpu(values) {
         .filter(v => Number.isFinite(v) && v >= 0);
     if (clean.length === 0) return null;
 
-    const sorted = clean.slice().sort((a, b) => a - b);
-    const rawMean = sorted.reduce((a, b) => a + b, 0) / sorted.length;
-    if (rawMean <= 200 || sorted.length < 50) {
-        return rawMean;
+    let sorted = clean.slice().sort((a, b) => a - b);
+    let mean = sorted.reduce((a, b) => a + b, 0) / sorted.length;
+    if (mean <= 100) {
+        return mean;
     }
 
-    const trimCount = Math.max(1, Math.floor(sorted.length * 0.01));
-    const trimmed = sorted.slice(0, sorted.length - trimCount);
-    if (trimmed.length === 0) return rawMean;
-    return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
+    // Trim top outliers in small steps until mean is within 0-100 range,
+    // or until we have trimmed up to 20% of the data.
+    const maxTrimTotal = Math.max(1, Math.floor(sorted.length * 0.2));
+    let trimmedTotal = 0;
+    while (mean > 100 && sorted.length > 10 && trimmedTotal < maxTrimTotal) {
+        const trimStep = Math.max(1, Math.floor(sorted.length * 0.01));
+        sorted = sorted.slice(0, sorted.length - trimStep);
+        trimmedTotal += trimStep;
+        if (sorted.length === 0) break;
+        mean = sorted.reduce((a, b) => a + b, 0) / sorted.length;
+    }
+
+    if (sorted.length === 0) return 0;
+    return mean;
 }
 
 /**
@@ -13150,10 +13160,12 @@ function renderKarpenterExecView(container) {
         if (!key) return;
         if (!envMonthly[m]) envMonthly[m] = {};
         if (!envMonthly[m][key]) {
-            envMonthly[m][key] = { sum: 0, count: 0 };
+            envMonthly[m][key] = { values: [] };
         }
-        envMonthly[m][key].sum += parseFloat(r.avg_cpu || 0);
-        envMonthly[m][key].count += 1;
+        const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+        if (Number.isFinite(raw) && raw >= 0) {
+            envMonthly[m][key].values.push(raw);
+        }
     });
 
     // Fixed environment order for bar chart
@@ -13178,7 +13190,7 @@ function renderKarpenterExecView(container) {
     const envBarData = Object.entries(monthEnvAgg)
         .map(([key, e]) => ({
             name: envDisplayMap[key] || (key.charAt(0).toUpperCase() + key.slice(1)),
-            value: e.count > 0 ? (e.sum / e.count) : 0
+            value: computeRobustAvgCpu(e.values || []) || 0
         }))
         .filter(item => envOrderMap[item.name.toLowerCase()] !== undefined)
         .sort((a, b) => {
@@ -13206,8 +13218,9 @@ function renderKarpenterExecView(container) {
     const envSeries = envTrendOrder.map(envKey => {
         const points = envTrendMonths.map(monthCode => {
             const agg = envMonthly[monthCode] && envMonthly[monthCode][envKey] ? envMonthly[monthCode][envKey] : null;
-            if (!agg || agg.count === 0) return null;
-            const avg = agg.sum / agg.count;
+            if (!agg || !agg.values || agg.values.length === 0) return null;
+            const avg = computeRobustAvgCpu(agg.values);
+            if (avg === null) return null;
             return { monthCode, monthLabel: monthLabelsByCode[monthCode], value: roundAvgCpuPercent(avg) };
         });
         const hasAny = points.some(Boolean);

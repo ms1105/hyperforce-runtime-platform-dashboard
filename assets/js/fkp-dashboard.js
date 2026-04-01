@@ -13029,7 +13029,30 @@ function renderKarpenterExecView(container) {
     // Trend: use like-for-like clusters (present in both months) so Jan vs Feb is comparable
     const rawOverallLatestLFL = calcOverallAvg(dataLatestLikeForLike);
     const rawOverallPrevLFL = calcOverallAvg(dataPrevLikeForLike);
-    const cardAvg = rawOverallLatest !== null ? rawOverallLatest.toFixed(2) : '--';
+    // For "All" toggle, use status-balanced average: mean(Enabled avg, Disabled avg),
+    // matching the exec pivot expectation for March.
+    const splitByStatusAvg = (rows) => {
+        if (!rows || rows.length === 0) return null;
+        const enabledRows = rows.filter(r => {
+            const s = String(r.karpenter_status || '').trim().toLowerCase();
+            return s === 'karpenter_enabled' || s === 'karpenter enabled';
+        });
+        const disabledRows = rows.filter(r => {
+            const s = String(r.karpenter_status || '').trim().toLowerCase();
+            return s === 'karpenter_disabled' || s === 'karpenter disabled';
+        });
+        const enabledAvg = calcOverallAvg(enabledRows);
+        const disabledAvg = calcOverallAvg(disabledRows);
+        if (enabledAvg !== null && disabledAvg !== null) return (enabledAvg + disabledAvg) / 2;
+        if (enabledAvg !== null) return enabledAvg;
+        if (disabledAvg !== null) return disabledAvg;
+        return calcOverallAvg(rows);
+    };
+
+    const cardAvgValue = (karpenterFilterState.karpenterToggle === 'all')
+        ? splitByStatusAvg(dataLatestMonth)
+        : rawOverallLatest;
+    const cardAvg = cardAvgValue !== null ? cardAvgValue.toFixed(2) : '--';
     let trend = 0;
     let trendLabel = 'vs previous month';
     if (rawOverallPrevLFL !== null && rawOverallPrevLFL > 0 && rawOverallLatestLFL !== null) {

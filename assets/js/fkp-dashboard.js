@@ -13082,9 +13082,12 @@ function renderKarpenterExecView(container) {
         const monthData = dataForTrendMonths.filter(r => r.month === monthCode);
         if (monthData.length === 0) return null;
         
-        // Use row-average (same as cards) for consistent values.
-        const vals = monthData.map(r => r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-        const avg = computeRobustAvgCpu(vals) || 0;
+        // Keep trend math aligned with cards:
+        // - All toggle: status-balanced average (mean of enabled and disabled averages)
+        // - Enabled/Disabled toggle: direct row average of the selected scope
+        const avg = (karpenterFilterState.karpenterToggle === 'all')
+            ? (splitByStatusAvg(monthData) || 0)
+            : (calcOverallAvg(monthData) || 0);
         
         const first = monthData[0] || {};
         const yearSuffix = monthCode.includes('-') ? monthCode.split('-')[0] : '';

@@ -12151,35 +12151,15 @@ function roundAvgCpuPercent(value) {
 }
 
 /**
- * Compute robust average for CPU percentages.
- * If the mean crosses 100% (data anomaly), progressively trim top-end outliers.
+ * Compute direct average for CPU percentages from source rows.
+ * No outlier adjustments are applied.
  */
 function computeRobustAvgCpu(values) {
     const clean = (values || [])
         .map(v => parseFloat(v))
         .filter(v => Number.isFinite(v) && v >= 0);
     if (clean.length === 0) return null;
-
-    let sorted = clean.slice().sort((a, b) => a - b);
-    let mean = sorted.reduce((a, b) => a + b, 0) / sorted.length;
-    if (mean <= 100) {
-        return mean;
-    }
-
-    // Trim top outliers in small steps until mean is within 0-100 range,
-    // or until we have trimmed up to 20% of the data.
-    const maxTrimTotal = Math.max(1, Math.floor(sorted.length * 0.2));
-    let trimmedTotal = 0;
-    while (mean > 100 && sorted.length > 10 && trimmedTotal < maxTrimTotal) {
-        const trimStep = Math.max(1, Math.floor(sorted.length * 0.01));
-        sorted = sorted.slice(0, sorted.length - trimStep);
-        trimmedTotal += trimStep;
-        if (sorted.length === 0) break;
-        mean = sorted.reduce((a, b) => a + b, 0) / sorted.length;
-    }
-
-    if (sorted.length === 0) return 0;
-    return mean;
+    return clean.reduce((a, b) => a + b, 0) / clean.length;
 }
 
 /**

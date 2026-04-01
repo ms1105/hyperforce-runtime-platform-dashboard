@@ -13018,16 +13018,6 @@ function renderKarpenterExecView(container) {
         ? dataPrevMonth.filter(r => clustersBothMonths.includes((r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || '').trim()))
         : dataPrevMonth;
     
-    // Row-average for selected month/status. This matches source full files directly.
-    const calcDirectAvg = (rows) => {
-        if (!rows || rows.length === 0) return null;
-        const vals = rows
-            .map(r => parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0))
-            .filter(v => Number.isFinite(v) && v >= 0);
-        if (vals.length === 0) return null;
-        return vals.reduce((a, b) => a + b, 0) / vals.length;
-    };
-
     const calcOverallAvg = (data) => {
         if (!data || data.length === 0) return null;
         const vals = data.map(r => r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
@@ -13050,12 +13040,12 @@ function renderKarpenterExecView(container) {
             const s = String(r.karpenter_status || '').trim().toLowerCase();
             return s === 'karpenter_disabled' || s === 'karpenter disabled';
         });
-        const enabledAvg = calcDirectAvg(enabledRows);
-        const disabledAvg = calcDirectAvg(disabledRows);
+        const enabledAvg = calcOverallAvg(enabledRows);
+        const disabledAvg = calcOverallAvg(disabledRows);
         if (enabledAvg !== null && disabledAvg !== null) return (enabledAvg + disabledAvg) / 2;
         if (enabledAvg !== null) return enabledAvg;
         if (disabledAvg !== null) return disabledAvg;
-        return calcDirectAvg(rows);
+        return calcOverallAvg(rows);
     };
 
     const isAllToggle = karpenterFilterState.karpenterToggle === 'all';
@@ -13128,8 +13118,8 @@ function renderKarpenterExecView(container) {
         const v = roundAvgCpuPercent(d.value);
         let value;
         if (isAllToggle) {
-            // For All view, show the direct balanced monthly value.
-            value = v;
+            // For All view, keep balanced monthly values but never allow 100% spikes.
+            value = Math.min(99.9, Math.max(0, v));
         } else {
             const capped = Math.min(100, v);
             // If value is over 100% (data anomaly), use previous month's value so the line doesn't spike

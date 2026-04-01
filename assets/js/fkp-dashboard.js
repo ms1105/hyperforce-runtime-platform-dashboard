@@ -12733,7 +12733,7 @@ function applyKarpenterFilters() {
  * Reset Karpenter filters
  */
 function resetKarpenterFilters() {
-    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all', duration: '30', karpenterToggle: 'enabled' };
+    karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all', duration: '30', karpenterToggle: 'all' };
     
     document.getElementById('karpenter-fi-filter').value = 'all';
     document.getElementById('karpenter-fd-filter').value = 'all';
@@ -13019,6 +13019,15 @@ function renderKarpenterExecView(container) {
         : dataPrevMonth;
     
     // Row-average for selected month/status. This matches source full files directly.
+    const calcDirectAvg = (rows) => {
+        if (!rows || rows.length === 0) return null;
+        const vals = rows
+            .map(r => parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0))
+            .filter(v => Number.isFinite(v) && v >= 0);
+        if (vals.length === 0) return null;
+        return vals.reduce((a, b) => a + b, 0) / vals.length;
+    };
+
     const calcOverallAvg = (data) => {
         if (!data || data.length === 0) return null;
         const vals = data.map(r => r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
@@ -13041,21 +13050,30 @@ function renderKarpenterExecView(container) {
             const s = String(r.karpenter_status || '').trim().toLowerCase();
             return s === 'karpenter_disabled' || s === 'karpenter disabled';
         });
-        const enabledAvg = calcOverallAvg(enabledRows);
-        const disabledAvg = calcOverallAvg(disabledRows);
+        const enabledAvg = calcDirectAvg(enabledRows);
+        const disabledAvg = calcDirectAvg(disabledRows);
         if (enabledAvg !== null && disabledAvg !== null) return (enabledAvg + disabledAvg) / 2;
         if (enabledAvg !== null) return enabledAvg;
         if (disabledAvg !== null) return disabledAvg;
-        return calcOverallAvg(rows);
+        return calcDirectAvg(rows);
     };
 
-    const cardAvgValue = (karpenterFilterState.karpenterToggle === 'all')
+    const isAllToggle = karpenterFilterState.karpenterToggle === 'all';
+    const cardAvgValue = isAllToggle
         ? splitByStatusAvg(dataLatestMonth)
         : rawOverallLatest;
     const cardAvg = cardAvgValue !== null ? cardAvgValue.toFixed(2) : '--';
     let trend = 0;
     let trendLabel = 'vs previous month';
-    if (rawOverallPrevLFL !== null && rawOverallPrevLFL > 0 && rawOverallLatestLFL !== null) {
+    if (isAllToggle) {
+        const allLatest = splitByStatusAvg(dataLatestMonth);
+        const allPrev = splitByStatusAvg(dataPrevMonth);
+        if (allPrev !== null && allPrev > 0 && allLatest !== null) {
+            trend = ((allLatest - allPrev) / allPrev) * 100;
+            const prevMonthName = dataPrevMonth.length > 0 && dataPrevMonth[0].month_name ? dataPrevMonth[0].month_name : (prevMonth || 'previous month');
+            trendLabel = 'vs ' + prevMonthName;
+        }
+    } else if (rawOverallPrevLFL !== null && rawOverallPrevLFL > 0 && rawOverallLatestLFL !== null) {
         trend = ((rawOverallLatestLFL - rawOverallPrevLFL) / rawOverallPrevLFL) * 100;
         const prevMonthName = dataPrevMonth.length > 0 && dataPrevMonth[0].month_name ? dataPrevMonth[0].month_name : (prevMonth || 'previous month');
         trendLabel = 'vs ' + prevMonthName;
@@ -13108,9 +13126,15 @@ function renderKarpenterExecView(container) {
     let prevValue = null;
     rawTrendData.forEach(d => {
         const v = roundAvgCpuPercent(d.value);
-        const capped = Math.min(100, v);
-        // If value is over 100% (data anomaly), use previous month's value so the line doesn't spike
-        const value = v > 100 ? (prevValue !== null ? prevValue : 100) : capped;
+        let value;
+        if (isAllToggle) {
+            // For All view, show the direct balanced monthly value.
+            value = v;
+        } else {
+            const capped = Math.min(100, v);
+            // If value is over 100% (data anomaly), use previous month's value so the line doesn't spike
+            value = v > 100 ? (prevValue !== null ? prevValue : 100) : capped;
+        }
         prevValue = value;
         trendData.push({ month: d.month, monthCode: d.monthCode, value });
     });

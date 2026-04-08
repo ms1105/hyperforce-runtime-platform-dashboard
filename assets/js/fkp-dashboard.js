@@ -12234,6 +12234,56 @@ function rowMatchesKarpenterDimensions(row) {
 }
 
 /**
+ * Read duration from toggle buttons (falls back to state default).
+ */
+function readKarpenterDurationFromDom() {
+    const active = document.querySelector('.karpenter-duration-toggle-group .karpenter-duration-btn.active');
+    if (active) {
+        const v = active.getAttribute('data-duration');
+        if (v === '7' || v === '15' || v === '30') return v;
+    }
+    const d = karpenterFilterState.duration;
+    return d === '7' || d === '15' || d === '30' ? d : '30';
+}
+
+/** Month filter selection: null = all months; else unique YYYY-MM codes */
+function getKarpenterSelectedMonthCodes() {
+    const m = karpenterFilterState.month;
+    if (m === 'all') return null;
+    const list = Array.isArray(m) ? m : [m];
+    return [...new Set(list.filter(Boolean))];
+}
+
+/** Latest month among selected that appears in orderedAvailable (ascending), or latest in scope if month = all */
+function karpenterLatestSelectedInScope(orderedAvailable) {
+    const sel = getKarpenterSelectedMonthCodes();
+    if (!sel || !sel.length) {
+        return orderedAvailable.length ? orderedAvailable[orderedAvailable.length - 1] : null;
+    }
+    const set = new Set(sel);
+    const inScope = orderedAvailable.filter(x => set.has(x));
+    return inScope.length ? inScope[inScope.length - 1] : null;
+}
+
+function syncKarpenterDurationToggleUi() {
+    const v = karpenterFilterState.duration || '30';
+    const norm = v === '7' || v === '15' || v === '30' ? v : '30';
+    document.querySelectorAll('.karpenter-duration-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-duration') === norm);
+    });
+}
+
+/**
+ * Set duration window from toggle and refresh.
+ */
+function setKarpenterDuration(value) {
+    const v = value === '7' || value === '15' || value === '30' ? value : '30';
+    karpenterFilterState.duration = v;
+    syncKarpenterDurationToggleUi();
+    applyKarpenterFilters();
+}
+
+/**
  * Sync karpenterFilterState.fi/fd/environment/cluster/month/duration from DOM (multiselect-aware).
  */
 function syncKarpenterStateFromDom() {
@@ -12241,8 +12291,8 @@ function syncKarpenterStateFromDom() {
     karpenterFilterState.fd = readKarpenterFilterMultiselect('karpenter-fd-filter');
     karpenterFilterState.environment = readKarpenterFilterMultiselect('karpenter-env-filter');
     karpenterFilterState.cluster = readKarpenterFilterMultiselect('karpenter-cluster-filter');
-    karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
-    karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
+    karpenterFilterState.month = readKarpenterFilterMultiselect('karpenter-month-filter');
+    karpenterFilterState.duration = readKarpenterDurationFromDom();
 }
 
 /**
@@ -12696,6 +12746,7 @@ function populateKarpenterFilters() {
 
     // FI / FD / Environment / Cluster: cascading multiselects from mainSummary
     rebuildKarpenterCascadingFilterOptions(false);
+    syncKarpenterDurationToggleUi();
 }
 
 /**
@@ -12724,10 +12775,7 @@ function clearKarpenterFiltersExceptDuration() {
         }
     });
 
-    const durationEl = document.getElementById('karpenter-duration-filter');
-    if (durationEl) {
-        durationEl.disabled = false;
-    }
+    document.querySelectorAll('.karpenter-duration-btn').forEach(btn => { btn.disabled = false; });
 
     karpenterFilterState.fi = 'all';
     karpenterFilterState.fd = 'all';
@@ -12769,9 +12817,11 @@ function resetKarpenterFilters() {
         Array.from(el.options).forEach(o => { o.selected = o.value === 'all'; });
     });
     const monthEl = document.getElementById('karpenter-month-filter');
-    if (monthEl) monthEl.value = 'all';
-    const durationEl = document.getElementById('karpenter-duration-filter');
-    if (durationEl) durationEl.value = '30';
+    if (monthEl) {
+        Array.from(monthEl.options).forEach(o => { o.selected = o.value === 'all'; });
+    }
+    karpenterFilterState.duration = '30';
+    syncKarpenterDurationToggleUi();
 
     rebuildKarpenterCascadingFilterOptions(false);
     syncKarpenterStateFromDom();
@@ -12841,10 +12891,14 @@ function filterKarpenterData(data, includeMonth = true, applyDuration = true, op
             if (toggle === 'disabled' && isEnabled) return false;
         }
         
-        // Month filter
-        if (includeMonth && karpenterFilterState.month !== 'all') {
-            const rowMonth = row.month || row.Month || row.month_code;
-            if (rowMonth && rowMonth !== karpenterFilterState.month) return false;
+        // Month filter (multi-select: any selected month, or all)
+        if (includeMonth) {
+            const mSel = karpenterFilterState.month;
+            if (mSel !== 'all') {
+                const list = Array.isArray(mSel) ? mSel : [mSel];
+                const rowMonth = row.month || row.Month || row.month_code;
+                if (!rowMonth || !list.includes(rowMonth)) return false;
+            }
         }
         
         return true;
@@ -13163,7 +13217,7 @@ function renderKarpenterExecView(container) {
         .filter(Boolean)
         .sort(monthCodeOrder);
     const envLatestMonth = envMonths.length > 0 ? envMonths[envMonths.length - 1] : null;
-    const targetMonth = karpenterFilterState.month !== 'all' ? karpenterFilterState.month : envLatestMonth;
+    const targetMonth = karpenterLatestSelectedInScope(envMonths) ?? envLatestMonth;
 
     // Pie chart source ignores enabled/disabled toggle to show full split for the same scoped month.
     const prevToggleForPie = karpenterFilterState.karpenterToggle;
@@ -13173,12 +13227,19 @@ function renderKarpenterExecView(container) {
     const pieMonths = [...new Set(pieBaseRows.map(r => r.month || r.Month || r.month_code))]
         .filter(Boolean)
         .sort(monthCodeOrder);
-    const pieTargetMonth = karpenterFilterState.month !== 'all'
-        ? karpenterFilterState.month
-        : (pieMonths.length > 0 ? pieMonths[pieMonths.length - 1] : null);
+    const pieTargetMonth = karpenterLatestSelectedInScope(pieMonths) ?? (pieMonths.length > 0 ? pieMonths[pieMonths.length - 1] : null);
     const pieMonthRows = pieTargetMonth
         ? pieBaseRows.filter(r => (r.month || r.Month || r.month_code) === pieTargetMonth)
         : pieBaseRows;
+    const pieMonthLegendDisplay = (() => {
+        if (!pieTargetMonth) return '-';
+        const row0 = pieMonthRows.find(r => (r.month || r.Month || r.month_code) === pieTargetMonth) || pieMonthRows[0];
+        const yearSuffix = String(pieTargetMonth).includes('-') ? String(pieTargetMonth).slice(0, 4) : '';
+        const name = row0 && row0.month_name ? `${row0.month_name} ${yearSuffix}`.trim() : pieTargetMonth;
+        const sel = getKarpenterSelectedMonthCodes();
+        if (sel && sel.length > 1) return `${name} (latest of ${sel.length} selected)`;
+        return name;
+    })();
     const clusterTripleStatusMap = new Map();
     pieMonthRows.forEach(r => {
         const fi = (r.falcon_instance || r.falconInstance || r.FI || r.fi || '').trim();
@@ -13268,8 +13329,9 @@ function renderKarpenterExecView(container) {
         monthLabelsByCode[monthCode] = first.month_name ? `${first.month_name} ${yearSuffix}` : monthCode;
     });
 
-    const envTrendMonths = karpenterFilterState.month !== 'all'
-        ? envMonths.filter(m => m === karpenterFilterState.month)
+    const selMonthCodes = getKarpenterSelectedMonthCodes();
+    const envTrendMonths = selMonthCodes && selMonthCodes.length
+        ? envMonths.filter(m => selMonthCodes.includes(m))
         : envMonths;
 
     const envSeries = envTrendOrder.map(envKey => {
@@ -13331,7 +13393,7 @@ function renderKarpenterExecView(container) {
                 <div class="karpenter-cluster-pie-section">
                     <div class="karpenter-cluster-pie-header">
                         <span class="karpenter-trend-title">Total Clusters (FI/FD/Cluster)</span>
-                        <span class="karpenter-trend-legend">Month: ${pieTargetMonth || '-'}</span>
+                        <span class="karpenter-trend-legend">Month: ${pieMonthLegendDisplay}</span>
                     </div>
                     ${renderKarpenterClusterPie({
                         total: totalTriples,
@@ -13680,6 +13742,7 @@ function closeClusterNodesModal() {
 window.showClusterNodes = showClusterNodes;
 window.closeClusterNodesModal = closeClusterNodesModal;
 window.onKarpenterFilterDimensionChange = onKarpenterFilterDimensionChange;
+window.setKarpenterDuration = setKarpenterDuration;
 
 /**
  * Calculate trend for Karpenter data

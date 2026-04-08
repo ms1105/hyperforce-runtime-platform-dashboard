@@ -8168,6 +8168,15 @@ body.developer-view .sidebar-subtitle::after {
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
+.karpenter-duration-filter-group .karpenter-toggle-group {
+    flex-shrink: 0;
+}
+
+.karpenter-duration-filter-group .karpenter-toggle-btn {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.75rem;
+}
+
 .karpenter-filter-actions {
     margin-left: auto;
 }

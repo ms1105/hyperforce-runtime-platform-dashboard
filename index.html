@@ -1116,18 +1116,18 @@
                                     </select>
                                 </div>
                                 <div class="karpenter-filter-group">
-                                    <label class="karpenter-filter-label">Month</label>
-                                    <select id="karpenter-month-filter" onchange="applyKarpenterFilters()">
-                                        <option value="all">All Months</option>
+                                    <label class="karpenter-filter-label">Month <span class="karpenter-filter-hint">(multi-select)</span></label>
+                                    <select id="karpenter-month-filter" class="karpenter-filter-multiselect" multiple size="4" onchange="onKarpenterFilterDimensionChange('karpenter-month-filter')">
+                                        <option value="all" selected>All Months</option>
                                     </select>
                                 </div>
-                                <div class="karpenter-filter-group">
+                                <div class="karpenter-filter-group karpenter-duration-filter-group">
                                     <label class="karpenter-filter-label">Duration</label>
-                                    <select id="karpenter-duration-filter" onchange="applyKarpenterFilters()">
-                                        <option value="30">30 days</option>
-                                        <option value="15">15 days</option>
-                                        <option value="7">7 days</option>
-                                    </select>
+                                    <div class="karpenter-duration-toggle-group karpenter-toggle-group" role="group" aria-label="Duration window">
+                                        <button type="button" class="karpenter-toggle-btn karpenter-duration-btn" data-duration="7" onclick="setKarpenterDuration('7')">7 days</button>
+                                        <button type="button" class="karpenter-toggle-btn karpenter-duration-btn" data-duration="15" onclick="setKarpenterDuration('15')">15 days</button>
+                                        <button type="button" class="karpenter-toggle-btn karpenter-duration-btn active" data-duration="30" onclick="setKarpenterDuration('30')">30 days</button>
+                                    </div>
                                 </div>
                                 <div class="karpenter-filter-actions">
                                     <button class="karpenter-reset-btn" onclick="resetKarpenterFilters()">

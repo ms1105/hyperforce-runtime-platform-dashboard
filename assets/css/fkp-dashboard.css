@@ -8136,6 +8136,14 @@ body.developer-view .sidebar-subtitle::after {
     letter-spacing: 0.5px;
 }
 
+.karpenter-filter-hint {
+    font-weight: 400;
+    font-size: 0.65rem;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #94a3b8;
+}
+
 .karpenter-filter-group select {
     padding: 0.4rem 0.75rem;
     border: 1px solid #e2e8f0;
@@ -8144,6 +8152,14 @@ body.developer-view .sidebar-subtitle::after {
     color: #1e293b;
     background: #f8fafc;
     cursor: pointer;
+}
+
+.karpenter-filter-group select.karpenter-filter-multiselect {
+    min-width: 160px;
+    min-height: 7.5rem;
+    padding: 0.35rem 0.5rem;
+    cursor: default;
+    line-height: 1.35;
 }
 
 .karpenter-filter-group select:focus {
@@ -8787,12 +8803,7 @@ body.developer-view .sidebar-subtitle::after {
     justify-content: center;
     min-height: 65px;
     border: 1.5px solid #e2e8f0;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.karpenter-heatmap-tile:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: default;
 }
 
 .karpenter-heatmap-tile.efficient {

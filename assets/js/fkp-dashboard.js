@@ -12175,6 +12175,211 @@ let karpenterFilterState = {
     karpenterToggle: 'enabled'   // default: 'enabled' | 'all' | 'disabled'
 };
 
+/** Escape text for HTML option body */
+function escapeKarpenterHtmlText(s) {
+    return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+/** Escape attribute value for <option value="..."> */
+function escapeKarpenterAttr(s) {
+    return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+}
+
+/** Read FI/FD/Env/Cluster multiselect: 'all' or non-empty string[] */
+function readKarpenterFilterMultiselect(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el) return 'all';
+    if (!el.multiple) {
+        const v = el.value || 'all';
+        return v === 'all' ? 'all' : [v];
+    }
+    const vals = Array.from(el.selectedOptions).map(o => o.value).filter(Boolean);
+    if (vals.length === 0 || vals.includes('all')) return 'all';
+    return vals;
+}
+
+/** FI / FD / env / cluster only (used by getDataForMonth and filterKarpenterData). */
+function rowMatchesKarpenterDimensions(row) {
+    const fiSel = karpenterFilterState.fi;
+    if (fiSel !== 'all') {
+        const list = Array.isArray(fiSel) ? fiSel : [fiSel];
+        const rowFI = row.falcon_instance || row.falconInstance || row.FI || row.fi || row.falcon_instance_name;
+        if (!rowFI || !list.includes(rowFI)) return false;
+    }
+    const fdSel = karpenterFilterState.fd;
+    if (fdSel !== 'all') {
+        const list = Array.isArray(fdSel) ? fdSel : [fdSel];
+        const rowFD = row.functional_domain || row.functionalDomain || row.FD || row.fd;
+        if (!rowFD || !list.includes(rowFD)) return false;
+    }
+    const envSel = karpenterFilterState.environment;
+    if (envSel !== 'all') {
+        const list = (Array.isArray(envSel) ? envSel : [envSel]).map(e => String(e).toLowerCase());
+        const rowEnv = String(row.environment || row.Environment || row.env || row.Env || '').toLowerCase();
+        if (!rowEnv || !list.includes(rowEnv)) return false;
+    }
+    const clSel = karpenterFilterState.cluster;
+    if (clSel !== 'all') {
+        const list = Array.isArray(clSel) ? clSel : [clSel];
+        const rowCluster = row.cluster || row.Cluster || row.k8s_cluster || row.k8sCluster || row.cluster_name;
+        if (!rowCluster || !list.includes(rowCluster)) return false;
+    }
+    return true;
+}
+
+/**
+ * Sync karpenterFilterState.fi/fd/environment/cluster/month/duration from DOM (multiselect-aware).
+ */
+function syncKarpenterStateFromDom() {
+    karpenterFilterState.fi = readKarpenterFilterMultiselect('karpenter-fi-filter');
+    karpenterFilterState.fd = readKarpenterFilterMultiselect('karpenter-fd-filter');
+    karpenterFilterState.environment = readKarpenterFilterMultiselect('karpenter-env-filter');
+    karpenterFilterState.cluster = readKarpenterFilterMultiselect('karpenter-cluster-filter');
+    karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
+    karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
+}
+
+/**
+ * Multiselect UX: choosing a specific value clears "All"; choosing "All" clears specifics.
+ */
+function onKarpenterFilterDimensionChange(elementId) {
+    const el = document.getElementById(elementId);
+    if (!el || !el.multiple) {
+        applyKarpenterFilters();
+        return;
+    }
+    const selected = Array.from(el.selectedOptions).map(o => o.value);
+    if (selected.includes('all') && selected.length > 1) {
+        const nonAll = selected.filter(v => v !== 'all');
+        Array.from(el.options).forEach(opt => {
+            opt.selected = nonAll.includes(opt.value);
+        });
+    }
+    applyKarpenterFilters();
+}
+
+function filterPoolByFi(pool, fiSel) {
+    if (fiSel === 'all') return pool;
+    const list = Array.isArray(fiSel) ? fiSel : [fiSel];
+    return pool.filter(r => list.includes(r.falcon_instance));
+}
+function filterPoolByFd(pool, fdSel) {
+    if (fdSel === 'all') return pool;
+    const list = Array.isArray(fdSel) ? fdSel : [fdSel];
+    return pool.filter(r => list.includes(r.functional_domain));
+}
+function filterPoolByEnv(pool, envSel) {
+    if (envSel === 'all') return pool;
+    const list = (Array.isArray(envSel) ? envSel : [envSel]).map(e => String(e).toLowerCase());
+    return pool.filter(r => list.includes(String(r.environment || '').toLowerCase()));
+}
+function filterPoolByCluster(pool, clSel) {
+    if (clSel === 'all') return pool;
+    const list = Array.isArray(clSel) ? clSel : [clSel];
+    return pool.filter(r => list.includes(r.cluster));
+}
+
+function pruneKarpenterSelection(sel, allowedValues) {
+    const allow = new Set(allowedValues);
+    if (sel === 'all') return 'all';
+    const list = (Array.isArray(sel) ? sel : [sel]).filter(v => allow.has(v));
+    return list.length ? list : 'all';
+}
+
+function renderKarpenterMultiselectOptions(elementId, values, allLabel, selection) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    let sel = selection;
+    const allowed = new Set(values);
+    if (sel !== 'all') {
+        const list = (Array.isArray(sel) ? sel : [sel]).filter(v => allowed.has(v));
+        sel = list.length ? list : 'all';
+    }
+    const opts = ['<option value="all">' + escapeKarpenterHtmlText(allLabel) + '</option>']
+        .concat(values.map(v => `<option value="${escapeKarpenterAttr(v)}">${escapeKarpenterHtmlText(v)}</option>`));
+    el.innerHTML = opts.join('');
+    const selectAll = sel === 'all';
+    Array.from(el.options).forEach(opt => {
+        if (selectAll) {
+            opt.selected = opt.value === 'all';
+        } else {
+            opt.selected = Array.isArray(sel) && sel.includes(opt.value);
+        }
+    });
+}
+
+function renderKarpenterEnvMultiselect(valuesLower, selection) {
+    const el = document.getElementById('karpenter-env-filter');
+    if (!el) return;
+    let sel = selection;
+    const allowed = new Set(valuesLower);
+    if (sel !== 'all') {
+        const list = (Array.isArray(sel) ? sel : [sel]).map(s => String(s).toLowerCase()).filter(v => allowed.has(v));
+        sel = list.length ? list : 'all';
+    }
+    const opts = ['<option value="all">All Environments</option>']
+        .concat(valuesLower.map(v => {
+            const label = v.charAt(0).toUpperCase() + v.slice(1);
+            return `<option value="${escapeKarpenterAttr(v)}">${escapeKarpenterHtmlText(label)}</option>`;
+        }));
+    el.innerHTML = opts.join('');
+    const selectAll = sel === 'all';
+    Array.from(el.options).forEach(opt => {
+        if (selectAll) {
+            opt.selected = opt.value === 'all';
+        } else {
+            const list = Array.isArray(sel) ? sel : [];
+            opt.selected = list.map(s => String(s).toLowerCase()).includes(opt.value);
+        }
+    });
+}
+
+/**
+ * Rebuild FI → FD → Environment → Cluster options from data; cascade respects current month/duration/toggle.
+ * @param {boolean} preserveSelections - keep/prune user picks when options shrink
+ */
+function rebuildKarpenterCascadingFilterOptions(preserveSelections) {
+    const data = karpenterData.mainSummary || [];
+    if (!data.length) return;
+
+    const prev = preserveSelections ? {
+        fi: readKarpenterFilterMultiselect('karpenter-fi-filter'),
+        fd: readKarpenterFilterMultiselect('karpenter-fd-filter'),
+        env: readKarpenterFilterMultiselect('karpenter-env-filter'),
+        cluster: readKarpenterFilterMultiselect('karpenter-cluster-filter')
+    } : { fi: 'all', fd: 'all', env: 'all', cluster: 'all' };
+
+    const basePool = filterKarpenterData(data, true, true, { skipDimensionFilters: true });
+
+    const fiVals = [...new Set(basePool.map(r => r.falcon_instance).filter(Boolean))].sort();
+    let fiSel = pruneKarpenterSelection(prev.fi, fiVals);
+    renderKarpenterMultiselectOptions('karpenter-fi-filter', fiVals, 'All FI', fiSel);
+
+    let pool = filterPoolByFi(basePool, fiSel);
+    const fdVals = [...new Set(pool.map(r => r.functional_domain).filter(Boolean))].sort();
+    let fdSel = pruneKarpenterSelection(prev.fd, fdVals);
+    renderKarpenterMultiselectOptions('karpenter-fd-filter', fdVals, 'All FD', fdSel);
+
+    pool = filterPoolByFd(filterPoolByFi(basePool, fiSel), fdSel);
+    const envVals = [...new Set(pool.map(r => String(r.environment || '').toLowerCase()).filter(e => e && e !== 'other'))].sort();
+    let envSel = prev.env === 'all' ? 'all' : pruneKarpenterSelection(
+        (Array.isArray(prev.env) ? prev.env : [prev.env]).map(s => String(s).toLowerCase()),
+        envVals
+    );
+    renderKarpenterEnvMultiselect(envVals, envSel);
+
+    pool = filterPoolByEnv(filterPoolByFd(filterPoolByFi(basePool, fiSel), fdSel), envSel);
+    const clVals = [...new Set(pool.map(r => r.cluster).filter(Boolean))].sort();
+    let clSel = pruneKarpenterSelection(prev.cluster, clVals);
+    renderKarpenterMultiselectOptions('karpenter-cluster-filter', clVals, 'All Clusters', clSel);
+}
+
 /**
  * Round to 2 decimals for avg. CPU allocation rate % (cluster_packing_percent).
  * e.g. 14.828398815660400 -> 14.82
@@ -12459,36 +12664,7 @@ async function loadKarpenterData() {
  */
 function populateKarpenterFilters() {
     const options = karpenterData.filterOptions;
-    
-    // Falcon Instance
-    const fiSelect = document.getElementById('karpenter-fi-filter');
-    if (fiSelect && options.falcon_instances) {
-        fiSelect.innerHTML = '<option value="all">All FI</option>' +
-            options.falcon_instances.map(fi => `<option value="${fi}">${fi}</option>`).join('');
-    }
-    
-    // Functional Domain
-    const fdSelect = document.getElementById('karpenter-fd-filter');
-    if (fdSelect && options.functional_domains) {
-        fdSelect.innerHTML = '<option value="all">All FD</option>' +
-            options.functional_domains.map(fd => `<option value="${fd}">${fd}</option>`).join('');
-    }
-    
-    // Environment (exclude "other" as it has no data)
-    const envSelect = document.getElementById('karpenter-env-filter');
-    if (envSelect && options.environments) {
-        const validEnvironments = options.environments.filter(env => env !== 'other');
-        envSelect.innerHTML = '<option value="all">All Environments</option>' +
-            validEnvironments.map(env => `<option value="${env}">${env.charAt(0).toUpperCase() + env.slice(1)}</option>`).join('');
-    }
-    
-    // Cluster
-    const clusterSelect = document.getElementById('karpenter-cluster-filter');
-    if (clusterSelect && options.clusters) {
-        clusterSelect.innerHTML = '<option value="all">All Clusters</option>' +
-            options.clusters.map(c => `<option value="${c}">${c}</option>`).join('');
-    }
-    
+
     // Month (sort in reverse order - latest first)
     const monthSelect = document.getElementById('karpenter-month-filter');
     if (monthSelect && options.months) {
@@ -12517,6 +12693,9 @@ function populateKarpenterFilters() {
             }).join('');
         console.log('📦 Month filter populated. Total options:', monthSelect.options.length);
     }
+
+    // FI / FD / Environment / Cluster: cascading multiselects from mainSummary
+    rebuildKarpenterCascadingFilterOptions(false);
 }
 
 /**
@@ -12537,8 +12716,12 @@ function clearKarpenterFiltersExceptDuration() {
         const el = document.getElementById(id);
         if (!el) return;
         el.innerHTML = blankOption;
-        el.value = 'all';
         el.disabled = true;
+        if (el.multiple) {
+            Array.from(el.options).forEach(o => { o.selected = o.value === 'all'; });
+        } else {
+            el.value = 'all';
+        }
     });
 
     const durationEl = document.getElementById('karpenter-duration-filter');
@@ -12565,15 +12748,12 @@ function setKarpenterToggle(value) {
  * Apply Karpenter filters
  */
 function applyKarpenterFilters() {
-    karpenterFilterState.fi = document.getElementById('karpenter-fi-filter')?.value || 'all';
-    karpenterFilterState.fd = document.getElementById('karpenter-fd-filter')?.value || 'all';
-    karpenterFilterState.environment = document.getElementById('karpenter-env-filter')?.value || 'all';
-    karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
-    karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
-    karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
-    
+    syncKarpenterStateFromDom();
+    rebuildKarpenterCascadingFilterOptions(true);
+    syncKarpenterStateFromDom();
+
     console.log('📦 Karpenter filters applied:', karpenterFilterState);
-    
+
     renderKarpenter();
 }
 
@@ -12582,15 +12762,20 @@ function applyKarpenterFilters() {
  */
 function resetKarpenterFilters() {
     karpenterFilterState = { fi: 'all', fd: 'all', environment: 'all', cluster: 'all', month: 'all', duration: '30', karpenterToggle: 'all' };
-    
-    document.getElementById('karpenter-fi-filter').value = 'all';
-    document.getElementById('karpenter-fd-filter').value = 'all';
-    document.getElementById('karpenter-env-filter').value = 'all';
-    document.getElementById('karpenter-cluster-filter').value = 'all';
-    document.getElementById('karpenter-month-filter').value = 'all';
+
+    ['karpenter-fi-filter', 'karpenter-fd-filter', 'karpenter-env-filter', 'karpenter-cluster-filter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        Array.from(el.options).forEach(o => { o.selected = o.value === 'all'; });
+    });
+    const monthEl = document.getElementById('karpenter-month-filter');
+    if (monthEl) monthEl.value = 'all';
     const durationEl = document.getElementById('karpenter-duration-filter');
     if (durationEl) durationEl.value = '30';
-    
+
+    rebuildKarpenterCascadingFilterOptions(false);
+    syncKarpenterStateFromDom();
+
     renderKarpenter();
 }
 
@@ -12631,33 +12816,13 @@ function resolveKarpenterGroupKey(row, groupBy) {
  * Filter Karpenter data based on current filter state
  * Duration filter: 7 = last 1 month, 15 = last 2 months, 30 = all months (by month code order)
  * @param {boolean} applyDuration - If false, duration filter is skipped (used for trend chart so all months show)
+ * @param {object} [opts] - skipDimensionFilters: if true, only month/duration/toggle apply (for cascading option lists)
  */
-function filterKarpenterData(data, includeMonth = true, applyDuration = true) {
+function filterKarpenterData(data, includeMonth = true, applyDuration = true, opts = {}) {
+    const skipDimensionFilters = opts.skipDimensionFilters === true;
     let out = data.filter(row => {
-        // FI filter - check multiple column name variations
-        if (karpenterFilterState.fi !== 'all') {
-            const rowFI = row.falcon_instance || row.falconInstance || row.FI || row.fi || row.falcon_instance_name;
-            if (rowFI && rowFI !== karpenterFilterState.fi) return false;
-        }
-        
-        // FD filter - check multiple column name variations
-        if (karpenterFilterState.fd !== 'all') {
-            const rowFD = row.functional_domain || row.functionalDomain || row.FD || row.fd;
-            if (rowFD && rowFD !== karpenterFilterState.fd) return false;
-        }
-        
-        // Environment filter - check multiple column name variations and case-insensitive
-        if (karpenterFilterState.environment !== 'all') {
-            const rowEnv = row.environment || row.Environment || row.env || row.Env;
-            if (rowEnv && rowEnv.toLowerCase() !== karpenterFilterState.environment.toLowerCase()) return false;
-        }
-        
-        // Cluster filter - check multiple column name variations
-        if (karpenterFilterState.cluster !== 'all') {
-            const rowCluster = row.cluster || row.Cluster || row.k8s_cluster || row.k8sCluster || row.cluster_name;
-            if (rowCluster && rowCluster !== karpenterFilterState.cluster) return false;
-        }
-        
+        if (!skipDimensionFilters && !rowMatchesKarpenterDimensions(row)) return false;
+
         // Karpenter Enabled / Disabled toggle (Exec view)
         const toggle = karpenterFilterState.karpenterToggle || 'all';
         if (toggle !== 'all') {
@@ -12742,12 +12907,7 @@ function renderKarpenterExecView(container) {
     console.log('📦 Rendering Karpenter Exec View...');
     
     // Always sync filter state from DOM so avg FI/FD/Cluster/Environment reflect current dropdown selection
-    karpenterFilterState.fi = document.getElementById('karpenter-fi-filter')?.value || 'all';
-    karpenterFilterState.fd = document.getElementById('karpenter-fd-filter')?.value || 'all';
-    karpenterFilterState.environment = document.getElementById('karpenter-env-filter')?.value || 'all';
-    karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
-    karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
-    karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
+    syncKarpenterStateFromDom();
     // Do NOT sync karpenterToggle from DOM here: on re-render the DOM still has the previous
     // active button, which would overwrite the value just set by setKarpenterToggle('disabled').
     
@@ -12794,16 +12954,9 @@ function renderKarpenterExecView(container) {
     
     // Helper to get data for a specific month with same filters (except month)
     const getDataForMonth = (month) => {
-        // Filter data with same filters but different month
         return karpenterData.mainSummary.filter(row => {
-            // Apply all current filters except month
-            if (karpenterFilterState.fi !== 'all' && 'falcon_instance' in row && row.falcon_instance !== karpenterFilterState.fi) return false;
-            if (karpenterFilterState.fd !== 'all' && 'functional_domain' in row && row.functional_domain !== karpenterFilterState.fd) return false;
-            if (karpenterFilterState.environment !== 'all' && 'environment' in row && row.environment !== karpenterFilterState.environment) return false;
-            if (karpenterFilterState.cluster !== 'all' && 'cluster' in row && row.cluster !== karpenterFilterState.cluster) return false;
-            // Use the specified month instead of filter state
             if (row.month !== month) return false;
-            return true;
+            return rowMatchesKarpenterDimensions(row);
         });
     };
     
@@ -13256,18 +13409,33 @@ function getEfficiencyIndicator(avgCpu, environment) {
 function renderKarpenterDeveloperView(container) {
     console.log('📦 Rendering Karpenter Developer View...');
     
-    // Sync filter state from DOM so table and heatmaps reflect current dropdown selection
-    karpenterFilterState.fi = document.getElementById('karpenter-fi-filter')?.value || 'all';
-    karpenterFilterState.fd = document.getElementById('karpenter-fd-filter')?.value || 'all';
-    karpenterFilterState.environment = document.getElementById('karpenter-env-filter')?.value || 'all';
-    karpenterFilterState.cluster = document.getElementById('karpenter-cluster-filter')?.value || 'all';
-    karpenterFilterState.month = document.getElementById('karpenter-month-filter')?.value || 'all';
-    karpenterFilterState.duration = document.getElementById('karpenter-duration-filter')?.value || '30';
+    syncKarpenterStateFromDom();
     // Developer view supports only Enabled scope.
     karpenterFilterState.karpenterToggle = 'enabled';
     
     // Get filtered cluster data based on current filter state
     let filteredData = filterKarpenterData(karpenterData.clusterSummary, true);
+
+    // Heatmap + table: use latest month in the filtered range; keep prior month only for MoM improvement on clusters that exist in the latest month
+    const monthCodeSort = (a, b) => String(a).localeCompare(String(b));
+    const monthCodes = [...new Set(filteredData.map(r => r.month))].filter(Boolean).sort(monthCodeSort);
+    const devDisplayMonth = monthCodes.length ? monthCodes[monthCodes.length - 1] : null;
+    const devPrevMonth = monthCodes.length >= 2 ? monthCodes[monthCodes.length - 2] : null;
+    if (devDisplayMonth) {
+        const latestRows = filteredData.filter(r => r.month === devDisplayMonth);
+        const clusterKeep = new Set(latestRows.map(r => r.cluster).filter(Boolean));
+        filteredData = filteredData.filter(r =>
+            clusterKeep.has(r.cluster) &&
+            (r.month === devDisplayMonth || (devPrevMonth && r.month === devPrevMonth))
+        );
+    }
+    const devMonthLabel = (() => {
+        if (!devDisplayMonth) return '';
+        const row = filteredData.find(r => r.month === devDisplayMonth);
+        const name = row && row.month_name ? row.month_name : devDisplayMonth;
+        const y = String(devDisplayMonth).includes('-') ? String(devDisplayMonth).slice(0, 4) : '';
+        return `${name}${y ? ' ' + y : ''}`.trim();
+    })();
     
     // Group by cluster and find latest month for each
     const clusterMap = {};
@@ -13395,11 +13563,9 @@ function renderKarpenterDeveloperView(container) {
         }
         
         const tiles = clusters.map(cluster => {
-            const environment = cluster.environment || 'prod';
-            const monthName = cluster.monthName || cluster.month || 'Unknown';
             return `
-                <div class="karpenter-heatmap-tile ${cluster.efficiencyClass}" onclick="showClusterNodes('${cluster.cluster}', '${cluster.month}', '${cluster.avgCpu}', '${environment}', '${monthName}')" style="cursor: pointer;">
-                    <div class="heatmap-cluster-name">${cluster.cluster}</div>
+                <div class="karpenter-heatmap-tile ${cluster.efficiencyClass}">
+                    <div class="heatmap-cluster-name">${escapeKarpenterHtmlText(cluster.cluster)}</div>
                     <div class="heatmap-efficiency-pct">${cluster.avgCpu.toFixed(2)}%</div>
                 </div>
             `;
@@ -13424,9 +13590,10 @@ function renderKarpenterDeveloperView(container) {
         : clusterLatest.slice(-5).reverse(); // Otherwise, last 5 reversed
     
     // Build heatmaps
-    const allClustersHeatmap = renderHeatmap(clusterLatest, 'Avg. CPU Allocation rate Heatmap - All Clusters');
-    const top5MostHeatmap = renderHeatmap(top5MostEfficient, 'Top 5 - Most Efficient Clusters');
-    const top5LeastHeatmap = renderHeatmap(top5LeastEfficient, 'Top 5 - Least Efficient Clusters');
+    const monthSuffix = devMonthLabel ? ` · ${devMonthLabel} (latest in scope)` : '';
+    const allClustersHeatmap = renderHeatmap(clusterLatest, `Avg. CPU Allocation rate Heatmap - All Clusters${monthSuffix}`);
+    const top5MostHeatmap = renderHeatmap(top5MostEfficient, `Top 5 - Most Efficient Clusters${monthSuffix}`);
+    const top5LeastHeatmap = renderHeatmap(top5LeastEfficient, `Top 5 - Least Efficient Clusters${monthSuffix}`);
     
     // Build table rows
     const tableRows = clusterLatest.map(cluster => {
@@ -13438,7 +13605,7 @@ function renderKarpenterDeveloperView(container) {
         
         return `
             <tr>
-                <td class="cluster-name">${cluster.cluster}</td>
+                <td class="cluster-name">${escapeKarpenterHtmlText(cluster.cluster)}</td>
                 <td class="month-column">${monthDisplay}</td>
                 <td class="avg-cpu">${cluster.avgCpu.toFixed(2)}</td>
                 <td><span class="improvement-badge ${cluster.improvementClass}">${cluster.improvementLabel}</span></td>
@@ -13492,325 +13659,12 @@ function renderKarpenterDeveloperView(container) {
 }
 
 /**
- * Show cluster nodes in a modal window
+ * Cluster tile drill-down removed: bin-packing source has no node-level rows.
  */
-async function showClusterNodes(clusterName, monthCode, clusterAvgCpu, environment, monthName = null) {
-    // Convert clusterAvgCpu to number (it may be passed as string from onclick)
-    const avgCpu = parseFloat(clusterAvgCpu) || 0;
-    console.log(`📊 Showing nodes for cluster: ${clusterName}, month: ${monthCode}, avgCpu: ${avgCpu}`);
-    
-    // Get latest month from data if month not provided or use provided month name
-    let displayMonthName = monthName;
-    if (!displayMonthName) {
-        // Convert month code (e.g., "2025-10") to month name
-        if (monthCode && monthCode.includes('-')) {
-            const [year, monthNum] = monthCode.split('-');
-            const monthNames = ["January", "February", "March", "April", "May", "June",
-                              "July", "August", "September", "October", "November", "December"];
-            const monthIndex = parseInt(monthNum) - 1;
-            if (monthIndex >= 0 && monthIndex < 12) {
-                displayMonthName = `${monthNames[monthIndex]} ${year}`;
-            } else {
-                displayMonthName = monthCode;
-            }
-        } else {
-            // If no month code, get latest month from data
-            if (karpenterData && karpenterData.mainSummary && karpenterData.mainSummary.length > 0) {
-                const allMonths = [...new Set(karpenterData.mainSummary.map(r => r.month))].sort();
-                const latestMonthCode = allMonths[allMonths.length - 1];
-                if (latestMonthCode && latestMonthCode.includes('-')) {
-                    const [year, monthNum] = latestMonthCode.split('-');
-                    const monthNames = ["January", "February", "March", "April", "May", "June",
-                                      "July", "August", "September", "October", "November", "December"];
-                    const monthIndex = parseInt(monthNum) - 1;
-                    if (monthIndex >= 0 && monthIndex < 12) {
-                        displayMonthName = `${monthNames[monthIndex]} ${year}`;
-                    }
-                }
-            }
-            if (!displayMonthName) {
-                displayMonthName = 'Latest Month';
-            }
-        }
-    }
-    
-    // Extract node data from Core CPU Allocation Rate CSV files using Device column
-    let nodes = [];
-    
-    try {
-        // Map month code to Core CPU CSV filename
-        const monthToCsvFile = {
-            '2025-04': 'Core April CPU Allocation rate.csv',
-            '2025-05': 'Core May CPU Allocation Rate.csv',
-            '2025-06': 'Core June CPU allocation rate.csv',
-            '2025-07': 'Core July CPU allocation rate.csv',
-            '2025-08': 'Core August CPU Allocation Rate.csv',
-            '2025-09': 'Core Sep CPU Allocation Rate.csv',
-            '2025-10': 'Core Oct CPU Allocation Rate.csv'
-        };
-        
-        const csvFileName = monthToCsvFile[monthCode];
-        
-        if (csvFileName) {
-            console.log(`📊 Loading device data from ${csvFileName} for cluster ${clusterName}`);
-            
-            // Try to load the Core CPU CSV file
-            try {
-                // URL encode the filename to handle spaces - encode the entire filename
-                const csvUrl = `assets/data/core-cpu/${encodeURIComponent(csvFileName)}`;
-                
-                const response = await fetch(csvUrl);
-                if (response.ok) {
-                    const csvText = await response.text();
-                    const coreCpuData = parseCSV(csvText);
-                    
-                    console.log(`✅ Loaded ${coreCpuData.length} rows from ${csvFileName}`);
-                    
-                    // Debug: Check first row structure
-                    if (coreCpuData.length > 0) {
-                        console.log('📊 Sample CSV row columns:', Object.keys(coreCpuData[0]));
-                        console.log('📊 Sample CSV row data:', coreCpuData[0]);
-                    }
-                    
-                    // Filter data for this specific cluster
-                    let matchCount = 0;
-                    const nodeData = coreCpuData.filter(row => {
-                        const rowCluster = row.k8s_cluster || row.cluster || row.k8sCluster;
-                        const matches = rowCluster === clusterName;
-                        if (matches && matchCount < 5) {
-                            console.log('📊 Matching row:', { cluster: rowCluster, device: row.device || row.Device, avg_cpu: row.avg_cpu });
-                            matchCount++;
-                        }
-                        return matches;
-                    });
-                    
-                    console.log(`📊 Found ${nodeData.length} device records for cluster ${clusterName}`);
-                    console.log(`📊 Looking for cluster: "${clusterName}"`);
-                    
-                    if (nodeData.length > 0) {
-                        // Group by Device column to get unique devices with their avg_cpu
-                        const deviceMap = {};
-                        
-                        nodeData.forEach(row => {
-                            // Extract device name from Device column - try all variations (case-insensitive)
-                            // The CSV header is lowercase 'device', so check that first
-                            const device = row.device || row.Device || 
-                                         (row.hasOwnProperty('device') ? row.device : null) ||
-                                         (row.hasOwnProperty('Device') ? row.Device : null) ||
-                                         null;
-                            const avgCpu = parseFloat(row.avg_cpu || row.avgCpu || row['avg_cpu'] || 0);
-                            
-                            if (!device && nodeData.indexOf(row) < 3) {
-                                console.warn('⚠️ No device found in row:', { 
-                                    keys: Object.keys(row), 
-                                    sample: row 
-                                });
-                            }
-                            
-                            if (device && device.trim() && !isNaN(avgCpu) && avgCpu > 0) {
-                                const deviceKey = device.trim();
-                                if (!deviceMap[deviceKey]) {
-                                    deviceMap[deviceKey] = { sum: 0, count: 0 };
-                                }
-                                deviceMap[deviceKey].sum += avgCpu;
-                                deviceMap[deviceKey].count += 1;
-                            }
-                        });
-                        
-                        console.log(`📊 Found ${Object.keys(deviceMap).length} unique devices in deviceMap`);
-                        if (Object.keys(deviceMap).length > 0) {
-                            console.log('📊 Sample devices:', Object.keys(deviceMap).slice(0, 3));
-                        }
-                        
-                        // Convert to nodes array with average CPU per device
-                        nodes = Object.keys(deviceMap).map(device => {
-                            const deviceData = deviceMap[device];
-                            const avgCpuValue = deviceData.sum / deviceData.count;
-                            
-                            // Calculate efficiency status
-                            const envLower = (environment || 'prod').toLowerCase();
-                            const isProdOrEsvc = envLower === 'prod' || envLower.includes('esvc');
-                            
-                            let efficiencyIndicator = 'Inefficient';
-                            let efficiencyClass = 'inefficient';
-                            
-                            if (isProdOrEsvc) {
-                                if (avgCpuValue > 80) {
-                                    efficiencyIndicator = 'Efficient';
-                                    efficiencyClass = 'efficient';
-                                } else if (avgCpuValue >= 50) {
-                                    efficiencyIndicator = 'Moderately Efficient';
-                                    efficiencyClass = 'moderate';
-                                }
-                            } else {
-                                if (avgCpuValue > 90) {
-                                    efficiencyIndicator = 'Efficient';
-                                    efficiencyClass = 'efficient';
-                                } else if (avgCpuValue >= 70) {
-                                    efficiencyIndicator = 'Moderately Efficient';
-                                    efficiencyClass = 'moderate';
-                                }
-                            }
-                            
-                            return {
-                                device: device, // Device name from CSV Device column
-                                name: device,   // Use device as name (for backward compatibility)
-                                avgCpu: avgCpuValue,
-                                efficiencyIndicator: efficiencyIndicator,
-                                efficiencyClass: efficiencyClass
-                            };
-                        });
-                        
-                        // Sort nodes by CPU descending before logging
-                        nodes.sort((a, b) => b.avgCpu - a.avgCpu);
-                        
-                        console.log(`✅ Extracted ${nodes.length} unique devices from ${csvFileName} for cluster ${clusterName}`);
-                        if (nodes.length > 0) {
-                            console.log('📊 Sample device names:', nodes.slice(0, 3).map(n => n.device));
-                        }
-                    } else {
-                        console.log(`⚠️ No device data found in ${csvFileName} for cluster ${clusterName}, using simulated nodes`);
-                        nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
-                    }
-                } else {
-                    console.error(`❌ Could not load ${csvFileName}: HTTP ${response.status} ${response.statusText}`);
-                    console.error(`❌ Requested URL: ${csvUrl}`);
-                    console.warn(`⚠️ Falling back to simulated nodes`);
-                    nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
-                }
-            } catch (fetchError) {
-                console.warn(`⚠️ Error loading ${csvFileName}:`, fetchError);
-                console.log('📊 Falling back to simulated nodes');
-                nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
-            }
-        } else {
-            console.log(`⚠️ No CSV file mapping for month ${monthCode}, using simulated nodes`);
-            nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
-        }
-    } catch (error) {
-        console.error('❌ Error extracting node data:', error);
-        console.log('📊 Falling back to simulated nodes');
-        nodes = generateSimulatedNodes(clusterName, avgCpu, 10, environment);
-    }
-    
-    // Sort nodes by avg CPU descending
-    nodes.sort((a, b) => b.avgCpu - a.avgCpu);
-    
-    // Create modal HTML
-    const modalHTML = `
-        <div id="cluster-nodes-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center;">
-            <div style="background: white; border-radius: 12px; padding: 2rem; max-width: 900px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin: 0;">
-                        Nodes in ${clusterName}
-                    </h2>
-                    <button onclick="closeClusterNodesModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; padding: 0.5rem;">&times;</button>
-                </div>
-                <div style="margin-bottom: 1rem; color: #64748b; font-size: 0.875rem;">
-                    Month: <strong>${displayMonthName}</strong> | Cluster Avg. CPU Allocation rate: <strong>${avgCpu.toFixed(1)}%</strong>
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <span style="display: inline-block; padding: 0.25rem 0.75rem; background: #dcfce7; color: #166534; border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem;">
-                        <span style="display: inline-block; width: 8px; height: 8px; background: #16a34a; border-radius: 50%; margin-right: 0.25rem;"></span>
-                        Efficient (prod/esvc: >80%, others: >90%)
-                    </span>
-                    <span style="display: inline-block; padding: 0.25rem 0.75rem; background: #fef3c7; color: #92400e; border-radius: 4px; font-size: 0.75rem; margin-right: 0.5rem;">
-                        <span style="display: inline-block; width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; margin-right: 0.25rem;"></span>
-                        Moderately Efficient (prod/esvc: 50-80%, others: 70-90%)
-                    </span>
-                    <span style="display: inline-block; padding: 0.25rem 0.75rem; background: #fee2e2; color: #991b1b; border-radius: 4px; font-size: 0.75rem;">
-                        <span style="display: inline-block; width: 8px; height: 8px; background: #dc2626; border-radius: 50%; margin-right: 0.25rem;"></span>
-                        Inefficient (prod/esvc: <50%, others: <70%)
-                    </span>
-                </div>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                            <th style="padding: 0.75rem; text-align: left; font-weight: 600; color: #475569; font-size: 0.875rem;">Device Name</th>
-                            <th style="padding: 0.75rem; text-align: right; font-weight: 600; color: #475569; font-size: 0.875rem;">Avg. CPU Allocation rate (%)</th>
-                            <th style="padding: 0.75rem; text-align: center; font-weight: 600; color: #475569; font-size: 0.875rem;">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${nodes.map(node => {
-                            const statusClass = node.efficiencyClass;
-                            const statusLabel = node.efficiencyIndicator;
-                            // Use device name from CSV Device column - prioritize device over name
-                            const displayName = (node.device && node.device.trim()) ? node.device.trim() : (node.name || 'Unknown');
-                            return `
-                                <tr style="border-bottom: 1px solid #e2e8f0;">
-                                    <td style="padding: 0.75rem; color: #1e293b; font-size: 0.875rem;">${displayName}</td>
-                                    <td style="padding: 0.75rem; text-align: right; color: #1e293b; font-size: 0.875rem; font-weight: 600;">${node.avgCpu.toFixed(1)}%</td>
-                                    <td style="padding: 0.75rem; text-align: center;">
-                                        <span class="efficiency-badge ${statusClass}" style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500;">
-                                            ${statusLabel}
-                                        </span>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
-    
-    // Remove existing modal if any
-    const existingModal = document.getElementById('cluster-nodes-modal');
-    if (existingModal) {
-        existingModal.remove();
-    }
-    
-    // Add modal to page
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+function showClusterNodes() {
+    /* no-op */
 }
 
-/**
- * Generate simulated nodes based on cluster avg CPU
- */
-function generateSimulatedNodes(clusterName, clusterAvgCpu, nodeCount, environment) {
-    const nodes = [];
-    const envLower = (environment || 'prod').toLowerCase();
-    const isProdOrEsvc = envLower === 'prod' || envLower.includes('esvc');
-    
-    // Generate nodes with CPU values distributed around cluster avg CPU
-    for (let i = 1; i <= nodeCount; i++) {
-        // Create variation: ±20% from cluster avg CPU
-        const variation = (Math.random() - 0.5) * 0.4 * clusterAvgCpu;
-        const nodeCpu = Math.max(0, Math.min(100, clusterAvgCpu + variation));
-        
-        // Calculate efficiency status using same logic as clusters
-        let efficiencyIndicator = 'Inefficient';
-        let efficiencyClass = 'inefficient';
-        
-        if (isProdOrEsvc) {
-            if (nodeCpu > 80) {
-                efficiencyIndicator = 'Efficient';
-                efficiencyClass = 'efficient';
-            } else if (nodeCpu >= 50) {
-                efficiencyIndicator = 'Moderately Efficient';
-                efficiencyClass = 'moderate';
-            }
-        } else {
-            if (nodeCpu > 90) {
-                efficiencyIndicator = 'Efficient';
-                efficiencyClass = 'efficient';
-            } else if (nodeCpu >= 70) {
-                efficiencyIndicator = 'Moderately Efficient';
-                efficiencyClass = 'moderate';
-            }
-        }
-        
-        nodes.push({
-            name: `${clusterName}-node-${i.toString().padStart(3, '0')}`,
-            avgCpu: nodeCpu,
-            efficiencyIndicator: efficiencyIndicator,
-            efficiencyClass: efficiencyClass
-        });
-    }
-    
-    return nodes;
-}
 
 /**
  * Close cluster nodes modal
@@ -13825,6 +13679,7 @@ function closeClusterNodesModal() {
 // Make functions globally available
 window.showClusterNodes = showClusterNodes;
 window.closeClusterNodesModal = closeClusterNodesModal;
+window.onKarpenterFilterDimensionChange = onKarpenterFilterDimensionChange;
 
 /**
  * Calculate trend for Karpenter data

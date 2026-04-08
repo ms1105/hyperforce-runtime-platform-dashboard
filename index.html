@@ -1092,27 +1092,27 @@
                         <div class="karpenter-filters" id="karpenter-filters">
                             <div class="karpenter-filter-row">
                                 <div class="karpenter-filter-group">
-                                    <label class="karpenter-filter-label">Falcon Instance (FI)</label>
-                                    <select id="karpenter-fi-filter" onchange="applyKarpenterFilters()">
-                                        <option value="all">All FI</option>
+                                    <label class="karpenter-filter-label">Falcon Instance (FI) <span class="karpenter-filter-hint">(multi-select)</span></label>
+                                    <select id="karpenter-fi-filter" class="karpenter-filter-multiselect" multiple size="5" onchange="onKarpenterFilterDimensionChange('karpenter-fi-filter')">
+                                        <option value="all" selected>All FI</option>
                                     </select>
                                 </div>
                                 <div class="karpenter-filter-group">
-                                    <label class="karpenter-filter-label">Functional Domain (FD)</label>
-                                    <select id="karpenter-fd-filter" onchange="applyKarpenterFilters()">
-                                        <option value="all">All FD</option>
+                                    <label class="karpenter-filter-label">Functional Domain (FD) <span class="karpenter-filter-hint">(multi-select)</span></label>
+                                    <select id="karpenter-fd-filter" class="karpenter-filter-multiselect" multiple size="5" onchange="onKarpenterFilterDimensionChange('karpenter-fd-filter')">
+                                        <option value="all" selected>All FD</option>
                                     </select>
                                 </div>
                                 <div class="karpenter-filter-group">
-                                    <label class="karpenter-filter-label">Environment</label>
-                                    <select id="karpenter-env-filter" onchange="applyKarpenterFilters()">
-                                        <option value="all">All Environments</option>
+                                    <label class="karpenter-filter-label">Environment <span class="karpenter-filter-hint">(multi-select)</span></label>
+                                    <select id="karpenter-env-filter" class="karpenter-filter-multiselect" multiple size="5" onchange="onKarpenterFilterDimensionChange('karpenter-env-filter')">
+                                        <option value="all" selected>All Environments</option>
                                     </select>
                                 </div>
                                 <div class="karpenter-filter-group">
-                                    <label class="karpenter-filter-label">Cluster Name</label>
-                                    <select id="karpenter-cluster-filter" onchange="applyKarpenterFilters()">
-                                        <option value="all">All Clusters</option>
+                                    <label class="karpenter-filter-label">Cluster Name <span class="karpenter-filter-hint">(multi-select)</span></label>
+                                    <select id="karpenter-cluster-filter" class="karpenter-filter-multiselect" multiple size="5" onchange="onKarpenterFilterDimensionChange('karpenter-cluster-filter')">
+                                        <option value="all" selected>All Clusters</option>
                                     </select>
                                 </div>
                                 <div class="karpenter-filter-group">

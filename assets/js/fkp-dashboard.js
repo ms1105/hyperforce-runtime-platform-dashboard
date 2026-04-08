@@ -2338,6 +2338,7 @@ async function renderExecutiveSummary() {
 
         // Runtime Scale metrics (Karpenter): latest month only, all statuses — one overall row-weighted avg (same pool as Karpenter tab calcOverallAvg)
         const kpBase = (karpenterData.mainSummary || []).filter(r => {
+            if (isKarpenterExcludedGcpFi(r.falcon_instance)) return false;
             const env = String(r.environment || '').trim().toLowerCase();
             return env && env !== 'other';
         });
@@ -10535,6 +10536,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }, true);
         console.log('📋 Sidebar click delegation (capture) attached');
     }
+
+    const karpenterFiltersEl = document.getElementById('karpenter-filters');
+    if (karpenterFiltersEl && !karpenterFiltersEl.dataset.durationClickInit) {
+        karpenterFiltersEl.dataset.durationClickInit = '1';
+        karpenterFiltersEl.addEventListener('click', function karpenterDurationDelegate(e) {
+            const btn = e.target.closest('.karpenter-duration-btn');
+            if (!btn || btn.disabled) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const d = String(btn.getAttribute('data-duration') || '').trim();
+            if ((d === '7' || d === '15' || d === '30') && typeof setKarpenterDuration === 'function') {
+                setKarpenterDuration(d);
+            }
+        }, true);
+        console.log('📋 Karpenter duration toggle (capture delegate) attached');
+    }
     
     // Event listeners for sidebar navigation (keep for compatibility)
     document.querySelectorAll('.nav-subitem').forEach(item => {
@@ -12237,12 +12254,12 @@ function rowMatchesKarpenterDimensions(row) {
  * Read duration from toggle buttons (falls back to state default).
  */
 function readKarpenterDurationFromDom() {
-    const active = document.querySelector('.karpenter-duration-toggle-group .karpenter-duration-btn.active');
+    const active = document.querySelector('#karpenter-filters .karpenter-duration-toggle-group .karpenter-duration-btn.active');
     if (active) {
-        const v = active.getAttribute('data-duration');
+        const v = String(active.getAttribute('data-duration') || '').trim();
         if (v === '7' || v === '15' || v === '30') return v;
     }
-    const d = karpenterFilterState.duration;
+    const d = String(karpenterFilterState.duration ?? '30').trim();
     return d === '7' || d === '15' || d === '30' ? d : '30';
 }
 
@@ -12266,9 +12283,10 @@ function karpenterLatestSelectedInScope(orderedAvailable) {
 }
 
 function syncKarpenterDurationToggleUi() {
-    const v = karpenterFilterState.duration || '30';
-    const norm = v === '7' || v === '15' || v === '30' ? v : '30';
-    document.querySelectorAll('.karpenter-duration-btn').forEach(btn => {
+    const raw = String(karpenterFilterState.duration ?? '30').trim();
+    const norm = raw === '7' || raw === '15' || raw === '30' ? raw : '30';
+    karpenterFilterState.duration = norm;
+    document.querySelectorAll('#karpenter-filters .karpenter-duration-btn').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-duration') === norm);
     });
 }
@@ -12277,10 +12295,15 @@ function syncKarpenterDurationToggleUi() {
  * Set duration window from toggle and refresh.
  */
 function setKarpenterDuration(value) {
-    const v = value === '7' || value === '15' || value === '30' ? value : '30';
+    const s = String(value ?? '30').trim();
+    const v = s === '7' || s === '15' || s === '30' ? s : '30';
     karpenterFilterState.duration = v;
     syncKarpenterDurationToggleUi();
     applyKarpenterFilters();
+}
+
+if (typeof window !== 'undefined') {
+    window.setKarpenterDuration = setKarpenterDuration;
 }
 
 /**
@@ -12475,6 +12498,15 @@ function computeRobustAvgCpu(values) {
 }
 
 /**
+ * Exclude GCP Falcon Instances from bin-packing (not in AWS scope for this dashboard).
+ */
+function isKarpenterExcludedGcpFi(falconInstance) {
+    const s = String(falconInstance || '').trim().toLowerCase();
+    if (!s) return false;
+    return s.startsWith('gcp') || s.includes('gcp-');
+}
+
+/**
  * Build Karpenter rows from one monthly CSV. CSV columns: report_date, environment_type, falcon_instance, functional_domain, k8s_cluster, karpenter_status, cluster_packing_percent (or cpu_packing_percent in Full files)
  * Uses cluster_packing_percent or cpu_packing_percent as avg. CPU allocation rate %, rounded to 2 decimals.
  */
@@ -12488,7 +12520,9 @@ function buildKarpenterRowsFromMonthlyCSV(csvText, monthCode, monthName) {
         return e === 'stage' ? 'staging' : e;
     };
 
-    return raw.map(row => {
+    return raw
+        .filter(row => !isKarpenterExcludedGcpFi(row.falcon_instance))
+        .map(row => {
         const percent = row.cluster_packing_percent != null ? row.cluster_packing_percent : row.cpu_packing_percent;
         const avgCpu = roundAvgCpuPercent(percent);
         const environment = envMap(row.environment_type);
@@ -12554,6 +12588,7 @@ function buildKarpenterDataFromAprilCSV(csvText) {
     const seenCluster = new Set();
 
     raw.forEach(row => {
+        if (isKarpenterExcludedGcpFi(row.falcon_instance)) return;
         const avgCpu = roundAvgCpuPercent(row.cluster_packing_percent);
         const environment = envMap(row.environment_type);
         const efficiencyIndicator = getEfficiencyIndicator(avgCpu, environment);
@@ -12666,6 +12701,19 @@ async function loadKarpenterData() {
             });
 
             if (allRows.length > 0) {
+                allRows = allRows.filter(r => !isKarpenterExcludedGcpFi(r.falcon_instance));
+                seenFi = new Set();
+                seenFd = new Set();
+                seenEnv = new Set();
+                seenCluster = new Set();
+                seenMonths = new Set();
+                allRows.forEach(r => {
+                    if (r.falcon_instance) seenFi.add(r.falcon_instance);
+                    if (r.functional_domain) seenFd.add(r.functional_domain);
+                    if (r.environment) seenEnv.add(r.environment);
+                    if (r.cluster) seenCluster.add(r.cluster);
+                    if (r.month) seenMonths.add(r.month);
+                });
                 break;
             }
         }
@@ -12775,7 +12823,7 @@ function clearKarpenterFiltersExceptDuration() {
         }
     });
 
-    document.querySelectorAll('.karpenter-duration-btn').forEach(btn => { btn.disabled = false; });
+    document.querySelectorAll('#karpenter-filters .karpenter-duration-btn').forEach(btn => { btn.disabled = false; });
 
     karpenterFilterState.fi = 'all';
     karpenterFilterState.fd = 'all';
@@ -12871,6 +12919,8 @@ function resolveKarpenterGroupKey(row, groupBy) {
 function filterKarpenterData(data, includeMonth = true, applyDuration = true, opts = {}) {
     const skipDimensionFilters = opts.skipDimensionFilters === true;
     let out = data.filter(row => {
+        const fiForGcp = row.falcon_instance || row.falconInstance || row.FI || row.fi || row.falcon_instance_name;
+        if (isKarpenterExcludedGcpFi(fiForGcp)) return false;
         if (!skipDimensionFilters && !rowMatchesKarpenterDimensions(row)) return false;
 
         // Karpenter Enabled / Disabled toggle (Exec view)
@@ -12908,8 +12958,8 @@ function filterKarpenterData(data, includeMonth = true, applyDuration = true, op
     if (!applyDuration) {
         return out;
     }
-    const duration = karpenterFilterState.duration || '30';
-    const durationMonths = duration === '7' ? 1 : duration === '15' ? 2 : 0; // 0 = all months
+    const durationNorm = String(karpenterFilterState.duration ?? '30').trim();
+    const durationMonths = durationNorm === '7' ? 1 : durationNorm === '15' ? 2 : 0; // 0 = all months (incl. 30)
     if (durationMonths > 0 && out.length > 0) {
         const months = [...new Set(out.map(r => r.month || r.Month || r.month_code))].filter(Boolean).sort();
         const allowedMonths = new Set(months.slice(-durationMonths));
@@ -13742,8 +13792,6 @@ function closeClusterNodesModal() {
 window.showClusterNodes = showClusterNodes;
 window.closeClusterNodesModal = closeClusterNodesModal;
 window.onKarpenterFilterDimensionChange = onKarpenterFilterDimensionChange;
-window.setKarpenterDuration = setKarpenterDuration;
-
 /**
  * Calculate trend for Karpenter data
  */

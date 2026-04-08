@@ -160,9 +160,24 @@ def load_all_data():
         print("\n❌ No data loaded!")
         return None
 
+def _is_gcp_falcon_instance(fi) -> bool:
+    if pd.isna(fi):
+        return False
+    s = str(fi).strip().lower()
+    if not s:
+        return False
+    return s.startswith("gcp") or "gcp-" in s
+
+
 def process_data(df):
     """Process and clean the data"""
     print("\n🔧 Processing data...")
+
+    before = len(df)
+    df = df[~df['falcon_instance'].apply(_is_gcp_falcon_instance)].copy()
+    dropped = before - len(df)
+    if dropped:
+        print(f"  Excluded {dropped:,} rows (GCP falcon_instance)")
     
     # Add environment column based on falcon_instance
     df['environment'] = df['falcon_instance'].apply(get_environment_from_cluster)

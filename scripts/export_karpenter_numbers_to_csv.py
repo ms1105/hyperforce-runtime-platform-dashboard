@@ -47,10 +47,20 @@ HEADER = [
 ]
 
 
+def is_gcp_falcon_instance(fi: str) -> bool:
+    """Exclude GCP FIs from exported CSVs (dashboard is AWS-scope bin-packing)."""
+    s = (fi or "").strip().lower()
+    if not s or s == "falcon_instance":
+        return False
+    return s.startswith("gcp") or "gcp-" in s
+
+
 def export_one(numbers_path: str, csv_path: str) -> tuple[int, str]:
     doc = Document(numbers_path)
     table = doc.sheets[0].tables[0]
     nrows, ncols = table.num_rows, table.num_cols
+    skipped_gcp = 0
+    written = 0
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         for r in range(nrows):
@@ -64,8 +74,14 @@ def export_one(numbers_path: str, csv_path: str) -> tuple[int, str]:
                     row.append("")
                 else:
                     row.append(str(v).strip())
+            if len(row) > 2 and is_gcp_falcon_instance(str(row[2])):
+                skipped_gcp += 1
+                continue
             w.writerow(row)
-    return nrows, csv_path
+            written += 1
+    if skipped_gcp:
+        print("  ", os.path.basename(csv_path), "skipped GCP rows:", skipped_gcp)
+    return written, csv_path
 
 
 def main() -> int:

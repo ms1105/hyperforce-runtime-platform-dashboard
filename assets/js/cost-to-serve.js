@@ -1029,18 +1029,18 @@ function destroyCostToServeHPSCharts() {
 }
 
 /**
- * Placeholder metrics + series for Core HTP vs STP and FY26/FY27 (illustrative only).
+ * Placeholder metrics + series for Core vs HTP/STP and FY26/FY27 (illustrative only).
  */
 function getHPSPlaceholderConfig(mode, fy) {
-    const isStp = mode === 'stp';
+    const isHtpStp = mode === 'htp-stp' || mode === 'stp';
     const isFy26 = fy === 'FY26';
     var scale = isFy26 ? 0.62 : 1;
-    if (isStp) scale *= 0.55;
+    if (isHtpStp) scale *= 0.55;
     var pred = 3.25 * scale;
     var act = 0.48 * scale;
     var variance = act - pred;
     var achievement = pred > 0 ? ((act / pred) * 100) : 0;
-    var labelPrefix = isStp ? 'STP' : 'Core HTP';
+    var labelPrefix = isHtpStp ? 'HTP/STP' : 'Core';
     var months = ['Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
     var n = months.length;
     function ramp(end) {
@@ -1064,7 +1064,7 @@ function getHPSPlaceholderConfig(mode, fy) {
     return {
         months: months,
         fyLabel: fy,
-        modeLabel: isStp ? 'STP' : 'Core HTP',
+        modeLabel: isHtpStp ? 'HTP/STP' : 'Core',
         predicted: pred,
         actual: act,
         variance: variance,
@@ -1237,12 +1237,14 @@ function renderHPSTrendCharts(cfg) {
 }
 
 /**
- * Renders HPS Cost to Serve shell (tiles + cumulative + trends) for current FY and Core HTP / STP mode.
+ * Renders HPS Cost to Serve shell (tiles + cumulative + trends) for current FY and Core vs HTP/STP mode.
  */
 function renderCostToServeHPSView() {
     var root = document.getElementById('hps-cts-root');
     if (!root) return;
-    var mode = window.costToServeHPSMode === 'stp' ? 'stp' : 'core-htp';
+    var rawMode = window.costToServeHPSMode;
+    var mode = rawMode === 'htp-stp' || rawMode === 'stp' ? 'htp-stp' : 'core';
+    if (rawMode === 'core-htp') mode = 'core';
     var fy = window.costToServeFY === 'FY26' ? 'FY26' : 'FY27';
     var cfg = getHPSPlaceholderConfig(mode, fy);
     var ach = Math.min(parseFloat(cfg.achievement.toFixed(2)), 999);

@@ -1331,8 +1331,8 @@
                                     <button type="button" class="cts-fy-btn" data-fy="FY26" onclick="setCostToServeFY('FY26', this)">FY26</button>
                                 </div>
                                 <div class="cts-hps-mode-toggle" role="group" aria-label="HPS program scope">
-                                    <button type="button" class="cts-hps-mode-btn active" data-mode="core-htp" onclick="setCostToServeHPSMode('core-htp', this)">Core HTP</button>
-                                    <button type="button" class="cts-hps-mode-btn" data-mode="stp" onclick="setCostToServeHPSMode('stp', this)">STP</button>
+                                    <button type="button" class="cts-hps-mode-btn active" data-mode="core" onclick="setCostToServeHPSMode('core', this)">Core</button>
+                                    <button type="button" class="cts-hps-mode-btn" data-mode="htp-stp" onclick="setCostToServeHPSMode('htp-stp', this)">HTP/STP</button>
                                 </div>
                             </div>
                         </div>
@@ -1424,10 +1424,10 @@
         
         // FY26/FY27 toggle state (used by cost-to-serve.js and Executive Summary). FY27 default.
         window.costToServeFY = 'FY27';
-        window.costToServeHPSMode = 'core-htp';
+        window.costToServeHPSMode = 'core';
 
         window.setCostToServeHPSMode = function(mode, clickedBtn) {
-            window.costToServeHPSMode = (mode === 'stp') ? 'stp' : 'core-htp';
+            window.costToServeHPSMode = (mode === 'htp-stp') ? 'htp-stp' : 'core';
             document.querySelectorAll('.cts-hps-mode-btn').forEach(function(btn) {
                 btn.classList.toggle('active', btn.getAttribute('data-mode') === window.costToServeHPSMode);
             });
@@ -1670,6 +1670,6 @@
     </script>
     
     <!-- Cost to Serve JavaScript Functions -->
-    <script src="assets/js/cost-to-serve.js?v=20250407-hps"></script>
+    <script src="assets/js/cost-to-serve.js?v=20250407-hps-toggle"></script>
 </body>
 </html>

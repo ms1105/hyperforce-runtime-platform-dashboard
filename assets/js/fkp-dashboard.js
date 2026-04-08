@@ -2401,6 +2401,26 @@ async function renderExecutiveSummary() {
             return value < 0 ? `-${formatted}` : formatted;
         };
 
+        /** CTS executive summary: JSON totals are full dollars — always show $M (avoid $K for amounts under $1M). */
+        const formatCtsSummaryDollars = (value) => {
+            if (value === null || value === undefined || (typeof value === 'number' && Number.isNaN(value))) {
+                return '--';
+            }
+            const millions = Number(value) / 1000000;
+            if (typeof formatCurrency === 'function') {
+                return formatCurrency(millions);
+            }
+            return `$${Math.abs(millions).toFixed(2)}M`;
+        };
+        const formatCtsSummaryDollarsSigned = (value) => {
+            if (value === null || value === undefined || (typeof value === 'number' && Number.isNaN(value))) {
+                return '--';
+            }
+            const formatted = formatCtsSummaryDollars(Math.abs(value));
+            if (formatted === '--') return '--';
+            return value < 0 ? `-${formatted}` : formatted;
+        };
+
         const varianceValue = (totalPredictedSavings !== null && totalActualSavings !== null)
             ? totalActualSavings - totalPredictedSavings
             : null;
@@ -2790,22 +2810,22 @@ async function renderExecutiveSummary() {
                         ${kpiCard({
                             title: 'Total Projected Savings',
                             value: costToServeFY === 'FY27'
-                                ? `${formatCurrencySafe(totalPredictedSavings)}<span style="font-size:1.1em;color:#059669;margin-left:0.3rem;font-weight:700;line-height:1;vertical-align:middle;" title="Forecast revised for March Karpenter actuals">↑</span>`
-                                : formatCurrencySafe(totalPredictedSavings),
+                                ? `${formatCtsSummaryDollars(totalPredictedSavings)}<span style="font-size:1.1em;color:#059669;margin-left:0.3rem;font-weight:700;line-height:1;vertical-align:middle;" title="Forecast revised for March Karpenter actuals">↑</span>`
+                                : formatCtsSummaryDollars(totalPredictedSavings),
                             sub: costToServeFY === 'FY27' ? costToServeFY + ' Forecast (revised)' : costToServeFY + ' Forecast',
                             valueClass: 'text-blue',
                             onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
                         })}
                         ${kpiCard({
                             title: 'Total Actual Savings Achieved',
-                            value: formatCurrencySafe(totalActualSavings),
+                            value: formatCtsSummaryDollars(totalActualSavings),
                             sub: costToServeFY === 'FY27' ? 'Realized Savings' : 'Realized Savings',
                             valueClass: 'text-green',
                             onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
                         })}
                         ${kpiCard({
                             title: 'Variance',
-                            value: formatCurrencySigned(varianceValue),
+                            value: formatCtsSummaryDollarsSigned(varianceValue),
                             sub: 'Actual - Projected',
                             valueClass: varianceValue !== null && varianceValue < 0 ? 'text-red' : 'text-green',
                             onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
@@ -2814,7 +2834,7 @@ async function renderExecutiveSummary() {
                             title: 'Achievement Rate',
                             value: achievementRate !== null ? `${achievementRate.toFixed(1)}%` : '--',
                             sub: totalActualSavings !== null && totalPredictedSavings !== null
-                                ? `${formatCurrencySafe(totalActualSavings)} / ${formatCurrencySafe(totalPredictedSavings)}`
+                                ? `${formatCtsSummaryDollars(totalActualSavings)} / ${formatCtsSummaryDollars(totalPredictedSavings)}`
                                 : 'TBD',
                             valueClass: 'text-blue',
                             onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"

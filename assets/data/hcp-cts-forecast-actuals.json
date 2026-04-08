@@ -242,5 +242,11 @@
     "totalOriginalSavings": 8170000,
     "totalRevisedSavings": 6260000,
     "totalActualSavings": 6280000
+  },
+  "summaryFY27": {
+    "totalPredictedSavings": 7850850.77,
+    "totalActualSavings": 994228.68,
+    "sourceCsv": "assets/data/fy27-hcp-cost-savings-forecast-vs-actuals.csv",
+    "notes": "totalPredictedSavings = sum of Original Estimate Total FY27 (~$7.78M) plus March Karpenter outperformance (actual $90,384.43 vs planned $20,000). totalActuals = sum of Actuals Total FY27 column. Stacked chart January total matches hybrid cumulative (~$7.85M) when tracker months align with CSV."
   }
 }

@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Hyperforce Runtime Platform 360 - FKP Adoption Dashboard</title>
     <!-- Favicon (prevents 404) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
@@ -29,6 +32,15 @@
         // Stub sidebar handlers so onclick never throws "is not defined". fkp-dashboard.js overwrites with real implementations.
         window.handleNavTabClick = function(id) { try { if (window.updateSidebarSection) window.updateSidebarSection(id); if (window.switchTab) window.switchTab(id); } catch (e) { console.error('handleNavTabClick', e); } };
         window.handleNavSectionExpand = function(id) { try { var el = document.getElementById(id + '-subitems'); var main = document.querySelector('.nav-item.main-item[data-section="' + id + '"]'); if (el && main) { var on = el.classList.toggle('active'); main.classList.toggle('active', on); document.querySelectorAll('.nav-subitems').forEach(function(l){ if (l !== el) l.classList.remove('active'); }); document.querySelectorAll('.nav-item.main-item').forEach(function(m){ if (m !== main) m.classList.remove('active'); }); } } catch (e) { console.error('handleNavSectionExpand', e); } };
+        // Ensure Slack link always opens #hrp-360-support (in case of cached HTML or overwrite)
+        document.addEventListener('DOMContentLoaded', function() {
+            var slackLink = document.getElementById('slack-link');
+            if (slackLink && (!slackLink.getAttribute('href') || slackLink.getAttribute('href') === '#')) {
+                slackLink.href = 'https://salesforce.enterprise.slack.com/archives/C0AKJ74TYUE';
+                slackLink.setAttribute('target', '_blank');
+                slackLink.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
     </script>
 </head>
 <body>
@@ -226,7 +238,7 @@
                     </div>
                     <!-- Last Refreshed (top right; hidden in Developer View) -->
                     <div class="last-refreshed-badge" id="last-refreshed-badge" title="Data last refreshed">Last Refreshed: <span id="last-refreshed-date">--/--/----</span></div>
-                    <a href="https://salesforce.enterprise.slack.com/archives/C0AKJ74TYUE" id="slack-link" class="slack-link" title="Submit feedback in #hrp-360-support" aria-label="Open #hrp-360-support for feedback" target="_blank" rel="noopener noreferrer">
+                    <a href="https://salesforce.enterprise.slack.com/archives/C0AKJ74TYUE" id="slack-link" class="slack-link" title="Submit feedback in #hrp-360-support" aria-label="Open #hrp-360-support for feedback" target="_blank" rel="noopener noreferrer" data-slack-channel="#hrp-360-support">
                         <svg class="slack-logo" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
                             <path fill="#E01E5A" d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z"/>
                             <path fill="#36C5F0" d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z"/>
@@ -1549,7 +1561,7 @@
                     if (p.endsWith('.html')) return p.split('/').slice(0, -1).join('/') + '/';
                     return p.endsWith('/') ? p : p + '/';
                 })();
-                const jsonUrl = base + 'assets/data/hcp-cts-forecast-actuals.json?v=20250128';
+                const jsonUrl = base + 'assets/data/hcp-cts-forecast-actuals.json?v=20250409';
                 const staticResponse = await fetch(jsonUrl);
                 if (!staticResponse.ok) throw new Error(`Static file ${staticResponse.status} ${staticResponse.statusText}`);
                 data = await staticResponse.json();
@@ -1619,6 +1631,6 @@
     </script>
     
     <!-- Cost to Serve JavaScript Functions -->
-    <script src="assets/js/cost-to-serve.js?v=20250304-1"></script>
+    <script src="assets/js/cost-to-serve.js?v=20250409"></script>
 </body>
 </html>

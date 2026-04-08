@@ -2356,24 +2356,26 @@ async function renderExecutiveSummary() {
         const avgFd = calcGroupedAvg(filteredKarpenter, 'functional_domain');
         const avgCluster = calcGroupedAvg(filteredKarpenter, 'cluster');
 
-        // Cost to Serve metrics (FY27: $7.78M predicted, $0 actuals; FY26: from JSON)
+        // Cost to Serve: FY27 totals from summaryFY27 (source: fy27-hcp-cost-savings-forecast-vs-actuals.csv / Dashboard B3+C3); FY26 from summary
         const costToServeFY = (typeof window.costToServeFY !== 'undefined' ? window.costToServeFY : 'FY27');
         let totalPredictedSavings = null;
         let totalActualSavings = null;
-        if (costToServeFY === 'FY27') {
-            totalPredictedSavings = 7780000;  // $7.78M
-            totalActualSavings = 0;
-        } else {
-            try {
-                const ctsResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json?v=20250128');
-                if (ctsResponse.ok) {
-                    const ctsData = await ctsResponse.json();
-                    totalPredictedSavings = ctsData?.summary?.totalRevisedSavings ?? null;
-                    totalActualSavings = ctsData?.summary?.totalActualSavings ?? null;
-                }
-            } catch (error) {
-                console.warn('⚠️ Failed to load CTS summary data:', error);
+        let ctsSummaryData = null;
+        try {
+            const ctsResponse = await fetch('assets/data/hcp-cts-forecast-actuals.json?v=20250409');
+            if (ctsResponse.ok) {
+                ctsSummaryData = await ctsResponse.json();
             }
+        } catch (error) {
+            console.warn('⚠️ Failed to load CTS summary data:', error);
+        }
+        if (costToServeFY === 'FY27') {
+            const s27 = ctsSummaryData?.summaryFY27;
+            totalPredictedSavings = typeof s27?.totalPredictedSavings === 'number' ? s27.totalPredictedSavings : 7850850.77;
+            totalActualSavings = typeof s27?.totalActualSavings === 'number' ? s27.totalActualSavings : 0;
+        } else if (ctsSummaryData) {
+            totalPredictedSavings = ctsSummaryData.summary?.totalRevisedSavings ?? null;
+            totalActualSavings = ctsSummaryData.summary?.totalActualSavings ?? null;
         }
 
         // Onboarding metrics
@@ -2787,8 +2789,10 @@ async function renderExecutiveSummary() {
                     <div class="exec-summary-kpi-grid columns-4">
                         ${kpiCard({
                             title: 'Total Projected Savings',
-                            value: formatCurrencySafe(totalPredictedSavings),
-                            sub: costToServeFY + ' Forecast',
+                            value: costToServeFY === 'FY27'
+                                ? `${formatCurrencySafe(totalPredictedSavings)}<span style="font-size:1.1em;color:#059669;margin-left:0.3rem;font-weight:700;line-height:1;vertical-align:middle;" title="Forecast revised for March Karpenter actuals">↑</span>`
+                                : formatCurrencySafe(totalPredictedSavings),
+                            sub: costToServeFY === 'FY27' ? costToServeFY + ' Forecast (revised)' : costToServeFY + ' Forecast',
                             valueClass: 'text-blue',
                             onClick: "switchTab('cost-to-serve-overview'); scrollToTabContent('cost-to-serve-overview')"
                         })}

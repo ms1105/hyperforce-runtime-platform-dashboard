@@ -23,19 +23,22 @@ function renderExecView(data) {
     
     const fy = (typeof window.costToServeFY !== 'undefined' ? window.costToServeFY : 'FY26');
     
-    // When FY27 is selected, show FY27 savings (Predicted $7.78M, Actuals $0, Variance -$7.78M, Achievement 0%)
+    // FY27 totals from JSON summaryFY27 (same source as Executive Summary; workbook Dashboard B3/C3)
     if (fy === 'FY27') {
-        const fy27Predicted = 7.78;
-        const fy27Actual = 0;
-        const fy27Variance = fy27Actual - fy27Predicted; // -7.78
+        const s27 = data && data.summaryFY27;
+        const pred = typeof s27?.totalPredictedSavings === 'number' ? s27.totalPredictedSavings : 7850850.77;
+        const act = typeof s27?.totalActualSavings === 'number' ? s27.totalActualSavings : 994228.68;
+        const fy27Predicted = pred / 1000000;
+        const fy27Actual = act / 1000000;
+        const fy27Variance = fy27Actual - fy27Predicted;
         const fy27VariancePercent = fy27Predicted > 0 ? ((fy27Variance / fy27Predicted) * 100).toFixed(2) : 0;
         const fy27Achievement = fy27Predicted > 0 ? ((fy27Actual / fy27Predicted) * 100).toFixed(2) : 0;
         execViewDiv.innerHTML = `
             <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
                 <div class="exec-metric-card" style="border-left-color: #3182ce;">
                     <div class="exec-metric-label">Total Predicted Savings</div>
-                    <div class="exec-metric-value" style="color: #3182ce;">${formatCurrency(fy27Predicted)}</div>
-                    <div style="font-size: 0.875rem; color: #718096; margin-top: 0.5rem;">FY27 Forecast</div>
+                    <div class="exec-metric-value" style="color: #3182ce;">${formatCurrency(fy27Predicted)}<span style="font-size:1.15em;color:#059669;margin-left:0.35rem;font-weight:700;line-height:1;vertical-align:middle;" title="Forecast includes March Karpenter actual vs plan">↑</span></div>
+                    <div style="font-size: 0.875rem; color: #718096; margin-top: 0.5rem;">FY27 Forecast (revised)</div>
                 </div>
                 <div class="exec-metric-card" style="border-left-color: #059669;">
                     <div class="exec-metric-label">Total Actual Savings</div>
@@ -51,13 +54,14 @@ function renderExecView(data) {
                     <div class="exec-metric-label">Achievement Rate</div>
                     <div class="exec-metric-value" style="color: #7c3aed;">${fy27Achievement}%</div>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: 0%;"></div>
+                        <div class="progress-fill" style="width: ${Math.min(parseFloat(fy27Achievement), 100)}%;"></div>
                     </div>
                 </div>
             </div>
             <div class="exec-chart-container" style="margin-top: 2rem; position: relative;">
                 <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">FY27 HRP CTS Initiatives</h3>
-                <p style="font-size: 0.875rem; color: #718096; margin-bottom: 1.5rem;">Monthly Cumulative All Initiatives Savings</p>
+                <p style="font-size: 0.875rem; color: #718096; margin-bottom: 0.35rem;">Monthly cumulative savings by initiative (stacked).</p>
+                <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1.5rem;">Initiatives with reported actuals: <strong>March</strong> uses that month’s actual only; <strong>Feb</strong> and <strong>Apr–Jan</strong> use original-estimate increments (cumulative stack). Others use full original-estimate cumulative.</p>
                 <div style="position: absolute; top: 0.25rem; right: 0; z-index: 2;">
                     <label for="fy27-initiative-filter" style="font-size: 0.8rem; font-weight: 600; color: #1e293b; margin-right: 0.5rem;">Show initiative:</label>
                     <select id="fy27-initiative-filter" style="min-width: 240px; padding: 0.4rem 0.6rem; font-size: 0.85rem; border: 2px solid #1e293b; border-radius: 6px; background: #f8fafc; color: #1e293b; font-weight: 500;">
@@ -72,7 +76,7 @@ function renderExecView(data) {
             <div class="exec-chart-container" style="margin-top: 2rem;">
                 <h3 style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin-bottom: 1.5rem;">Original Estimate vs Actuals by Initiative</h3>
                 <p style="font-size: 0.875rem; color: #718096; margin-bottom: 1.5rem;">FY27 initiative performance trends</p>
-                <div id="fy27-initiative-charts-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-bottom: 2rem;">
+                <div id="fy27-initiative-charts-grid" style="display: grid; grid-template-columns: 1fr; gap: 2.25rem; margin-bottom: 2rem;">
                 </div>
             </div>
         `;
@@ -314,18 +318,6 @@ function renderCumulativeInitiativesChart(data, months) {
     });
 }
 
-// FY27 initiatives data (cumulative $M by month: Feb, Mar, Apr, May, Jun, Jul, Aug, Sept, Oct, Nov, Dec, Jan)
-const FY27_INITIATIVES_DATA = [
-    { name: 'Improve Bin Packing with Karpenter', data: [0, 0, 0.02, 0.17, 0.33, 0.48, 0.77, 1.07, 1.36, 1.65, 2.11, 3.04], color: '#3182ce' },
-    { name: 'Rightsizing of HCP AddOns- Platform', data: [0, 0, 0.01, 0.01, 0.07, 0.14, 0.22, 0.29, 0.60, 0.90, 1.21, 1.84], color: '#b91c1c' },
-    { name: 'Proactive Container Optimization HRP', data: [0, 0, 0.00, 0.02, 0.04, 0.07, 0.09, 0.17, 0.25, 0.33, 0.49, 0.81], color: '#eab308' },
-    { name: 'Proactive Container Optimization Tenant', data: [0, 0, 0.00, 0.00, 0.00, 0.00, 0.00, 0.06, 0.11, 0.17, 0.29, 0.55], color: '#22c55e' },
-    { name: 'IG Graviton Migration (Core)', data: [0, 0, 0.00, 0.00, 0.00, 0.00, 0.00, 0.02, 0.04, 0.06, 0.08, 0.11], color: '#f97316' },
-    { name: 'IG - Shared Migration Ingress- Core', data: [0, 0, 0.00, 0.00, 0.00, 0.00, 0.00, 0.02, 0.04, 0.06, 0.08, 0.12], color: '#14b8a6' },
-    { name: 'Vegacache Graviton Migration', data: [0, 0, 0.00, 0.00, 0.00, 0.00, 0.00, 0.10, 0.20, 0.30, 0.40, 0.60], color: '#38bdf8' },
-    { name: 'Sam_processing-1 Right-Sizing', data: [0, 0, 0.00, 0.07, 0.14, 0.21, 0.28, 0.35, 0.43, 0.50, 0.57, 0.71], color: '#dc2626' }
-];
-
 // FY27 Tracker: Original Estimate and Actuals only (no Revised Estimate). Monthly values in dollars. Feb-Jan.
 function formatDollars(v) {
     if (v === null || v === undefined) return '—';
@@ -335,15 +327,49 @@ function formatDollars(v) {
     return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 const FY27_TRACKER_DATA = [
-    { name: 'Improve Bin Packing with Karpenter', status: 'On Track', original: [0, 0, 20000, 154817.65, 154817.65, 154817.65, 290283.10, 290283.10, 290283.10, 290283.10, 464452.96, 464452.96], totalOriginal: 3038944.22, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
-    { name: 'Rightsizing of HCP AddOns- Platform', status: 'On Track', original: [0, 0, 5000, 5000, 63170.83, 70810.48, 73170.83, 73170.83, 305972.58, 305972.58, 316171.67, 316171.67], totalOriginal: 1840584.06, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
-    { name: 'Proactive Container Optimization HRP', status: 'Not Started', original: [0, 0, 0, 21791.65, 22518.03, 21791.65, 22518.03, 81064.92, 78449.93, 81064.92, 156899.85, 162129.85], totalOriginal: 810358.69, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
+    { name: 'Improve Bin Packing with Karpenter', status: 'On Track', original: [0, 20000, 154817.65, 154817.65, 154817.65, 290283.10, 328987.51, 387044.13, 387044.13, 387044.13, 387044.13, 387044.13], totalOriginal: 3038944.21, actuals: [0, 90384.43, 90384.43, 90384.43, 90384.43, 90384.43, 90384.43, 90384.43, 90384.43, 90384.43, 90384.43, 90384.43], totalActuals: 994228.68 },
+    { name: 'Rightsizing of HCP AddOns- Platform', status: 'Delayed', original: [0, 5000, 5000, 63170.83, 70810.48, 73170.83, 73170.83, 305972.58, 305972.58, 305972.58, 316171.67, 316171.67], totalOriginal: 1840584.06, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
+    { name: 'Proactive Container Optimization HRP', status: 'On Track', original: [0, 0, 21791.65, 22518.03, 21791.65, 22518.03, 81064.92, 78449.93, 81064.92, 156899.85, 162129.85, 162129.85], totalOriginal: 810358.69, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
     { name: 'Proactive Container Optimization Tenant', status: 'Not Started', original: [0, 0, 0, 0, 0, 0, 56327.97, 54510.94, 56327.97, 124596.43, 128749.65, 128749.65], totalOriginal: 549262.60, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
     { name: 'IG Graviton Migration (Core)', status: 'Not Started', original: [0, 0, 0, 0, 0, 0, 19000, 19000, 19000, 19000, 19000, 19000], totalOriginal: 114000, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
     { name: 'IG - Shared Migration Ingress- (Core)', status: 'Not Started', original: [0, 0, 0, 0, 0, 0, 19662.80, 19662.80, 19662.80, 19662.80, 19662.80, 19662.80], totalOriginal: 117976.78, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
     { name: 'Vegacache Graviton Migration', status: 'Not Started', original: [0, 0, 0, 0, 0, 0, 100000, 100000, 100000, 100000, 100000, 100000], totalOriginal: 600000, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 },
-    { name: 'Sam_processing-1 Right-Sizing', status: 'Delayed', original: [0, 0, 70934, 70934, 70934, 70934, 70934, 70934, 70934, 70934, 70934, 70934], totalOriginal: 709340, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 }
+    { name: 'Sam_processing-1 Right-Sizing', status: 'On Track', original: [0, 0, 70934, 70934, 70934, 70934, 70934, 70934, 70934, 70934, 70934, 70934], totalOriginal: 709340, actuals: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], totalActuals: 0 }
 ];
+
+// Stacked bar chart: per initiative, cumulative $M through each month — uses monthly actuals from FY27 CSV when any actuals exist, else cumulative original estimate (same source as tracker).
+const FY27_STACKED_META = [
+    { name: 'Improve Bin Packing with Karpenter', color: '#3182ce' },
+    { name: 'Rightsizing of HCP AddOns- Platform', color: '#b91c1c' },
+    { name: 'Proactive Container Optimization HRP', color: '#eab308' },
+    { name: 'Proactive Container Optimization Tenant', color: '#22c55e' },
+    { name: 'IG Graviton Migration (Core)', color: '#f97316' },
+    { name: 'IG - Shared Migration Ingress- Core', color: '#14b8a6' },
+    { name: 'Vegacache Graviton Migration', color: '#38bdf8' },
+    { name: 'Sam_processing-1 Right-Sizing', color: '#dc2626' }
+];
+
+/** FY27 stacked bar: cumulative $M. If initiative has any actuals reported, use March actual only for Mar (index 1); Feb and Apr–Jan use original-estimate increments. Otherwise all months use original cumulative. */
+function getFY27StackedInitiativesData() {
+    const MARCH_INDEX = 1; // Feb=0, Mar=1, … Jan=11
+    return FY27_STACKED_META.map(function(meta, idx) {
+        const row = FY27_TRACKER_DATA[idx];
+        if (!row) return { name: meta.name, color: meta.color, data: [] };
+        const orig = row.original || [];
+        const act = row.actuals || [];
+        const hasActuals = act.some(function(v) { return (Number(v) || 0) > 0; });
+        let cum = 0;
+        const data = [];
+        for (let i = 0; i < 12; i++) {
+            const inc = (hasActuals && i === MARCH_INDEX)
+                ? (Number(act[i]) || 0)
+                : (Number(orig[i]) || 0);
+            cum += inc;
+            data.push(Math.round((cum / 1000000) * 1e6) / 1e6);
+        }
+        return { name: meta.name, color: meta.color, data: data };
+    });
+}
 
 function renderFY27InitiativeTrendCharts() {
     const container = document.getElementById('fy27-initiative-charts-grid');
@@ -369,14 +395,16 @@ function renderFY27InitiativeTrendCharts() {
         const targetM = (initiative.totalOriginal != null ? Number(initiative.totalOriginal) : 0) / 1000000;
         const targetLabel = 'Target: $' + targetM.toFixed(2) + 'M';
         const chartDiv = document.createElement('div');
-        chartDiv.style.cssText = 'background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: relative;';
+        chartDiv.style.cssText = 'background: white; padding: 1.75rem 1.5rem 1.5rem; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); position: relative;';
         chartDiv.innerHTML = `
-            <div style="position: absolute; top: 0.75rem; left: 1rem; z-index: 1;">
-                <span class="${statusBadgeClass}" style="display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 0.35rem;">${initiative.status || '—'}</span>
-                <span style="display: block; font-size: 0.7rem; font-weight: 600; color: #4b5563;">${targetLabel}</span>
+            <div style="position: absolute; top: 1rem; left: 1.25rem; z-index: 1;">
+                <span class="${statusBadgeClass}" style="display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.35rem;">${initiative.status || '—'}</span>
+                <span style="display: block; font-size: 0.75rem; font-weight: 600; color: #4b5563;">${targetLabel}</span>
             </div>
-            <h4 style="font-size: 0.95rem; font-weight: 600; color: #2c3e50; margin-bottom: 1rem; text-align: center; line-height: 1.3;">${initiative.name}</h4>
-            <canvas id="fy27-initiative-chart-${index}" style="max-height: 250px;"></canvas>
+            <h4 style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin: 0 0 0.5rem; padding-top: 2.5rem; text-align: center; line-height: 1.35;">${initiative.name}</h4>
+            <div style="position: relative; width: 100%; height: 420px; margin-top: 0.5rem;">
+                <canvas id="fy27-initiative-chart-${index}"></canvas>
+            </div>
         `;
         container.appendChild(chartDiv);
         setTimeout(() => {
@@ -400,8 +428,8 @@ function renderFY27InitiativeTrendCharts() {
                             borderDash: [5, 5],
                             fill: false,
                             tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
                             pointBackgroundColor: colorSet.original,
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 1
@@ -414,8 +442,8 @@ function renderFY27InitiativeTrendCharts() {
                             borderWidth: 2,
                             fill: false,
                             tension: 0.4,
-                            pointRadius: 3,
-                            pointHoverRadius: 5,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
                             pointBackgroundColor: colorSet.actuals,
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 1
@@ -424,32 +452,32 @@ function renderFY27InitiativeTrendCharts() {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             display: true,
                             position: 'top',
-                            labels: { font: { size: 10, weight: '500' }, padding: 8, usePointStyle: true, pointStyle: 'circle', boxWidth: 8 }
+                            labels: { font: { size: 12, weight: '500' }, padding: 12, usePointStyle: true, pointStyle: 'circle', boxWidth: 10 }
                         },
                         tooltip: {
                             mode: 'index',
                             intersect: false,
                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 10,
+                            padding: 12,
                             callbacks: { label: function(c) { return (c.dataset.label || '') + ': ' + formatCurrency(c.parsed.y); } }
                         }
                     },
                     scales: {
                         x: {
-                            ticks: { font: { size: 9 }, color: '#4a5568', maxRotation: 45, minRotation: 45 },
+                            ticks: { font: { size: 11 }, color: '#4a5568', maxRotation: 40, minRotation: 0 },
                             grid: { color: '#e2e8f0', drawBorder: false },
-                            title: { display: true, text: 'Month', font: { size: 10, weight: '600' }, color: '#2c3e50', padding: { top: 8, bottom: 5 } }
+                            title: { display: true, text: 'Month', font: { size: 12, weight: '600' }, color: '#2c3e50', padding: { top: 10, bottom: 6 } }
                         },
                         y: {
                             beginAtZero: true,
-                            ticks: { callback: v => `$${v.toFixed(2)}M`, font: { size: 9 }, color: '#4a5568' },
+                            ticks: { callback: v => `$${v.toFixed(2)}M`, font: { size: 11 }, color: '#4a5568' },
                             grid: { color: '#e2e8f0', drawBorder: false },
-                            title: { display: true, text: 'Savings ($M)', font: { size: 10, weight: '600' }, color: '#2c3e50', padding: { top: 8, bottom: 8 } }
+                            title: { display: true, text: 'Savings ($M)', font: { size: 12, weight: '600' }, color: '#2c3e50', padding: { top: 8, bottom: 10 } }
                         }
                     }
                 }
@@ -512,7 +540,8 @@ function renderFY27InitiativesChart() {
     }
     const months = ['Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec', 'Jan'];
     const monthLabels = months;
-    const datasets = FY27_INITIATIVES_DATA.map((init) => {
+    const fy27Stacked = getFY27StackedInitiativesData();
+    const datasets = fy27Stacked.map((init) => {
         const c = init.color || '#3182ce';
         return {
             label: init.name.length > 45 ? init.name.substring(0, 45) + '...' : init.name,
@@ -563,7 +592,7 @@ function renderFY27InitiativesChart() {
                 y: {
                     stacked: true,
                     beginAtZero: true,
-                    max: 8,
+                    suggestedMax: 8,
                     ticks: {
                         stepSize: 2,
                         callback: function(value) {
@@ -584,7 +613,7 @@ function renderFY27InitiativesChart() {
     if (filterSelect && window.fy27InitiativesChart) {
         const chart = window.fy27InitiativesChart;
         filterSelect.innerHTML = '<option value="all">All initiatives</option>';
-        FY27_INITIATIVES_DATA.forEach(function(init, idx) {
+        fy27Stacked.forEach(function(init, idx) {
             const opt = document.createElement('option');
             opt.value = String(idx);
             opt.textContent = init.name;
@@ -613,7 +642,7 @@ function renderFY27InitiativesChart() {
     if (legendEl && window.fy27InitiativesChart) {
         const chart = window.fy27InitiativesChart;
         legendEl.innerHTML = '';
-        FY27_INITIATIVES_DATA.forEach(function(init) {
+        fy27Stacked.forEach(function(init) {
             const item = document.createElement('span');
             item.style.cssText = 'display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.4rem; font-size: 0.75rem; color: #64748b;';
             item.innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + init.color + ';"></span><span>' + (init.name.length > 35 ? init.name.substring(0, 35) + '...' : init.name) + '</span>';

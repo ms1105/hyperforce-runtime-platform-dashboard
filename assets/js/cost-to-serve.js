@@ -1012,3 +1012,300 @@ function renderInitiativeSmallMultiples() {
         }, 100 * (index + 1)); // Stagger chart creation to avoid DOM issues
     });
 }
+
+// --- Cost to Serve - HPS (placeholder layout mirroring HRP; Under Development) ---
+
+function destroyCostToServeHPSCharts() {
+    if (window._hpsCumulativeChart && typeof window._hpsCumulativeChart.destroy === 'function') {
+        try { window._hpsCumulativeChart.destroy(); } catch (e) {}
+        window._hpsCumulativeChart = null;
+    }
+    (window._hpsTrendCharts || []).forEach(function (ch) {
+        if (ch && typeof ch.destroy === 'function') {
+            try { ch.destroy(); } catch (e) {}
+        }
+    });
+    window._hpsTrendCharts = [];
+}
+
+/**
+ * Placeholder metrics + series for Core HTP vs STP and FY26/FY27 (illustrative only).
+ */
+function getHPSPlaceholderConfig(mode, fy) {
+    const isStp = mode === 'stp';
+    const isFy26 = fy === 'FY26';
+    var scale = isFy26 ? 0.62 : 1;
+    if (isStp) scale *= 0.55;
+    var pred = 3.25 * scale;
+    var act = 0.48 * scale;
+    var variance = act - pred;
+    var achievement = pred > 0 ? ((act / pred) * 100) : 0;
+    var labelPrefix = isStp ? 'STP' : 'Core HTP';
+    var months = ['Feb', 'Mar', 'Apr', 'May', 'June', 'July', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan'];
+    var n = months.length;
+    function ramp(end) {
+        var out = [];
+        for (var i = 0; i < n; i++) out.push((end * i) / (n - 1));
+        return out;
+    }
+    var e1 = 1.15 * scale;
+    var e2 = 0.85 * scale;
+    var e3 = 0.55 * scale;
+    var stack = [
+        { name: labelPrefix + ' — Stream A', data: ramp(e1), color: '#3182ce' },
+        { name: labelPrefix + ' — Stream B', data: ramp(e2), color: '#059669' },
+        { name: labelPrefix + ' — Enablers', data: ramp(e3), color: '#f59e0b' }
+    ];
+    var predictedLine = months.map(function (_, i) { return (pred * i) / (n - 1); });
+    var t1o = ramp(0.9 * scale);
+    var t1a = ramp(0.35 * scale);
+    var t2o = ramp(0.7 * scale);
+    var t2a = ramp(0.28 * scale);
+    return {
+        months: months,
+        fyLabel: fy,
+        modeLabel: isStp ? 'STP' : 'Core HTP',
+        predicted: pred,
+        actual: act,
+        variance: variance,
+        achievement: achievement,
+        stack: stack,
+        predictedLine: predictedLine,
+        trends: [
+            { title: labelPrefix + ' — Initiative 1 (illustrative)', original: t1o, actuals: t1a },
+            { title: labelPrefix + ' — Initiative 2 (illustrative)', original: t2o, actuals: t2a }
+        ]
+    };
+}
+
+function renderHPSCumulativeChart(cfg) {
+    var ctx = document.getElementById('hps-cumulative-chart');
+    if (!ctx || typeof Chart === 'undefined') return;
+    var monthLabels = cfg.months;
+    var datasets = cfg.stack.map(function (s) {
+        return {
+            label: s.name.length > 42 ? s.name.substring(0, 42) + '…' : s.name,
+            data: s.data,
+            backgroundColor: s.color,
+            borderColor: s.color,
+            borderWidth: 1
+        };
+    });
+    datasets.push({
+        label: 'Predicted cumulative (plan)',
+        data: cfg.predictedLine,
+        type: 'line',
+        borderColor: '#9ca3af',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        fill: false,
+        pointRadius: 0,
+        order: 0,
+        yAxisID: 'y'
+    });
+    window._hpsCumulativeChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: monthLabels, datasets: datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: { family: "'Salesforce Sans', sans-serif", size: 11, weight: '500' },
+                        padding: 12,
+                        usePointStyle: true,
+                        boxWidth: 10
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function (context) {
+                            return (context.dataset.label || '') + ': ' + formatCurrency(context.parsed.y);
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    ticks: { font: { size: 10 }, color: '#4a5568' },
+                    grid: { display: false },
+                    title: { display: true, text: 'Month (FY)', font: { weight: '600' }, color: '#2c3e50' }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function (value) { return '$' + Number(value).toFixed(2) + 'M'; },
+                        font: { size: 10 },
+                        color: '#4a5568'
+                    },
+                    grid: { color: '#e2e8f0' },
+                    title: { display: true, text: 'Cumulative savings ($M)', font: { weight: '600' }, color: '#2c3e50' }
+                }
+            }
+        }
+    });
+}
+
+function renderHPSTrendCharts(cfg) {
+    var container = document.getElementById('hps-trend-charts-grid');
+    if (!container || typeof Chart === 'undefined') return;
+    container.innerHTML = '';
+    window._hpsTrendCharts = [];
+    var monthLabels = cfg.months;
+    var colors = [
+        { original: '#93c5fd', actuals: '#2563eb' },
+        { original: '#86efac', actuals: '#16a34a' }
+    ];
+    cfg.trends.forEach(function (t, index) {
+        var colorSet = colors[index % colors.length];
+        var wrap = document.createElement('div');
+        wrap.className = 'exec-chart-container';
+        wrap.style.marginTop = '0';
+        wrap.innerHTML =
+            '<h4 style="font-size:1.05rem;font-weight:600;color:#2c3e50;margin:0 0 0.75rem;text-align:center;line-height:1.35;">' +
+            t.title +
+            '</h4>' +
+            '<div style="position:relative;height:320px;"><canvas id="hps-trend-chart-' +
+            index +
+            '"></canvas></div>';
+        container.appendChild(wrap);
+        (function (idx, orig, act, cs) {
+            setTimeout(function () {
+                var c = document.getElementById('hps-trend-chart-' + idx);
+                if (!c) return;
+                var ch = new Chart(c, {
+                    type: 'line',
+                    data: {
+                        labels: monthLabels,
+                        datasets: [
+                            {
+                                label: 'Original estimate',
+                                data: orig,
+                                borderColor: cs.original,
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                fill: false,
+                                tension: 0.35,
+                                pointRadius: 3
+                            },
+                            {
+                                label: 'Actuals',
+                                data: act,
+                                borderColor: cs.actuals,
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.35,
+                                pointRadius: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'top' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        return (context.dataset.label || '') + ': ' + formatCurrency(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { maxRotation: 45, minRotation: 0 } },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: function (v) { return '$' + v.toFixed(2) + 'M'; } },
+                                title: { display: true, text: 'Savings ($M)' }
+                            }
+                        }
+                    }
+                });
+                window._hpsTrendCharts.push(ch);
+            }, 50 * (idx + 1));
+        })(index, t.original, t.actuals, colorSet);
+    });
+}
+
+/**
+ * Renders HPS Cost to Serve shell (tiles + cumulative + trends) for current FY and Core HTP / STP mode.
+ */
+function renderCostToServeHPSView() {
+    var root = document.getElementById('hps-cts-root');
+    if (!root) return;
+    var mode = window.costToServeHPSMode === 'stp' ? 'stp' : 'core-htp';
+    var fy = window.costToServeFY === 'FY26' ? 'FY26' : 'FY27';
+    var cfg = getHPSPlaceholderConfig(mode, fy);
+    var ach = Math.min(parseFloat(cfg.achievement.toFixed(2)), 999);
+    var varPct = cfg.predicted !== 0 ? ((cfg.variance / cfg.predicted) * 100).toFixed(2) : '0';
+
+    destroyCostToServeHPSCharts();
+
+    root.innerHTML =
+        '<p style="font-size:0.8125rem;color:#64748b;margin:0 0 1.25rem;line-height:1.5;">' +
+        '<strong>' +
+        cfg.fyLabel +
+        '</strong> · <strong>' +
+        cfg.modeLabel +
+        '</strong> — placeholder cumulative and trend charts (same patterns as HRP). Replace with HPS data source when available.' +
+        '</p>' +
+        '<div class="cts-hps-metric-grid">' +
+        '<div class="exec-metric-card" style="border-left-color:#3182ce;">' +
+        '<div class="exec-metric-label">Total predicted savings</div>' +
+        '<div class="exec-metric-value" style="color:#3182ce;">' +
+        formatCurrency(cfg.predicted) +
+        '</div>' +
+        '<div style="font-size:0.875rem;color:#718096;margin-top:0.5rem;">' +
+        cfg.fyLabel +
+        ' forecast (illustrative)</div></div>' +
+        '<div class="exec-metric-card" style="border-left-color:#059669;">' +
+        '<div class="exec-metric-label">Total actual savings</div>' +
+        '<div class="exec-metric-value" style="color:#059669;">' +
+        formatCurrency(cfg.actual) +
+        '</div>' +
+        '<div style="font-size:0.875rem;color:#718096;margin-top:0.5rem;">' +
+        cfg.fyLabel +
+        ' realized (illustrative)</div></div>' +
+        '<div class="exec-metric-card" style="border-left-color:#dc2626;">' +
+        '<div class="exec-metric-label">Variance</div>' +
+        '<div class="exec-metric-value" style="color:#dc2626;">' +
+        (cfg.variance < 0 ? '-' : '') +
+        formatCurrency(Math.abs(cfg.variance)) +
+        '</div>' +
+        '<div style="font-size:0.875rem;color:#718096;margin-top:0.5rem;">' +
+        varPct +
+        '% vs forecast</div></div>' +
+        '<div class="exec-metric-card" style="border-left-color:#7c3aed;">' +
+        '<div class="exec-metric-label">Achievement rate</div>' +
+        '<div class="exec-metric-value" style="color:#7c3aed;">' +
+        cfg.achievement.toFixed(2) +
+        '%</div>' +
+        '<div class="progress-bar"><div class="progress-fill" style="width:' +
+        Math.min(ach, 100) +
+        '%;"></div></div></div></div>' +
+        '<div class="exec-chart-container" style="margin-top:0;">' +
+        '<h3 style="font-size:1.25rem;font-weight:600;color:#2c3e50;margin-bottom:0.5rem;">HPS cumulative initiatives (illustrative)</h3>' +
+        '<p style="font-size:0.875rem;color:#718096;margin-bottom:1.25rem;">Monthly cumulative savings by workstream (stacked), with a planned cumulative line — same idea as FY26/FY27 HRP charts.</p>' +
+        '<div style="margin-bottom:1rem;"><canvas id="hps-cumulative-chart" style="max-height:420px;"></canvas></div></div>' +
+        '<div class="exec-chart-container" style="margin-top:2rem;">' +
+        '<h3 style="font-size:1.25rem;font-weight:600;color:#2c3e50;margin-bottom:0.5rem;">HPS initiative performance trends (illustrative)</h3>' +
+        '<p style="font-size:0.875rem;color:#718096;margin-bottom:1.5rem;">Original estimate vs actuals by initiative (small multiples).</p>' +
+        '<div id="hps-trend-charts-grid" class="cts-hps-trend-grid"></div></div>';
+
+    setTimeout(function () {
+        renderHPSCumulativeChart(cfg);
+        renderHPSTrendCharts(cfg);
+    }, 80);
+}
+
+window.renderCostToServeHPSView = renderCostToServeHPSView;
+window.destroyCostToServeHPSCharts = destroyCostToServeHPSCharts;

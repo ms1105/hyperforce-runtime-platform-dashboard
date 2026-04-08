@@ -1317,16 +1317,29 @@
                         </div>
                     </div>
                     
-                    <!-- Cost to Serve - HPS Tab -->
+                    <!-- Cost to Serve - HPS Tab (layout mirrors HRP; placeholder data until HPS feed exists) -->
                     <div class="tab-pane" id="cost-to-serve-hps">
+                        <div class="cts-under-development-banner" role="status">Under Development</div>
                         <div class="tab-header with-actions">
                             <div class="tab-header-text">
                                 <h2>💰 Cost to Serve - HPS</h2>
-                                <p>Cost analysis and optimization insights for HPS.</p>
+                                <p>Hyperforce Platform Services cost savings — same structure as Cost to Serve HRP (tiles, cumulative, trends). Data below is illustrative until HPS sources are connected.</p>
+                            </div>
+                            <div class="cts-header-toggles-hps">
+                                <div class="cts-fy-toggle" role="group" aria-label="Fiscal year">
+                                    <button type="button" class="cts-fy-btn active" data-fy="FY27" onclick="setCostToServeFY('FY27', this)">FY27</button>
+                                    <button type="button" class="cts-fy-btn" data-fy="FY26" onclick="setCostToServeFY('FY26', this)">FY26</button>
+                                </div>
+                                <div class="cts-hps-mode-toggle" role="group" aria-label="HPS program scope">
+                                    <button type="button" class="cts-hps-mode-btn active" data-mode="core-htp" onclick="setCostToServeHPSMode('core-htp', this)">Core HTP</button>
+                                    <button type="button" class="cts-hps-mode-btn" data-mode="stp" onclick="setCostToServeHPSMode('stp', this)">STP</button>
+                                </div>
                             </div>
                         </div>
                         <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                            <p style="color: #64748b; font-size: 1rem;">Content coming soon.</p>
+                            <div id="hps-cts-root">
+                                <p style="color: #64748b; font-size: 0.9375rem; margin: 0;">Open this tab to load the HPS preview layout.</p>
+                            </div>
                         </div>
                     </div>
                     
@@ -1411,6 +1424,17 @@
         
         // FY26/FY27 toggle state (used by cost-to-serve.js and Executive Summary). FY27 default.
         window.costToServeFY = 'FY27';
+        window.costToServeHPSMode = 'core-htp';
+
+        window.setCostToServeHPSMode = function(mode, clickedBtn) {
+            window.costToServeHPSMode = (mode === 'stp') ? 'stp' : 'core-htp';
+            document.querySelectorAll('.cts-hps-mode-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-mode') === window.costToServeHPSMode);
+            });
+            if (typeof window.renderCostToServeHPSView === 'function') {
+                try { window.renderCostToServeHPSView(); } catch (e) { console.warn('renderCostToServeHPSView', e); }
+            }
+        };
         
         window.setCostToServeFY = function(fy, clickedBtn) {
             window.costToServeFY = fy;
@@ -1420,6 +1444,9 @@
             // If Cost to Serve tab is rendered, re-render with new FY (charts can use window.costToServeFY)
             if (window.renderHCPCTSData && window._lastHcpCtsPayload) {
                 try { window.renderHCPCTSData(window._lastHcpCtsPayload); } catch (e) {}
+            }
+            if (window.fkpDashboard && window.fkpDashboard.state && window.fkpDashboard.state.currentTab === 'cost-to-serve-hps' && typeof window.renderCostToServeHPSView === 'function') {
+                try { window.renderCostToServeHPSView(); } catch (e) {}
             }
             // If Executive Summary is visible, re-render so Cost to Serve cards update
             if (window.fkpDashboard && window.fkpDashboard.state && window.fkpDashboard.state.currentTab === 'exec-summary' && typeof window.renderExecutiveSummary === 'function') {
@@ -1543,13 +1570,19 @@
                     if (execView) execView.style.display = 'none';
                     if (devView) devView.style.display = 'block';
                 }
-                // cost-to-serve-hps has its own pane content; no exec/dev view toggling
+                if (currentTab === 'cost-to-serve-hps' && typeof window.renderCostToServeHPSView === 'function') {
+                    try { window.renderCostToServeHPSView(); } catch (e) { console.warn('renderCostToServeHPSView', e); }
+                }
                 return;
             }
             if (hcpCtsLoadInProgress) return; // avoid duplicate fetch and loading spinner
             hcpCtsLoadInProgress = true;
             const loadingDiv = document.getElementById('hcp-cts-loading');
             if (loadingDiv) loadingDiv.style.display = 'block';
+            var ctBeforeFetch = (window.fkpDashboard && window.fkpDashboard.state && window.fkpDashboard.state.currentTab) || '';
+            if (ctBeforeFetch === 'cost-to-serve-hps' && typeof window.renderCostToServeHPSView === 'function') {
+                try { window.renderCostToServeHPSView(); } catch (e) {}
+            }
             try {
                 console.log('Fetching HCP CTS data...');
                 let data = null;
@@ -1570,6 +1603,10 @@
                     hcpCtsDataLoaded = true;
                     window._lastHcpCtsPayload = data;
                     renderHCPCTSData(data);
+                    var tabAfter = (window.fkpDashboard && window.fkpDashboard.state && window.fkpDashboard.state.currentTab) || '';
+                    if (tabAfter === 'cost-to-serve-hps' && typeof window.renderCostToServeHPSView === 'function') {
+                        try { window.renderCostToServeHPSView(); } catch (e) {}
+                    }
                 } else throw new Error('No data received');
             } catch (error) {
                 console.error('Error loading HCP CTS data:', error);
@@ -1609,6 +1646,8 @@
                                 const devView = document.getElementById('cost-to-serve-developers-view');
                                 if (execView) execView.style.display = 'none';
                                 if (devView) devView.style.display = 'block';
+                            } else if (currentTab === 'cost-to-serve-hps' && typeof window.renderCostToServeHPSView === 'function') {
+                                try { window.renderCostToServeHPSView(); } catch (e) {}
                             }
                         }
                     });
@@ -1631,6 +1670,6 @@
     </script>
     
     <!-- Cost to Serve JavaScript Functions -->
-    <script src="assets/js/cost-to-serve.js?v=20250409"></script>
+    <script src="assets/js/cost-to-serve.js?v=20250407-hps"></script>
 </body>
 </html>

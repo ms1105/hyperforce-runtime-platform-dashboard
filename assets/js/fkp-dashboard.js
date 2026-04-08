@@ -819,7 +819,7 @@ async function loadAllData() {
  * Parse CSV text into array of objects
  */
 function parseCSV(text, hasHeader = true) {
-    const lines = text.trim().split('\n');
+    const lines = text.trim().replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(line => line.length > 0);
     if (lines.length === 0) return [];
     
     if (!hasHeader) {
@@ -2336,25 +2336,26 @@ async function renderExecutiveSummary() {
         const tier0AzDistribRate = tier0Total > 0 ? ((tier0AzDistrib / tier0Total) * 100) : 0;
         const tier1AzDistribRate = tier1Total > 0 ? ((tier1AzDistrib / tier1Total) * 100) : 0;
 
-        // Runtime Scale metrics (Karpenter)
-        const filteredKarpenter = filterKarpenterData(karpenterData.mainSummary || [], true);
-        const calcGroupedAvg = (data, groupBy) => {
-            if (!data || data.length === 0) return 0;
-            const byGroup = {};
-            data.forEach(r => {
-                const key = r[groupBy] || 'unknown';
-                if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
-                byGroup[key].sum += parseFloat(r.avg_cpu || 0);
-                byGroup[key].count += 1;
-            });
-            const groups = Object.values(byGroup).filter(g => g.count > 0);
-            if (!groups.length) return 0;
-            const groupAvgs = groups.map(g => g.sum / g.count);
-            return groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length;
-        };
-        const avgFi = calcGroupedAvg(filteredKarpenter, 'falcon_instance');
-        const avgFd = calcGroupedAvg(filteredKarpenter, 'functional_domain');
-        const avgCluster = calcGroupedAvg(filteredKarpenter, 'cluster');
+        // Runtime Scale metrics (Karpenter): latest month only, all statuses — same definitions as Karpenter tab (mean of group means)
+        const kpBase = (karpenterData.mainSummary || []).filter(r => {
+            const env = String(r.environment || '').trim().toLowerCase();
+            return env && env !== 'other';
+        });
+        const karpMonthCodes = [...new Set(kpBase.map(r => r.month))].filter(Boolean)
+            .sort((a, b) => String(a).localeCompare(String(b)));
+        const karpLatestMonth = karpMonthCodes.length ? karpMonthCodes[karpMonthCodes.length - 1] : null;
+        const execKarpenterRows = karpLatestMonth
+            ? kpBase.filter(r => (r.month || r.Month || r.month_code) === karpLatestMonth)
+            : kpBase;
+        const karpYear = karpLatestMonth && String(karpLatestMonth).includes('-')
+            ? String(karpLatestMonth).slice(0, 4)
+            : '';
+        const karpExecMonthSub = execKarpenterRows.length && execKarpenterRows[0].month_name
+            ? `${execKarpenterRows[0].month_name}${karpYear ? ' ' + karpYear : ''} (latest)`
+            : 'Latest month';
+        const avgFi = computeKarpenterMeanOfGroupMeans(execKarpenterRows, 'falcon_instance');
+        const avgFd = computeKarpenterMeanOfGroupMeans(execKarpenterRows, 'functional_domain');
+        const avgCluster = computeKarpenterMeanOfGroupMeans(execKarpenterRows, 'cluster');
 
         // Cost to Serve: FY27 totals from summaryFY27 (source: fy27-hcp-cost-savings-forecast-vs-actuals.csv / Dashboard B3+C3); FY26 from summary
         const costToServeFY = (typeof window.costToServeFY !== 'undefined' ? window.costToServeFY : 'FY27');
@@ -2774,21 +2775,21 @@ async function renderExecutiveSummary() {
                         ${kpiCard({
                             title: 'Avg. CPU Allocation rate - FI',
                             value: `${avgFi.toFixed(1)}%`,
-                            sub: 'Avg across FI',
+                            sub: `Avg across FI · ${karpExecMonthSub}`,
                             valueClass: 'text-green',
                             onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
                         ${kpiCard({
                             title: 'Avg. CPU Allocation rate - FD',
                             value: `${avgFd.toFixed(1)}%`,
-                            sub: 'Avg across FD',
+                            sub: `Avg across FD · ${karpExecMonthSub}`,
                             valueClass: 'text-green',
                             onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
                         ${kpiCard({
                             title: 'Avg. CPU Allocation rate - Cluster',
                             value: `${avgCluster.toFixed(1)}%`,
-                            sub: 'Avg across clusters',
+                            sub: `Avg across clusters · ${karpExecMonthSub}`,
                             valueClass: 'text-green',
                             onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
@@ -12242,41 +12243,24 @@ function buildKarpenterRowsFromMonthlyCSV(csvText, monthCode, monthName) {
     });
 }
 
-/** Monthly files from Cpu allocation rate monthly files: Apr 2025 through Feb 2026 (source of truth for Karpenter). Jan/Feb use Full file when present (has both Karpenter_Enabled and Karpenter_Disabled). */
-const KARPENTER_MONTHLY_FILES = [
-    { file: 'April%20cpu%20allocation%20rate%202025.csv', month: '2025-04', monthName: 'April' },
-    { file: 'May%20cpu%20allocation%20rate%202025.csv', month: '2025-05', monthName: 'May' },
-    { file: 'June%20cpu%20allocation%20rate%202025.csv', month: '2025-06', monthName: 'June' },
-    { file: 'July%20cpu%20allocation%20rate%202025.csv', month: '2025-07', monthName: 'July' },
-    { file: 'August%20cpu%20allocation%20rate%202025.csv', month: '2025-08', monthName: 'August' },
-    { file: 'Sep%20cpu%20allocation%20rate%202025.csv', month: '2025-09', monthName: 'September' },
-    { file: 'Oct%20cpu%20allocation%20rate%202025.csv', month: '2025-10', monthName: 'October' },
-    { file: 'Nov%20cpu%20allocation%20rate%202025.csv', month: '2025-11', monthName: 'November' },
-    { file: 'Dec%20cpu%20allocation%20rate%202025.csv', month: '2025-12', monthName: 'December' },
-    { file: 'Jan%20cpu%20allocation%20rate%202026.csv', month: '2026-01', monthName: 'January', fullFile: 'Jan%20Full%20Karpenter%20file.csv' },
-    { file: 'Feb%20cpu%20allocation%20rate%202026.csv', month: '2026-02', monthName: 'February', fullFile: 'Feb%20Full%20Karpenter%20file.csv' },
-    { file: 'Mar%20cpu%20allocation%20rate%202026.csv', month: '2026-03', monthName: 'March', fullFile: '2026%20March%20Full%20Karpenter%20File.csv' }
-];
-
-// Source of truth full files (covers 2025-03 through 2026-03).
+// Karpenter / bin-packing: CSVs exported from Apple Numbers only (Apr 2025–Mar 2026 workbooks in Bin-packing Overall/).
+// Do not use "Cpu allocation rate monthly files" or pre-aggregated main_summary.csv for this tab — those sources had incorrect GCP-FI data.
+// Regenerate: python3 scripts/export_karpenter_numbers_to_csv.py
 const KARPENTER_FULL_FILES = [
-    { month: '2025-03', monthName: 'March', files: ['2025%20March%20Karpenter%20Full%20File.csv'] },
     { month: '2025-04', monthName: 'April', files: ['2025%20April%20Karpenter%20Full%20File.csv'] },
     { month: '2025-05', monthName: 'May', files: ['2025%20May%20Karpenter%20Full%20File.csv'] },
     { month: '2025-06', monthName: 'June', files: ['2025%20June%20Full%20Karpenter%20File.csv'] },
-    { month: '2025-07', monthName: 'July', files: ['2025%20July%20Full%20Karpenter%20file.csv', '2025%20July%20Full%20Karpenter%20File.csv'] },
-    { month: '2025-08', monthName: 'August', files: ['2025%20August%20Full%20Karpenter%20file.csv', '2025%20August%20Full%20Karpenter%20File.csv'] },
+    { month: '2025-07', monthName: 'July', files: ['2025%20July%20Full%20Karpenter%20file.csv'] },
+    { month: '2025-08', monthName: 'August', files: ['2025%20August%20Full%20Karpenter%20file.csv'] },
     { month: '2025-09', monthName: 'September', files: ['2025%20Sep%20Full%20Karpenter%20File.csv'] },
     { month: '2025-10', monthName: 'October', files: ['2025%20Oct%20Full%20Karpenter%20File.csv'] },
     { month: '2025-11', monthName: 'November', files: ['2025%20Nov%20Full%20Karpenter%20File.csv'] },
     { month: '2025-12', monthName: 'December', files: ['2025%20Dec%20Full%20Karpenter%20File.csv'] },
-    { month: '2026-01', monthName: 'January', files: ['2026%20Jan%20Full%20Karpenter%20File.csv', 'Jan%20Full%20Karpenter%20file.csv'] },
-    { month: '2026-02', monthName: 'February', files: ['2026%20Feb%20Full%20Karpenter%20file.csv', '2026%20Feb%20Full%20Karpenter%20File.csv', 'Feb%20Full%20Karpenter%20file.csv'] },
-    { month: '2026-03', monthName: 'March', files: ['2026%20March%20Full%20Karpenter%20File.csv', '2026%20March%20Full%20Karpenter%20file.csv'] }
+    { month: '2026-01', monthName: 'January', files: ['2026%20Jan%20Full%20Karpenter%20File.csv'] },
+    { month: '2026-02', monthName: 'February', files: ['2026%20Feb%20Full%20Karpenter%20file.csv'] },
+    { month: '2026-03', monthName: 'March', files: ['2026%20March%20Full%20Karpenter%20File.csv'] }
 ];
 
-// Source: Cpu allocation rate monthly files. Try root folder first (has Jan/Feb Full Karpenter files with both statuses), then assets/data.
-const KARPENTER_MONTHLY_BASES = ['Cpu%20allocation%20rate%20monthly%20files/', 'assets/data/Cpu%20allocation%20rate%20monthly%20files/', '/api/karpenter-monthly/'];
 const KARPENTER_FULL_BASES = ['Bin-packing%20Overall/', 'assets/data/Bin-packing%20Overall/'];
 
 /**
@@ -12441,6 +12425,8 @@ async function loadKarpenterData() {
             karpenterData.fiSummary = [];
             karpenterData.fdSummary = [];
             karpenterData.loaded = true;
+            // Full files include karpenter_status per row (Karpenter_Enabled / Karpenter_Disabled) — do not use enabled-cluster sidecar list.
+            karpenterData.enabledClusterSet = new Set();
             console.log('✅ Karpenter data loaded from Bin-packing Overall:', {
                 main: karpenterData.mainSummary.length,
                 months: monthsSorted.length
@@ -12449,185 +12435,11 @@ async function loadKarpenterData() {
             return;
         }
     } catch (e) {
-        console.log('📦 Bin-packing Overall load failed, falling back:', e.message);
+        console.log('📦 Bin-packing Overall load failed:', e.message);
     }
-    
-    // Source of truth: Cpu allocation rate monthly files folder (Apr 2025 - Feb 2026). cluster_packing_percent = avg. CPU allocation rate %, 2 decimals.
-    try {
-        let allRows = [];
-        let seenFi = new Set();
-        let seenFd = new Set();
-        let seenEnv = new Set();
-        let seenCluster = new Set();
-        let seenMonths = new Set();
-        let failedMonths = [];
-        for (const base of KARPENTER_MONTHLY_BASES) {
-            const results = await Promise.allSettled(
-                KARPENTER_MONTHLY_FILES.map(async ({ file, month, monthName, fullFile }) => {
-                    // For Jan/Feb try Full Karpenter file (has karpenter_status) from every base so Disabled view has data
-                    if (fullFile) {
-                        for (const b of KARPENTER_MONTHLY_BASES) {
-                            try {
-                                const r = await fetch(b + fullFile);
-                                if (r.ok) {
-                                    const text = await r.text();
-                                    const rows = buildKarpenterRowsFromMonthlyCSV(text, month, monthName);
-                                    if (rows.length > 0) return rows;
-                                }
-                            } catch (_) { /* try next base */ }
-                        }
-                    }
-                    const r = await fetch(base + file);
-                    if (!r.ok) throw new Error(r.status);
-                    const text = await r.text();
-                    return buildKarpenterRowsFromMonthlyCSV(text, month, monthName);
-                })
-            );
-            allRows = [];
-            seenFi = new Set();
-            seenFd = new Set();
-            seenEnv = new Set();
-            seenCluster = new Set();
-            seenMonths = new Set();
-            failedMonths = [];
-            results.forEach((result, i) => {
-                const { monthName } = KARPENTER_MONTHLY_FILES[i];
-                if (result.status === 'fulfilled' && Array.isArray(result.value) && result.value.length > 0) {
-                    allRows.push(...result.value);
-                    result.value.forEach(r => {
-                        if (r.falcon_instance) seenFi.add(r.falcon_instance);
-                        if (r.functional_domain) seenFd.add(r.functional_domain);
-                        if (r.environment) seenEnv.add(r.environment);
-                        if (r.cluster) seenCluster.add(r.cluster);
-                        if (r.month) seenMonths.add(r.month);
-                    });
-                } else if (result.status === 'rejected') {
-                    failedMonths.push(monthName + ' ' + (result.reason?.message || result.reason));
-                }
-            });
-            // Use this base if we got any data (at least one month); otherwise try next base
-            const expectedMonthCount = KARPENTER_MONTHLY_FILES.length;
-            if (allRows.length > 0 && seenMonths.size >= 1) {
-                break;
-            }
-            if (allRows.length > 0 && seenMonths.size < expectedMonthCount && failedMonths.length > 0) {
-                console.log('📦 Karpenter: base returned only ' + seenMonths.size + ' months (missing: ' + failedMonths.join(', ') + '), trying next base');
-            }
-        }
-        if (failedMonths.length > 0) {
-            console.log('📦 Karpenter (Cpu allocation rate monthly files): failed months:', failedMonths);
-        }
-        if (allRows.length > 0) {
-            const monthsSorted = [...seenMonths].sort();
-            karpenterData.mainSummary = allRows;
-            karpenterData.clusterSummary = allRows.slice();
-            karpenterData.filterOptions = {
-                falcon_instances: [...seenFi].sort(),
-                functional_domains: [...seenFd].sort(),
-                environments: [...seenEnv].sort(),
-                clusters: [...seenCluster].sort(),
-                months: monthsSorted
-            };
-            const avgCpuOverall = allRows.reduce((s, r) => s + r.avg_cpu, 0) / allRows.length;
-            karpenterData.monthlySummary = monthsSorted.map(m => {
-                const monthRows = allRows.filter(r => r.month === m);
-                const name = monthRows[0]?.month_name || m;
-                const avg = monthRows.length ? monthRows.reduce((s, r) => s + r.avg_cpu, 0) / monthRows.length : 0;
-                return { month: m, month_name: name, avg_cpu: roundAvgCpuPercent(avg) };
-            });
-            karpenterData.clusterTrend = karpenterData.monthlySummary.slice();
-            karpenterData.environmentSummary = [];
-            karpenterData.fiSummary = [];
-            karpenterData.fdSummary = [];
-            karpenterData.loaded = true;
-            console.log('✅ Karpenter data loaded from Cpu allocation rate monthly files (Apr 2025 - Feb 2026):', {
-                main: karpenterData.mainSummary.length,
-                months: monthsSorted.length,
-                filterOptions: Object.keys(karpenterData.filterOptions)
-            });
-            console.log('📦 Months in filterOptions:', karpenterData.filterOptions.months);
-            // Load enabled clusters list so "Karpenter Disabled" = clusters not in list (shows data)
-            try {
-                const enabledResp = await fetch('assets/data/karpenter/karpenter_enabled_clusters.csv');
-                if (enabledResp.ok) {
-                    const enabledText = await enabledResp.text();
-                    const enabledRows = parseCSV(enabledText);
-                    const clusterCol = enabledRows[0] && (enabledRows[0].k8s_cluster != null) ? 'k8s_cluster' : 'cluster';
-                    karpenterData.enabledClusterSet = new Set(enabledRows.map(r => (r[clusterCol] || r.k8s_cluster || '').trim()).filter(Boolean));
-                    console.log('📦 Karpenter enabled clusters loaded (monthly path):', karpenterData.enabledClusterSet.size);
-                } else {
-                    karpenterData.enabledClusterSet = new Set();
-                }
-            } catch (e) {
-                karpenterData.enabledClusterSet = new Set();
-            }
-            populateKarpenterFilters();
-            return;
-        }
-    } catch (e) {
-        console.log('📦 Monthly files not used, falling back to karpenter assets:', e.message);
-    }
-    
-    try {
-        const baseUrl = 'assets/data/karpenter';
-        
-        const [main, monthly, env, cluster, fi, fd, filters, trend] = await Promise.all([
-            fetch(`${baseUrl}/main_summary.csv`).then(r => r.text()),
-            fetch(`${baseUrl}/monthly_summary.csv`).then(r => r.text()),
-            fetch(`${baseUrl}/environment_summary.csv`).then(r => r.text()),
-            fetch(`${baseUrl}/cluster_summary.csv`).then(r => r.text()),
-            fetch(`${baseUrl}/fi_summary.csv`).then(r => r.text()),
-            fetch(`${baseUrl}/fd_summary.csv`).then(r => r.text()),
-            fetch(`${baseUrl}/filter_options.json`).then(r => r.json()),
-            fetch(`${baseUrl}/cluster_trend.csv`).then(r => r.text())
-        ]);
-        
-        karpenterData.mainSummary = parseCSV(main);  // Comprehensive data with all filter columns
-        // Normalize avg_cpu to 0-100 so production never shows >100% (fallback CSV may have bad values)
-        karpenterData.mainSummary = karpenterData.mainSummary.map(r => {
-            const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0) || 0;
-            const capped = Math.min(100, Math.max(0, raw));
-            return { ...r, avg_cpu: capped, avgCpu: capped };
-        });
-        karpenterData.monthlySummary = parseCSV(monthly);
-        karpenterData.environmentSummary = parseCSV(env);
-        karpenterData.clusterSummary = parseCSV(cluster);
-        karpenterData.fiSummary = parseCSV(fi);
-        karpenterData.fdSummary = parseCSV(fd);
-        karpenterData.filterOptions = filters;
-        karpenterData.clusterTrend = parseCSV(trend);
-        karpenterData.loaded = true;
-        
-        console.log('✅ Karpenter data loaded:', {
-            main: karpenterData.mainSummary.length,
-            months: karpenterData.monthlySummary.length,
-            clusters: karpenterData.clusterSummary.length,
-            filterOptions: Object.keys(karpenterData.filterOptions)
-        });
-        console.log('📦 Months in filterOptions:', karpenterData.filterOptions.months);
-        
-        // Load Karpenter enabled clusters list for Exec view toggle (optional)
-        try {
-            const enabledResp = await fetch(`${baseUrl}/karpenter_enabled_clusters.csv`);
-            if (enabledResp.ok) {
-                const enabledText = await enabledResp.text();
-                const enabledRows = parseCSV(enabledText);
-                const clusterCol = enabledRows[0] && (enabledRows[0].k8s_cluster != null) ? 'k8s_cluster' : 'cluster';
-                karpenterData.enabledClusterSet = new Set(enabledRows.map(r => (r[clusterCol] || r.k8s_cluster || '').trim()).filter(Boolean));
-                console.log('📦 Karpenter enabled clusters loaded:', karpenterData.enabledClusterSet.size);
-            } else {
-                karpenterData.enabledClusterSet = new Set();
-            }
-        } catch (e) {
-            karpenterData.enabledClusterSet = new Set();
-        }
-        
-        // Populate filter dropdowns
-        populateKarpenterFilters();
-        
-    } catch (error) {
-        console.error('❌ Error loading Karpenter data:', error);
-    }
+
+    karpenterData.loaded = false;
+    console.error('❌ Karpenter: No Bin-packing Overall data loaded. Export CSVs from the Apr 2025–Mar 2026 Karpenter Full Numbers workbooks into Bin-packing Overall/ or assets/data/Bin-packing Overall/ (python3 scripts/export_karpenter_numbers_to_csv.py). Legacy Cpu-allocation and main_summary sources are not used.');
 }
 
 /**
@@ -12771,6 +12583,69 @@ function resetKarpenterFilters() {
 }
 
 /**
+ * Interpret karpenter_status from Full Karpenter CSVs (e.g. Karpenter_Enabled / Karpenter_Disabled).
+ * Used by Exec filters, pie chart (FI+FD+cluster triples), and "All" toggle averages.
+ */
+function isKarpenterStatusEnabledFromString(statusRaw) {
+    const status = String(statusRaw || '').trim().toLowerCase();
+    if (!status) return false;
+    return status === 'karpenter_enabled' || status === 'karpenter enabled'
+        || (status.includes('enabled') && !status.includes('disabled'));
+}
+
+/** Dimension key for FI / FD / env / cluster (must match Karpenter exec cards; never use raw r[groupBy] alone). */
+function resolveKarpenterGroupKey(row, groupBy) {
+    if (groupBy === 'falcon_instance') {
+        const v = row.falcon_instance || row.falconInstance || row.FI || row.fi || row.falcon_instance_name;
+        return String(v != null ? v : 'unknown').trim() || 'unknown';
+    }
+    if (groupBy === 'functional_domain') {
+        const v = row.functional_domain || row.functionalDomain || row.FD || row.fd;
+        return String(v != null ? v : 'unknown').trim() || 'unknown';
+    }
+    if (groupBy === 'environment') {
+        const v = row.environment || row.Environment || row.env || row.Env;
+        return String(v != null ? v : 'unknown').trim().toLowerCase() || 'unknown';
+    }
+    if (groupBy === 'cluster') {
+        const v = row.cluster || row.Cluster || row.k8s_cluster || row.k8sCluster || row.cluster_name;
+        return String(v != null ? v : 'unknown').trim() || 'unknown';
+    }
+    const f = row[groupBy];
+    return String(f != null ? f : 'unknown').trim() || 'unknown';
+}
+
+/**
+ * Executive summary & Karpenter: average of per-group means. Falls back to flat row mean if result is non-physical.
+ */
+function computeKarpenterMeanOfGroupMeans(rows, groupBy) {
+    if (!rows || rows.length === 0) return 0;
+    const byGroup = {};
+    rows.forEach(r => {
+        const key = resolveKarpenterGroupKey(r, groupBy);
+        if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
+        let v = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+        if (!Number.isFinite(v)) v = 0;
+        v = Math.max(0, Math.min(200, v));
+        byGroup[key].sum += v;
+        byGroup[key].count += 1;
+    });
+    const groups = Object.values(byGroup).filter(g => g.count > 0);
+    if (!groups.length) return 0;
+    const groupAvgs = groups.map(g => g.sum / g.count);
+    const raw = (groupAvgs.reduce((a, b) => a + b, 0)) / groupAvgs.length;
+    let out = raw;
+    if (!Number.isFinite(out) || out > 150 || out < 0) {
+        const flat = rows.map(r => {
+            const x = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+            return Number.isFinite(x) ? Math.max(0, Math.min(200, x)) : null;
+        }).filter(x => x !== null);
+        out = flat.length ? flat.reduce((a, b) => a + b, 0) / flat.length : 0;
+    }
+    return Math.min(100, Math.max(0, out));
+}
+
+/**
  * Filter Karpenter data based on current filter state
  * Duration filter: 7 = last 1 month, 15 = last 2 months, 30 = all months (by month code order)
  * @param {boolean} applyDuration - If false, duration filter is skipped (used for trend chart so all months show)
@@ -12806,11 +12681,10 @@ function filterKarpenterData(data, includeMonth = true, applyDuration = true) {
         if (toggle !== 'all') {
             const rowCluster = (row.cluster || row.Cluster || row.k8s_cluster || row.k8sCluster || row.cluster_name || '').trim();
             const statusRaw = (row.karpenter_status || '').trim();
-            const status = statusRaw.toLowerCase();
             let isEnabled;
             // Prefer row-level karpenter_status when present (e.g. from Full Karpenter files)
-            if (status !== '') {
-                isEnabled = status === 'karpenter_enabled' || status === 'karpenter enabled';
+            if (statusRaw !== '') {
+                isEnabled = isKarpenterStatusEnabledFromString(statusRaw);
             } else if (karpenterData.enabledClusterSet && karpenterData.enabledClusterSet.size > 0) {
                 isEnabled = rowCluster && karpenterData.enabledClusterSet.has(rowCluster);
             } else {
@@ -12861,8 +12735,11 @@ async function renderKarpenter() {
     }
     
     if (!karpenterData.loaded) {
-        console.log('⚠️ Karpenter data not loaded, showing loading message');
-        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #64748b;">Loading Karpenter data...</div>';
+        console.log('⚠️ Karpenter data not loaded');
+        container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #64748b; max-width: 36rem; margin: 0 auto;">' +
+            '<p style="margin:0 0 0.75rem;font-weight:600;color:#0f172a;">Karpenter data not available</p>' +
+            '<p style="margin:0;font-size:0.9rem;line-height:1.5;">Bin-packing uses CSVs exported from the <strong>Apr 2025–Mar 2026 Karpenter Full</strong> Numbers workbooks only. Place them under <code>Bin-packing Overall/</code> or <code>assets/data/Bin-packing Overall/</code>, or run <code>python3 scripts/export_karpenter_numbers_to_csv.py</code>.</p>' +
+            '</div>';
         return;
     }
     
@@ -12955,16 +12832,17 @@ function renderKarpenterExecView(container) {
         // Group by the dimension
         const byGroup = {};
         data.forEach(r => {
-            const key = r[groupBy] || 'unknown';
+            const key = resolveKarpenterGroupKey(r, groupBy);
             if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
-            byGroup[key].sum += parseFloat(r.avg_cpu || 0);
+            const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
+            byGroup[key].sum += Number.isFinite(raw) ? Math.max(0, raw) : 0;
             byGroup[key].count += 1;
         });
         
         // Calculate average for each group, then average those
         const groups = Object.values(byGroup);
         const groupAvgs = groups.map(g => g.sum / g.count);
-        return groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length;
+        return (groupAvgs.reduce((a, b) => a + b, 0)) / groupAvgs.length;
     };
     
     // Helper to calculate weighted average grouped by a dimension
@@ -12974,27 +12852,16 @@ function renderKarpenterExecView(container) {
         
         const byGroup = {};
         data.forEach(r => {
-            let key = 'unknown';
-            if (groupBy === 'falcon_instance') {
-                key = r.falcon_instance || r.falconInstance || r.FI || r.fi || r.falcon_instance_name || 'unknown';
-            } else if (groupBy === 'functional_domain') {
-                key = r.functional_domain || r.functionalDomain || r.FD || r.fd || 'unknown';
-            } else if (groupBy === 'environment') {
-                key = (r.environment || r.Environment || r.env || r.Env || 'unknown').toLowerCase();
-            } else if (groupBy === 'cluster') {
-                key = r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || 'unknown';
-            } else {
-                key = r[groupBy] || 'unknown';
-            }
+            const key = resolveKarpenterGroupKey(r, groupBy);
             if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
             const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-            const nonNegative = Math.max(0, raw);
+            const nonNegative = Number.isFinite(raw) ? Math.max(0, raw) : 0;
             byGroup[key].sum += nonNegative;
             byGroup[key].count += 1;
         });
         const groupAvgs = Object.values(byGroup).map(g => g.sum / g.count);
         const rawCardAvg = groupAvgs.length > 0
-            ? groupAvgs.reduce((a, b) => a + b, 0) / groupAvgs.length
+            ? (groupAvgs.reduce((a, b) => a + b, 0)) / groupAvgs.length
             : null;
         const cardAvg = rawCardAvg !== null ? Math.min(100, Math.max(0, rawCardAvg)).toFixed(2) : '--';
         
@@ -13003,19 +12870,14 @@ function renderKarpenterExecView(container) {
         if (dataPrevMonth && dataPrevMonth.length > 0) {
             const byGroupPrev = {};
             dataPrevMonth.forEach(r => {
-                let key = 'unknown';
-                if (groupBy === 'falcon_instance') key = r.falcon_instance || r.falconInstance || r.FI || r.fi || r.falcon_instance_name || 'unknown';
-                else if (groupBy === 'functional_domain') key = r.functional_domain || r.functionalDomain || r.FD || r.fd || 'unknown';
-                else if (groupBy === 'environment') key = (r.environment || r.Environment || r.env || r.Env || 'unknown').toLowerCase();
-                else if (groupBy === 'cluster') key = r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || 'unknown';
-                else key = r[groupBy] || 'unknown';
+                const key = resolveKarpenterGroupKey(r, groupBy);
                 if (!byGroupPrev[key]) byGroupPrev[key] = { sum: 0, count: 0 };
                 const raw = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-                byGroupPrev[key].sum += Math.max(0, raw);
+                byGroupPrev[key].sum += Number.isFinite(raw) ? Math.max(0, raw) : 0;
                 byGroupPrev[key].count += 1;
             });
             const prevGroupAvgs = Object.values(byGroupPrev).map(g => g.sum / g.count);
-            const prevAvg = prevGroupAvgs.length > 0 ? prevGroupAvgs.reduce((a, b) => a + b, 0) / prevGroupAvgs.length : 0;
+            const prevAvg = prevGroupAvgs.length > 0 ? (prevGroupAvgs.reduce((a, b) => a + b, 0)) / prevGroupAvgs.length : 0;
             if (prevAvg > 0 && rawCardAvg !== null) {
                 trend = ((rawCardAvg - prevAvg) / prevAvg) * 100;
             }
@@ -13056,13 +12918,10 @@ function renderKarpenterExecView(container) {
     // matching the exec pivot expectation for March.
     const splitByStatusAvg = (rows) => {
         if (!rows || rows.length === 0) return null;
-        const enabledRows = rows.filter(r => {
-            const s = String(r.karpenter_status || '').trim().toLowerCase();
-            return s === 'karpenter_enabled' || s === 'karpenter enabled';
-        });
+        const enabledRows = rows.filter(r => isKarpenterStatusEnabledFromString(r.karpenter_status));
         const disabledRows = rows.filter(r => {
-            const s = String(r.karpenter_status || '').trim().toLowerCase();
-            return s === 'karpenter_disabled' || s === 'karpenter disabled';
+            const s = String(r.karpenter_status || '').trim();
+            return s !== '' && !isKarpenterStatusEnabledFromString(r.karpenter_status);
         });
         const enabledAvg = calcOverallAvg(enabledRows);
         const disabledAvg = calcOverallAvg(disabledRows);
@@ -13192,8 +13051,7 @@ function renderKarpenterExecView(container) {
         const cl = (r.cluster || r.Cluster || r.k8s_cluster || r.k8sCluster || r.cluster_name || '').trim();
         if (!fi && !fd && !cl) return;
         const key = `${fi}||${fd}||${cl}`;
-        const status = String(r.karpenter_status || '').trim().toLowerCase();
-        const isEnabled = status === 'karpenter_enabled' || status === 'karpenter enabled';
+        const isEnabled = isKarpenterStatusEnabledFromString(r.karpenter_status);
         const prev = clusterTripleStatusMap.get(key) || { enabled: 0, disabled: 0 };
         if (isEnabled) prev.enabled += 1;
         else prev.disabled += 1;

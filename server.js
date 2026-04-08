@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Karpenter monthly data: serve from this folder (absolute path; override with KARPENTER_MONTHLY_DIR env)
+// Legacy: optional CSV directory for GET /api/karpenter-monthly/:filename (HRP360 Karpenter tab uses Bin-packing Overall/ only).
 const KARPENTER_MONTHLY_DIR = process.env.KARPENTER_MONTHLY_DIR || path.join(__dirname, 'Cpu allocation rate monthly files');
 
 // Enable CORS
@@ -66,7 +66,7 @@ const apiProxy = createProxyMiddleware({
   }
 });
 
-// Serve Karpenter monthly CSV files from KARPENTER_MONTHLY_DIR (before generic /api proxy)
+// Optional legacy route (dashboard does not use this for Karpenter; see fkp-dashboard.js KARPENTER_FULL_BASES)
 app.get('/api/karpenter-monthly/:filename', (req, res) => {
   const filename = decodeURIComponent(req.params.filename);
   if (!filename || filename.includes('..')) {

@@ -2336,7 +2336,7 @@ async function renderExecutiveSummary() {
         const tier0AzDistribRate = tier0Total > 0 ? ((tier0AzDistrib / tier0Total) * 100) : 0;
         const tier1AzDistribRate = tier1Total > 0 ? ((tier1AzDistrib / tier1Total) * 100) : 0;
 
-        // Runtime Scale metrics (Karpenter): latest month only, all statuses — same definitions as Karpenter tab (mean of group means)
+        // Runtime Scale metrics (Karpenter): latest month only, all statuses — one overall row-weighted avg (same pool as Karpenter tab calcOverallAvg)
         const kpBase = (karpenterData.mainSummary || []).filter(r => {
             const env = String(r.environment || '').trim().toLowerCase();
             return env && env !== 'other';
@@ -2353,9 +2353,21 @@ async function renderExecutiveSummary() {
         const karpExecMonthSub = execKarpenterRows.length && execKarpenterRows[0].month_name
             ? `${execKarpenterRows[0].month_name}${karpYear ? ' ' + karpYear : ''} (latest)`
             : 'Latest month';
-        const avgFi = computeKarpenterMeanOfGroupMeans(execKarpenterRows, 'falcon_instance');
-        const avgFd = computeKarpenterMeanOfGroupMeans(execKarpenterRows, 'functional_domain');
-        const avgCluster = computeKarpenterMeanOfGroupMeans(execKarpenterRows, 'cluster');
+        const execKarpRowWeightedPct = (rows) => {
+            if (!rows || rows.length === 0) return null;
+            const raw = computeRobustAvgCpu(rows.map(r => r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0));
+            if (raw == null) return null;
+            return Math.min(100, Math.max(0, raw));
+        };
+        const execKarpRowsEnabled = execKarpenterRows.filter(r => isKarpenterStatusEnabledFromString(r.karpenter_status));
+        const execKarpRowsDisabled = execKarpenterRows.filter(r => {
+            const s = String(r.karpenter_status || '').trim();
+            return s !== '' && !isKarpenterStatusEnabledFromString(r.karpenter_status);
+        });
+        const execKarpOverallPct = execKarpRowWeightedPct(execKarpenterRows);
+        const execKarpEnabledPct = execKarpRowWeightedPct(execKarpRowsEnabled);
+        const execKarpDisabledPct = execKarpRowWeightedPct(execKarpRowsDisabled);
+        const fmtExecKarpPct = (p) => (p != null && Number.isFinite(p) ? `${p.toFixed(1)}%` : '--');
 
         // Cost to Serve: FY27 totals from summaryFY27 (source: fy27-hcp-cost-savings-forecast-vs-actuals.csv / Dashboard B3+C3); FY26 from summary
         const costToServeFY = (typeof window.costToServeFY !== 'undefined' ? window.costToServeFY : 'FY27');
@@ -2722,8 +2734,32 @@ async function renderExecutiveSummary() {
             <section class="exec-summary-section">
                 <div class="exec-summary-section-header"><span class="exec-summary-section-icon">⚙️</span>Runtime Service Standards</div>
                 <div class="exec-summary-section-card">
-                    <!-- Row 1: HPA Adoption Rates -->
+                    <!-- Row 1: Avg. CPU allocation — All vs Enabled vs Disabled (row-weighted, latest month) -->
                     <div class="exec-summary-kpi-grid columns-3">
+                        ${kpiCard({
+                            title: 'Avg. CPU allocation rate (all)',
+                            value: fmtExecKarpPct(execKarpOverallPct),
+                            sub: `Row-weighted · ${execKarpenterRows.length.toLocaleString()} rows · ${karpExecMonthSub}`,
+                            valueClass: 'text-green',
+                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
+                        })}
+                        ${kpiCard({
+                            title: 'Avg. CPU allocation rate (enabled)',
+                            value: fmtExecKarpPct(execKarpEnabledPct),
+                            sub: `Row-weighted · Karpenter enabled · ${execKarpRowsEnabled.length.toLocaleString()} rows · ${karpExecMonthSub}`,
+                            valueClass: 'text-green',
+                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
+                        })}
+                        ${kpiCard({
+                            title: 'Avg. CPU allocation rate (disabled)',
+                            value: fmtExecKarpPct(execKarpDisabledPct),
+                            sub: `Row-weighted · Karpenter disabled · ${execKarpRowsDisabled.length.toLocaleString()} rows · ${karpExecMonthSub}`,
+                            valueClass: 'text-green',
+                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
+                        })}
+                    </div>
+                    <!-- Row 2: HPA Adoption Rates -->
+                    <div class="exec-summary-kpi-grid columns-3" style="margin-top: 1rem;">
                         ${kpiCard({
                             title: 'Overall HPA Adoption Rate',
                             value: `${hpaAdoptionRate.toFixed(1)}%`,
@@ -2746,7 +2782,7 @@ async function renderExecutiveSummary() {
                             onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
                         })}
                     </div>
-                    <!-- Row 2: AZ Distribution Rates -->
+                    <!-- Row 3: AZ Distribution Rates -->
                     <div class="exec-summary-kpi-grid columns-3" style="margin-top: 1rem;">
                         ${kpiCard({
                             title: 'Overall AZ Distribution Rate',
@@ -2768,30 +2804,6 @@ async function renderExecutiveSummary() {
                             sub: `${tier1AzDistrib.toLocaleString()}/${tier1Total.toLocaleString()} services`,
                             valueClass: 'text-blue',
                             onClick: "switchTab('runtime-overview'); scrollToTabContent('runtime-overview')"
-                        })}
-                    </div>
-                    <!-- Row 3: Avg. CPU Allocation rate -->
-                    <div class="exec-summary-kpi-grid columns-3" style="margin-top: 1rem;">
-                        ${kpiCard({
-                            title: 'Avg. CPU Allocation rate - FI',
-                            value: `${avgFi.toFixed(1)}%`,
-                            sub: `Avg across FI · ${karpExecMonthSub}`,
-                            valueClass: 'text-green',
-                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
-                        })}
-                        ${kpiCard({
-                            title: 'Avg. CPU Allocation rate - FD',
-                            value: `${avgFd.toFixed(1)}%`,
-                            sub: `Avg across FD · ${karpExecMonthSub}`,
-                            valueClass: 'text-green',
-                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
-                        })}
-                        ${kpiCard({
-                            title: 'Avg. CPU Allocation rate - Cluster',
-                            value: `${avgCluster.toFixed(1)}%`,
-                            sub: `Avg across clusters · ${karpExecMonthSub}`,
-                            valueClass: 'text-green',
-                            onClick: "switchTab('runtime-karpenter'); scrollToTabContent('runtime-karpenter')"
                         })}
                     </div>
                 </div>
@@ -12613,36 +12625,6 @@ function resolveKarpenterGroupKey(row, groupBy) {
     }
     const f = row[groupBy];
     return String(f != null ? f : 'unknown').trim() || 'unknown';
-}
-
-/**
- * Executive summary & Karpenter: average of per-group means. Falls back to flat row mean if result is non-physical.
- */
-function computeKarpenterMeanOfGroupMeans(rows, groupBy) {
-    if (!rows || rows.length === 0) return 0;
-    const byGroup = {};
-    rows.forEach(r => {
-        const key = resolveKarpenterGroupKey(r, groupBy);
-        if (!byGroup[key]) byGroup[key] = { sum: 0, count: 0 };
-        let v = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-        if (!Number.isFinite(v)) v = 0;
-        v = Math.max(0, Math.min(200, v));
-        byGroup[key].sum += v;
-        byGroup[key].count += 1;
-    });
-    const groups = Object.values(byGroup).filter(g => g.count > 0);
-    if (!groups.length) return 0;
-    const groupAvgs = groups.map(g => g.sum / g.count);
-    const raw = (groupAvgs.reduce((a, b) => a + b, 0)) / groupAvgs.length;
-    let out = raw;
-    if (!Number.isFinite(out) || out > 150 || out < 0) {
-        const flat = rows.map(r => {
-            const x = parseFloat(r.avg_cpu || r.avgCpu || r.avg_cpu_allocation_rate || 0);
-            return Number.isFinite(x) ? Math.max(0, Math.min(200, x)) : null;
-        }).filter(x => x !== null);
-        out = flat.length ? flat.reduce((a, b) => a + b, 0) / flat.length : 0;
-    }
-    return Math.min(100, Math.max(0, out));
 }
 
 /**
